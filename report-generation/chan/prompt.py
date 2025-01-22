@@ -71,7 +71,7 @@ def create_visualizations(data, start_date=None, end_date=None):
     if start_date and end_date:
         data = filter_data_by_date(data, start_date, end_date)
 
-    #연령별 유동인구 
+    # 연령별 유동인구 
     plt.figure(figsize=(10, 6))
     age_columns = ["남자 청년", "여자 청년", "남자 중장년", "여자 중장년", "남자 청소년 이하", "여자 청소년 이하"]
     age_values = data[age_columns].sum()  
@@ -85,7 +85,7 @@ def create_visualizations(data, start_date=None, end_date=None):
     plt.close()
     graph_paths.append(age_graph_path)
 
-    #요일별 유동인구 
+    # 요일별 유동인구 
     weekday_order = ["월", "화", "수", "목", "금", "토", "일"]
     data['요일'] = pd.Categorical(data['요일'], categories=weekday_order, ordered=True)
     
@@ -102,7 +102,7 @@ def create_visualizations(data, start_date=None, end_date=None):
     plt.close()
     graph_paths.append(weekday_graph_path)
 
-    #시간대별 유동인구
+    # 시간대별 유동인구
     plt.figure(figsize=(10, 6))
     time_values = data.groupby("시간")[age_columns].sum()  
     time_values_total = time_values.sum(axis=1) 
