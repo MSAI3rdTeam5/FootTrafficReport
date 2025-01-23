@@ -22,8 +22,8 @@ class System:
     def initialize_boundary(self, frame):
         """첫 프레임으로 경계선 설정"""
         self.frame_height, self.frame_width = frame.shape[:2]
-        boundary_width = int(self.frame_width * 0.8)  # 화면 너비의 80%
-        boundary_height = int(self.frame_height * 0.8)  # 화면 높이의 80%
+        boundary_width = int(self.frame_width * 0.7)  # 화면 너비의 70%
+        boundary_height = int(self.frame_height * 0.7)  # 화면 높이의 70%
         x1 = (self.frame_width - boundary_width) // 2
         y1 = (self.frame_height - boundary_height) // 2
         x2 = x1 + boundary_width
@@ -43,35 +43,30 @@ class System:
         # 3. 객체 트래킹
         tracked_objects = self.object_tracker.track(frame, detections)
 
-        # 4. 경계선 기반 카운트
-        counts = self.boundary_counter.count_objects(tracked_objects)
+        # 4. 경계선 기반 유동인구 수 카운트
+        total_people = self.boundary_counter.count_objects(tracked_objects)
 
-        # 5. 시간 추적 및 3분 기준 카운트 처리
-        for obj in tracked_objects:
-            track_id = obj.track_id  # 수정: obj[1] -> obj.track_id
-            if track_id not in self.time_inside:
-                self.time_inside[track_id] = time.time()  # 객체가 처음 발견되었을 때 시간을 기록
+        # 5. 결과 시각화
+        visualized_frame = self.visualizer.visualize(frame, total_people, self.boundary_counter.boundary)
 
-            if time.time() - self.time_inside[track_id] > 180 and track_id not in self.boundary_counter.crossed_ids:
-                # 객체가 3분(180초) 이상 경계선 안에 있으면 카운트 +1
-                self.boundary_counter.counts['in'] += 1  # 수정: 카운트 +1
-                self.boundary_counter.crossed_ids.add(track_id)
+        return visualized_frame, total_people
 
-        # 6. 결과 시각화
-        visualized_frame = self.visualizer.visualize(frame, counts, self.boundary_counter.boundary)
-
-        return visualized_frame, counts
 
     def run(self):
         cap = cv2.VideoCapture(self.video_source)
-        while True:
+
+        while cap.isOpened():
             ret, frame = cap.read()
+
             if not ret:
                 break
 
-            processed_frame, counts = self.process_frame(frame)
+            # 프레임 처리
+            visualized_frame, total_people = self.process_frame(frame)
 
-            cv2.imshow('Processed Frame', processed_frame)
+            # 프레임 출력
+            cv2.imshow("Processed Video", visualized_frame)
+
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
 
@@ -79,5 +74,5 @@ class System:
         cv2.destroyAllWindows()
 
 if __name__ == '__main__':
-    system = System('data/street.webm')  # 테스트할 비디오 파일 경로
+    system = System('data/7eleven.mp4')  # 테스트할 비디오 파일 경로
     system.run()
