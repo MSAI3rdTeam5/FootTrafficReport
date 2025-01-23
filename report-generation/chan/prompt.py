@@ -5,6 +5,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
 import openai  # LLM 사용 시 필요  
+import time
 
 endpoint = os.getenv("ENDPOINT_URL", "ENDPOINT_URL")  
 deployment = os.getenv("DEPLOYMENT_NAME", "gpt-4o")  
@@ -48,6 +49,7 @@ def process_data(data, start_date, end_date):
     }
     
     return processed_data
+
 def set_korean_font():
     plt.rcParams["font.family"] = "Malgun Gothic"
     plt.rcParams["axes.unicode_minus"] = False
@@ -55,7 +57,7 @@ def set_korean_font():
 set_korean_font()
 
 
-data_file = "weekend_weighted.csv" 
+data_file = "Female_weight.csv" 
 data = pd.read_csv(data_file)
 
 def filter_data_by_date(data, start_date, end_date):
@@ -65,62 +67,56 @@ def filter_data_by_date(data, start_date, end_date):
     filtered_data = data[(data['날짜'] >= start_date) & (data['날짜'] <= end_date)]
     
     return filtered_data
+
+
+def save_with_unique_name(folder, base_name, ext=".png"):
+
+    if not os.path.exists(folder):
+        os.makedirs(folder)  # 폴더가 없으면 생성
+    timestamp = int(time.time())
+    return os.path.join(folder, f"{base_name}_{timestamp}{ext}")
+
 def create_visualizations(data, start_date=None, end_date=None):
     graph_paths = []
+    data_folder = "data"
 
     if start_date and end_date:
         data = filter_data_by_date(data, start_date, end_date)
+    # 요일별 유동인구
+    weekday_order = ["월", "화", "수", "목", "금", "토", "일"]
+    data['요일'] = pd.Categorical(data['요일'], categories=weekday_order, ordered=True)
 
-    # 연령별 유동인구 
+    plt.figure(figsize=(10, 6))
+    weekday_values = data.groupby("요일")[age_columns].sum()
+    weekday_values_total = weekday_values.sum(axis=1)
+    weekday_values_total.plot(kind="bar", color="purple")
+    plt.title("요일별 유동인구 (합계)")
+    plt.ylabel("유동인구")
+    plt.xlabel("요일")
+    plt.tight_layout()
+    weekday_graph_path = save_with_unique_name(data_folder, "weekday_values")
+    plt.savefig(weekday_graph_path)
+    plt.close()
+    graph_paths.append(weekday_graph_path)
+    
+    # 연령별 유동인구
     plt.figure(figsize=(10, 6))
     age_columns = ["남자 청년", "여자 청년", "남자 중장년", "여자 중장년", "남자 청소년 이하", "여자 청소년 이하"]
-    age_values = data[age_columns].sum()  
+    age_values = data[age_columns].sum()
     age_values.plot(kind="bar", color=["skyblue", "pink", "blue", "lightcoral", "green", "lightgreen"])
     plt.title("연령별 유동인구 (합계)")
     plt.ylabel("유동인구")
     plt.xticks(rotation=45)
     plt.tight_layout()
-    age_graph_path = "age_group_values.png"
+    age_graph_path = save_with_unique_name(data_folder, "age_group_values")
     plt.savefig(age_graph_path)
     plt.close()
     graph_paths.append(age_graph_path)
 
-    # 요일별 유동인구 
-    weekday_order = ["월", "화", "수", "목", "금", "토", "일"]
-    data['요일'] = pd.Categorical(data['요일'], categories=weekday_order, ordered=True)
-    
-    plt.figure(figsize=(10, 6))
-    weekday_values = data.groupby("요일")[age_columns].sum()  
-    weekday_values_total = weekday_values.sum(axis=1)  
-    weekday_values_total.plot(kind="bar", color="purple")  
-    plt.title("요일별 유동인구 (합계)")
-    plt.ylabel("유동인구")
-    plt.xlabel("요일")
-    plt.tight_layout()
-    weekday_graph_path = "weekday_values.png"
-    plt.savefig(weekday_graph_path)
-    plt.close()
-    graph_paths.append(weekday_graph_path)
-
-    # 시간대별 유동인구
-    plt.figure(figsize=(10, 6))
-    time_values = data.groupby("시간")[age_columns].sum()  
-    time_values_total = time_values.sum(axis=1) 
-    time_values_total.plot(kind="line", marker="o", color="orange")  
-    plt.title("시간대별 유동인구 (합계)")
-    plt.ylabel("유동인구")
-    plt.xlabel("시간")
-    plt.tight_layout()
-    time_graph_path = "time_values.png"
-    plt.savefig(time_graph_path)
-    plt.close()
-    graph_paths.append(time_graph_path)
-
     # 성별 유동인구 그래프
     male_columns = [col for col in data.columns if col.startswith("남")]
     female_columns = [col for col in data.columns if col.startswith("여")]
-    
-   
+
     male_values = data[male_columns].sum()
     female_values = data[female_columns].sum()
 
@@ -131,15 +127,40 @@ def create_visualizations(data, start_date=None, end_date=None):
     plt.ylabel("유동인구")
     plt.xticks(rotation=0)
     plt.tight_layout()
-    gender_graph_path = "gender_values.png"
+    gender_graph_path = save_with_unique_name(data_folder, "gender_values")
     plt.savefig(gender_graph_path)
     plt.close()
     graph_paths.append(gender_graph_path)
 
+    # 시간대별 유동인구
+    plt.figure(figsize=(10, 6))
+    time_values = data.groupby("시간")[age_columns].sum()
+    time_values_total = time_values.sum(axis=1)
+    time_values_total.plot(kind="line", marker="o", color="orange")
+    plt.title("시간대별 유동인구 (합계)")
+    plt.ylabel("유동인구")
+    plt.xlabel("시간")
+    plt.tight_layout()
+    time_graph_path = save_with_unique_name(data_folder, "time_values")
+    plt.savefig(time_graph_path)
+    plt.close()
+    graph_paths.append(time_graph_path)
+
+   
+
     return graph_paths
-def gpt_response(persona, user_input, graph_paths,start_date,end_date):
+
+def gpt_response(persona, user_input, graph_paths, start_date, end_date):
     processed_data = process_data(data, start_date, end_date)
     date = start_date + "~" + end_date
+
+    graph_map = {
+        "요일별 유동인구 분석": next((path for path in graph_paths if "weekday_values" in path), None),
+        "연령대별 유동인구 분석": next((path for path in graph_paths if "age_group_values" in path), None),
+        "성별 유동인구 분석": next((path for path in graph_paths if "gender_values" in path), None),
+        "시간대별 유동인구 분석": next((path for path in graph_paths if "time_values" in path), None),
+    }
+
     chat_prompt = [
         {
             "role": "system",
@@ -159,15 +180,19 @@ def gpt_response(persona, user_input, graph_paths,start_date,end_date):
                 분석 방법: ""
             3. 요일별 유동인구 분석: 
                 주요 발견: [요일별 유동인구에 대한 분석 결과를 자동으로 도출하여 작성]
+                그래프: ![Graph]({graph_map['요일별 유동인구 분석']})
                 추천 전략: ""
             4. 연령대별 유동인구 분석:
                 주요 발견: [연령대별 유동인구에 대한 분석 결과를 자동으로 도출하여 작성]
+                그래프: ![Graph]({graph_map['연령대별 유동인구 분석']})
                 추천 전략: ""
             5. 성별 유동인구 분석:
                 주요 발견: [성별 유동인구에 대한 분석 결과를 자동으로 도출하여 작성]
+                그래프: ![Graph]({graph_map['성별 유동인구 분석']})
                 추천 전략: ""
             6. 시간대별 유동인구 분석: 
                 주요 발견: [시간대별 유동인구에 대한 분석 결과를 자동으로 도출하여 작성]
+                그래프: ![Graph]({graph_map['시간대별 유동인구 분석']})
                 추천 전략: ""
             7. 종합 결론: ""
 
@@ -195,15 +220,15 @@ def gpt_response(persona, user_input, graph_paths,start_date,end_date):
         }
     ]
 
-    completion = client.chat.completions.create(  
+    completion = client.chat.completions.create(
         model=deployment,
         messages=chat_prompt,
-        max_tokens=1600,  
-        temperature=0.7,  
-        top_p=0.95,  
-        frequency_penalty=0,  
+        max_tokens=1600,
+        temperature=0.7,
+        top_p=0.95,
+        frequency_penalty=0,
         presence_penalty=0,
-        stop=None,  
+        stop=None,
         stream=False
     )
     
@@ -212,17 +237,19 @@ def gpt_response(persona, user_input, graph_paths,start_date,end_date):
     else:
         content = "No content available"
 
-   
     result = content
-    if graph_paths:
-        result += "\n\n그래프 파일들:\n\n" + "\n".join([f"![Graph]({path})" for path in graph_paths])  # 이미지 파일을 Markdown 형식으로 변환
     return result
-
 
 
 start_date = "2024-01-01"
 end_date = "2024-01-07"
 graph_paths = create_visualizations(data, start_date=start_date, end_date=end_date)
 
-response = gpt_response("돼지고기집", "일주일간의 데이터를 기반으로 보고서 작성해주세요", graph_paths=graph_paths,start_date=start_date,end_date=end_date)
+response = gpt_response(
+    "돼지고기집", 
+    "일주일간의 데이터를 기반으로 보고서 작성해주세요", 
+    graph_paths=graph_paths, 
+    start_date=start_date, 
+    end_date=end_date
+)
 print(response)
