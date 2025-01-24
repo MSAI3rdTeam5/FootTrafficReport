@@ -1,15 +1,20 @@
-
 import os  
 from openai import AzureOpenAI
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
-import openai  # LLM 사용 시 필요  
+import openai  
+from dotenv import load_dotenv
 import time
+from datetime import datetime
+import numpy as np
 
-endpoint = os.getenv("ENDPOINT_URL", "ENDPOINT_URL")  
-deployment = os.getenv("DEPLOYMENT_NAME", "gpt-4o")  
-subscription_key = os.getenv("AZURE_OPENAI_API_KEY", "AZURE_OPENAI_API_KEY")  
+load_dotenv()
+
+# 환경 변수 읽기
+endpoint = os.getenv("ENDPOINT_URL")
+deployment = os.getenv("DEPLOYMENT_NAME")
+subscription_key = os.getenv("AZURE_OPENAI_API_KEY")   
 
 # Initialize Azure OpenAI Service client with key-based authentication    
 client = AzureOpenAI(  
@@ -17,9 +22,6 @@ client = AzureOpenAI(
     api_key=subscription_key,  
     api_version="2024-05-01-preview",
 )
-
-import pandas as pd
-
 def process_data(data, start_date, end_date):
    
     data["날짜"] = pd.to_datetime(data["날짜"])  
@@ -50,20 +52,19 @@ def process_data(data, start_date, end_date):
     
     return processed_data
 
+#폰트 설정
 def set_korean_font():
     plt.rcParams["font.family"] = "Malgun Gothic"
     plt.rcParams["axes.unicode_minus"] = False
 
 set_korean_font()
 
-
 data_file = "Female_weight.csv" 
 data = pd.read_csv(data_file)
 
 def filter_data_by_date(data, start_date, end_date):
-    data['날짜'] = pd.to_datetime(data['날짜'])
     
- 
+    data['날짜'] = pd.to_datetime(data['날짜'])
     filtered_data = data[(data['날짜'] >= start_date) & (data['날짜'] <= end_date)]
     
     return filtered_data
@@ -78,36 +79,49 @@ def save_with_unique_name(folder, base_name, ext=".png"):
 
 def create_visualizations(data, start_date=None, end_date=None):
     graph_paths = []
-    data_folder = "data"
+    data_folder = "data_graph"
 
     if start_date and end_date:
         data = filter_data_by_date(data, start_date, end_date)
+    else:
+        print('입력오류')
+        
+    age_columns = ["남자 청년", "여자 청년", "남자 중장년", "여자 중장년", "남자 청소년 이하", "여자 청소년 이하"]
+    
     # 요일별 유동인구
     weekday_order = ["월", "화", "수", "목", "금", "토", "일"]
     data['요일'] = pd.Categorical(data['요일'], categories=weekday_order, ordered=True)
-
     plt.figure(figsize=(10, 6))
-    weekday_values = data.groupby("요일")[age_columns].sum()
+    weekday_values = data.groupby("요일")[age_columns].sum() / 1000  # 천 명 단위로 변환
     weekday_values_total = weekday_values.sum(axis=1)
-    weekday_values_total.plot(kind="bar", color="purple")
-    plt.title("요일별 유동인구 (합계)")
-    plt.ylabel("유동인구")
+    bars = weekday_values_total.plot(kind="bar", color="purple")
+    plt.title("요일별 유동인구 (합계, 천 명)")
+    plt.ylabel("유동인구 (천 명)")
     plt.xlabel("요일")
+    plt.xticks(rotation=0) 
     plt.tight_layout()
+
+    for bar in bars.patches:
+        plt.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.1, f'{bar.get_height():,.0f}', 
+                ha='center', va='bottom', fontsize=10)
+
     weekday_graph_path = save_with_unique_name(data_folder, "weekday_values")
     plt.savefig(weekday_graph_path)
     plt.close()
     graph_paths.append(weekday_graph_path)
-    
+
     # 연령별 유동인구
     plt.figure(figsize=(10, 6))
-    age_columns = ["남자 청년", "여자 청년", "남자 중장년", "여자 중장년", "남자 청소년 이하", "여자 청소년 이하"]
-    age_values = data[age_columns].sum()
-    age_values.plot(kind="bar", color=["skyblue", "pink", "blue", "lightcoral", "green", "lightgreen"])
-    plt.title("연령별 유동인구 (합계)")
-    plt.ylabel("유동인구")
-    plt.xticks(rotation=45)
+    age_values = data[age_columns].sum() / 1000  
+    bars = age_values.plot(kind="bar", color=["skyblue", "pink", "blue", "lightcoral", "green", "lightgreen"])
+    plt.title("연령별 유동인구 (합계, 천 명)")
+    plt.ylabel("유동인구 (천 명)")
+    plt.xticks(rotation=0)
     plt.tight_layout()
+    for bar in bars.patches:
+        plt.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.1, f'{bar.get_height():,.0f}', 
+                ha='center', va='bottom', fontsize=10)
+
     age_graph_path = save_with_unique_name(data_folder, "age_group_values")
     plt.savefig(age_graph_path)
     plt.close()
@@ -117,42 +131,67 @@ def create_visualizations(data, start_date=None, end_date=None):
     male_columns = [col for col in data.columns if col.startswith("남")]
     female_columns = [col for col in data.columns if col.startswith("여")]
 
-    male_values = data[male_columns].sum()
-    female_values = data[female_columns].sum()
+    male_values = data[male_columns].sum().sum() / 1000  
+    female_values = data[female_columns].sum().sum() / 1000  
+    gender_values = [male_values, female_values]
+    labels = ["남성", "여성"]
+    colors = ["skyblue", "pink"]
 
-    plt.figure(figsize=(10, 6))
-    gender_values = pd.Series([male_values.sum(), female_values.sum()], index=["남성", "여성"])
-    gender_values.plot(kind="bar", color=["blue", "pink"])
-    plt.title("성별 유동인구 (합계)")
-    plt.ylabel("유동인구")
-    plt.xticks(rotation=0)
-    plt.tight_layout()
-    gender_graph_path = save_with_unique_name(data_folder, "gender_values")
+    plt.figure(figsize=(8, 8))
+    wedges, texts, autotexts = plt.pie(
+        gender_values, 
+        labels=None,  
+        autopct=lambda pct: f"{pct:.1f}%\n({(pct / 100 * sum(gender_values)):.1f}천 명)", 
+        colors=colors, 
+        startangle=90, 
+        textprops={'color': "black", 'fontsize': 12}
+    )
+
+    for i, label in enumerate(labels):
+        x, y = wedges[i].center  
+        angle = (wedges[i].theta2 + wedges[i].theta1) / 2  
+        x = 0.6 * wedges[i].r * np.cos(np.radians(angle))  
+        y = 0.6 * wedges[i].r * np.sin(np.radians(angle))+0.15  
+        plt.text(x, y, label, ha='center', va='center', fontsize=14, color="white", weight="bold")
+
+    
+    plt.title("성별 유동인구 (천 명)", fontsize=16)
+    gender_graph_path = save_with_unique_name(data_folder, "gender_values_pie_chart_with_labels")
     plt.savefig(gender_graph_path)
     plt.close()
     graph_paths.append(gender_graph_path)
 
-    # 시간대별 유동인구
+    #시간대별 유동인구 그래프
+    data['시간_숫자'] = pd.to_datetime(data['시간'], format='%H:%M').dt.hour
+
     plt.figure(figsize=(10, 6))
-    time_values = data.groupby("시간")[age_columns].sum()
-    time_values_total = time_values.sum(axis=1)
-    time_values_total.plot(kind="line", marker="o", color="orange")
-    plt.title("시간대별 유동인구 (합계)")
-    plt.ylabel("유동인구")
+    morning_values = data[data['시간_숫자'] < 12].groupby('시간_숫자')[age_columns].sum().sum(axis=1) / 1000  # 천 명 단위
+    afternoon_values = data[data['시간_숫자'] >= 12].groupby('시간_숫자')[age_columns].sum().sum(axis=1) / 1000  # 천 명 단위
+
+    plt.plot(morning_values.index, morning_values.values, marker='o', label="오전 (0~11시)", color="skyblue")
+    plt.plot(afternoon_values.index, afternoon_values.values, marker='o', label="오후 (12~23시)", color="orange")
+
+    
+    plt.title("시간대별 유동인구 (천 명)")
+    plt.ylabel("유동인구 (천 명)")
     plt.xlabel("시간")
-    plt.tight_layout()
-    time_graph_path = save_with_unique_name(data_folder, "time_values")
+    plt.xticks(range(24))  
+    plt.grid(axis="y", linestyle="--", alpha=0.7)
+    plt.legend()
+
+    
+    time_graph_path = save_with_unique_name(data_folder, "time_values_morning_afternoon_lines")
     plt.savefig(time_graph_path)
     plt.close()
     graph_paths.append(time_graph_path)
 
-   
-
     return graph_paths
+
 
 def gpt_response(persona, user_input, graph_paths, start_date, end_date):
     processed_data = process_data(data, start_date, end_date)
     date = start_date + "~" + end_date
+    today_date = datetime.now().strftime("%Y-%m-%d")
 
     graph_map = {
         "요일별 유동인구 분석": next((path for path in graph_paths if "weekday_values" in path), None),
@@ -174,27 +213,27 @@ def gpt_response(persona, user_input, graph_paths, start_date, end_date):
             ## 보고서 형식
 
             1. 서론: 
-                목적: ""
-            2. 분석개요: 
+                목적: "" 
                 분석 기간: 분석기간은 {date}로 설정되었습니다.
+                작성일: {today_date}
                 분석 방법: ""
-            3. 요일별 유동인구 분석: 
+            2. 요일별 유동인구 분석: 
                 주요 발견: [요일별 유동인구에 대한 분석 결과를 자동으로 도출하여 작성]
                 그래프: ![Graph]({graph_map['요일별 유동인구 분석']})
                 추천 전략: ""
-            4. 연령대별 유동인구 분석:
+            3. 연령대별 유동인구 분석:
                 주요 발견: [연령대별 유동인구에 대한 분석 결과를 자동으로 도출하여 작성]
                 그래프: ![Graph]({graph_map['연령대별 유동인구 분석']})
                 추천 전략: ""
-            5. 성별 유동인구 분석:
+            4. 성별 유동인구 분석:
                 주요 발견: [성별 유동인구에 대한 분석 결과를 자동으로 도출하여 작성]
                 그래프: ![Graph]({graph_map['성별 유동인구 분석']})
                 추천 전략: ""
-            6. 시간대별 유동인구 분석: 
+            5. 시간대별 유동인구 분석: 
                 주요 발견: [시간대별 유동인구에 대한 분석 결과를 자동으로 도출하여 작성]
                 그래프: ![Graph]({graph_map['시간대별 유동인구 분석']})
                 추천 전략: ""
-            7. 종합 결론: ""
+            6. 종합 결론: ""
 
             --- 
 
@@ -208,9 +247,10 @@ def gpt_response(persona, user_input, graph_paths, start_date, end_date):
 
             ## 지침
             1. **보고서 형식**에 맞게 작성해주세요.
-            2. 각 항목에 대해 데이터에 기반하여 **주요 발견**을 자동으로 도출하세요.
-            3. **추천 전략**은 항목별 주요 발견을 참고하여 작성해주세요. 
-            4. 보고서 형식에 1~6번 항목을 참고하여 7번의 결론을 작성해주세요.
+            2. 보고서에 **제목**은 추천전략,페르소나를 기반으로 설정해주세요. 
+            3. 각 항목에 대해 데이터에 기반하여 **주요 발견**을 자동으로 도출하세요.
+            4. **추천 전략**은 항목별 주요 발견을 참고하여 작성해주세요. 
+            5. 보고서 형식에 2~5번 항목을 참고하여 6번의 결론을 작성해주세요.
             
             """
         },
@@ -243,12 +283,10 @@ def gpt_response(persona, user_input, graph_paths, start_date, end_date):
 
 start_date = "2024-01-01"
 end_date = "2024-01-07"
-graph_paths = create_visualizations(data, start_date=start_date, end_date=end_date)
-
 response = gpt_response(
     "돼지고기집", 
-    "일주일간의 데이터를 기반으로 보고서 작성해주세요", 
-    graph_paths=graph_paths, 
+    "", 
+    graph_paths=create_visualizations(data, start_date=start_date, end_date=end_date), 
     start_date=start_date, 
     end_date=end_date
 )
