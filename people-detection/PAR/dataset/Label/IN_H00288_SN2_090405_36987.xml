@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<xml form_ver="1.0">
+    <FILE>
+        <name>IN_H00288_SN2_090405_36987.png</name>
+    </FILE>
+    <CAMERA ID="090405">
+        <gps>37.448300, 127.054732</gps>
+        <orientation>NW</orientation>
+        <resolution>FHD</resolution>
+    </CAMERA>
+    <OBJECT ID="H00288" TYPE="Human">
+        <info />
+        <gender>male</gender>
+        <age>50</age>
+        <tall>175</tall>
+        <hair_male>normal</hair_male>
+        <hair_female />
+        <hair_color>black</hair_color>
+        <upperclothes>long_sleeve</upperclothes>
+        <upperclothes_color>pink</upperclothes_color>
+        <defined_upperclothes_color>false</defined_upperclothes_color>
+        <lowerclothes>long_pants</lowerclothes>
+        <lowerclothes_color>navy</lowerclothes_color>
+        <defined_lowerclothes_color>true</defined_lowerclothes_color>
+    </OBJECT>
+    <ITEM_LIST>
+        <ITEM ID="ID00288" TYPE="ID">
+            <kind_of>mask</kind_of>
+            <item_color>sky_blue</item_color>
+            <defined_item_color>false</defined_item_color>
+        </ITEM>
+    </ITEM_LIST>
+</xml>
