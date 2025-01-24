@@ -1,9 +1,11 @@
 from ultralytics import YOLO
+from utils.tracker import SimpleTracker
 import cv2
 import numpy as np
 
+
 class PersonDetection:
-    def __init__(self, model_path='..\model\yolov8n.pt'):
+    def __init__(self, model_path='model\\yolov8n.pt'):
         # YOLOv8 모델 로드
         self.model = YOLO(model_path)
 
@@ -55,6 +57,7 @@ class BoundaryCounting:
             self.total_count += 1
             self.crossed_ids.add(obj_id)
 
+
 def main():
     # 사용자에게 입력받기
     input_type = input("Choose input type (1: Webcam, 2: Video file): ").strip()
@@ -100,9 +103,12 @@ def main():
         bboxes, confidences = detector.detect(frame)
 
         # 탐지된 사람들의 좌표와 ID를 추적
+        tracked_ids = []
+        tracked_objects = []
         for bbox, confidence in zip(bboxes, confidences):
             x1, y1, x2, y2 = map(int, bbox)
-            tracked_objects.append(((x1 + x2) // 2, (y1 + y2) // 2, object_id_counter))  # 중심 좌표와 ID
+            center_x, center_y = (x1 + x2) // 2, (y1 + y2) // 2
+            tracked_objects.append((center_x, center_y, object_id_counter))  # 중심 좌표와 ID
             tracked_ids.append(object_id_counter)
             object_id_counter += 1  # ID 증가
 
@@ -124,29 +130,6 @@ def main():
     cap.release()
     cv2.destroyAllWindows()
 
-class VisualizationOutput:
-    def __init__(self):
-        pass
-
-    def visualize(self, frame, counts, boundary):
-        # 카운트 정보 표시
-        self.draw_counts(frame, counts)
-
-        # 경계선 그리기
-        self.draw_boundary(frame, boundary)
-
-        return frame
-
-    def draw_counts(self, frame, count):
-        """화면 왼쪽 상단에 카운트 정보 표시"""
-        count_text = f"persons: {count}"
-        cv2.putText(frame, count_text, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-
-
-    def draw_boundary(self, frame, boundary):
-        """경계선을 프레임에 그리기"""
-        x1, y1, x2, y2 = boundary
-        cv2.rectangle(frame, (x1, y1), (x2, y2), (255, 0, 0), 2)
 
 if __name__ == "__main__":
     main()
