@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<xml form_ver="1.0">
+    <FILE>
+        <name>IN_H00286_SN1_090402_28781.png</name>
+    </FILE>
+    <CAMERA ID="090402">
+        <gps>37.448300, 127.054732</gps>
+        <orientation>SE</orientation>
+        <resolution>FHD</resolution>
+    </CAMERA>
+    <OBJECT ID="H00286" TYPE="Human">
+        <info />
+        <gender>female</gender>
+        <age>19</age>
+        <tall>165</tall>
+        <hair_male />
+        <hair_female>long</hair_female>
+        <hair_color>black</hair_color>
+        <upperclothes>long_sleeve</upperclothes>
+        <upperclothes_color>white</upperclothes_color>
+        <defined_upperclothes_color>true</defined_upperclothes_color>
+        <lowerclothes>short_skirt</lowerclothes>
+        <lowerclothes_color>yellow</lowerclothes_color>
+        <defined_lowerclothes_color>true</defined_lowerclothes_color>
+    </OBJECT>
+    <ITEM_LIST>
+        <ITEM ID="IE00286" TYPE="IE">
+            <kind_of>bag</kind_of>
+            <item_color>white</item_color>
+            <defined_item_color>true</defined_item_color>
+        </ITEM>
+    </ITEM_LIST>
+</xml>

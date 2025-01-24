@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<xml form_ver="1.0">
+    <FILE>
+        <name>IN_H00293_SN2_090403_12728.png</name>
+    </FILE>
+    <CAMERA ID="090403">
+        <gps>37.448699, 127.054322</gps>
+        <orientation>W</orientation>
+        <resolution>FHD</resolution>
+    </CAMERA>
+    <OBJECT ID="H00293" TYPE="Human">
+        <info />
+        <gender>male</gender>
+        <age>40</age>
+        <tall>176</tall>
+        <hair_male>normal</hair_male>
+        <hair_female />
+        <hair_color>black</hair_color>
+        <upperclothes>short_sleeve</upperclothes>
+        <upperclothes_color>white</upperclothes_color>
+        <defined_upperclothes_color>true</defined_upperclothes_color>
+        <lowerclothes>long_pants</lowerclothes>
+        <lowerclothes_color>blue</lowerclothes_color>
+        <defined_lowerclothes_color>true</defined_lowerclothes_color>
+    </OBJECT>
+    <ITEM_LIST>
+        <ITEM ID="ID00293" TYPE="ID">
+            <kind_of>mask</kind_of>
+            <item_color>black</item_color>
+            <defined_item_color>true</defined_item_color>
+        </ITEM>
+    </ITEM_LIST>
+</xml>

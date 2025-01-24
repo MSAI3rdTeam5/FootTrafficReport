@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<xml form_ver="1.0">
+    <FILE>
+        <name>IN_H00280_SN1_090411_13504.png</name>
+    </FILE>
+    <CAMERA ID="090411">
+        <gps>37.448653, 127.054530</gps>
+        <orientation>W</orientation>
+        <resolution>FHD</resolution>
+    </CAMERA>
+    <OBJECT ID="H00280" TYPE="Human">
+        <info />
+        <gender>male</gender>
+        <age>26</age>
+        <tall>177</tall>
+        <hair_male>normal</hair_male>
+        <hair_female />
+        <hair_color>black</hair_color>
+        <upperclothes>long_sleeve</upperclothes>
+        <upperclothes_color>purple</upperclothes_color>
+        <defined_upperclothes_color>true</defined_upperclothes_color>
+        <lowerclothes>long_pants</lowerclothes>
+        <lowerclothes_color>black</lowerclothes_color>
+        <defined_lowerclothes_color>true</defined_lowerclothes_color>
+    </OBJECT>
+    <ITEM_LIST>
+        <ITEM ID="ID00280" TYPE="ID">
+            <kind_of>mask</kind_of>
+            <item_color>white</item_color>
+            <defined_item_color>true</defined_item_color>
+        </ITEM>
+        <ITEM ID="IF00280" TYPE="IF">
+            <kind_of>backpack</kind_of>
+            <item_color>black</item_color>
+            <defined_item_color>true</defined_item_color>
+        </ITEM>
+        <ITEM ID="IH00280" TYPE="IH">
+            <kind_of>cellphone</kind_of>
+            <item_color>black</item_color>
+            <defined_item_color>true</defined_item_color>
+        </ITEM>
+        <ITEM ID="IZ00280" TYPE="IZ">
+            <kind_of>etc</kind_of>
+            <item_color>brown</item_color>
+            <defined_item_color>true</defined_item_color>
+        </ITEM>
+    </ITEM_LIST>
+</xml>

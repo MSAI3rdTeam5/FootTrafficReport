@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<xml form_ver="1.0">
+    <FILE>
+        <name>IN_H00302_SN3_090406_40360.png</name>
+    </FILE>
+    <CAMERA ID="090406">
+        <gps>37.448300, 127.054732</gps>
+        <orientation>SE</orientation>
+        <resolution>FHD</resolution>
+    </CAMERA>
+    <OBJECT ID="H00302" TYPE="Human">
+        <info />
+        <gender>female</gender>
+        <age>20</age>
+        <tall>160</tall>
+        <hair_male />
+        <hair_female>normal</hair_female>
+        <hair_color>brown</hair_color>
+        <upperclothes>long_sleeve</upperclothes>
+        <upperclothes_color>gray</upperclothes_color>
+        <defined_upperclothes_color>true</defined_upperclothes_color>
+        <lowerclothes>long_pants</lowerclothes>
+        <lowerclothes_color>black</lowerclothes_color>
+        <defined_lowerclothes_color>true</defined_lowerclothes_color>
+    </OBJECT>
+    <ITEM_LIST>
+        <ITEM ID="ID00302" TYPE="ID">
+            <kind_of>mask</kind_of>
+            <item_color>white</item_color>
+            <defined_item_color>true</defined_item_color>
+        </ITEM>
+        <ITEM ID="IE00302" TYPE="IE">
+            <kind_of>bag</kind_of>
+            <item_color>white</item_color>
+            <defined_item_color>true</defined_item_color>
+        </ITEM>
+        <ITEM ID="IH00302" TYPE="IH">
+            <kind_of>cellphone</kind_of>
+            <item_color>white</item_color>
+            <defined_item_color>true</defined_item_color>
+        </ITEM>
+        <ITEM ID="IR00302" TYPE="IR">
+            <kind_of>water_bottle</kind_of>
+            <item_color>black</item_color>
+            <defined_item_color>true</defined_item_color>
+        </ITEM>
+    </ITEM_LIST>
+</xml>

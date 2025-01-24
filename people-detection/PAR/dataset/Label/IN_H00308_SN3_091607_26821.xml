@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<xml form_ver="1.0">
+    <FILE>
+        <name>IN_H00308_SN3_091607_26821.png</name>
+    </FILE>
+    <CAMERA ID="091607">
+        <gps>37.448315, 127.054756</gps>
+        <orientation>NW</orientation>
+        <resolution>FHD</resolution>
+    </CAMERA>
+    <OBJECT ID="H00308" TYPE="Human">
+        <info />
+        <gender>female</gender>
+        <age>49</age>
+        <tall>158</tall>
+        <hair_male />
+        <hair_female>long</hair_female>
+        <hair_color>brown</hair_color>
+        <upperclothes>long_sleeve</upperclothes>
+        <upperclothes_color>sky_blue</upperclothes_color>
+        <defined_upperclothes_color>false</defined_upperclothes_color>
+        <lowerclothes>long_pants</lowerclothes>
+        <lowerclothes_color>black</lowerclothes_color>
+        <defined_lowerclothes_color>true</defined_lowerclothes_color>
+    </OBJECT>
+    <ITEM_LIST>
+        <ITEM ID="ID00308" TYPE="ID">
+            <kind_of>mask</kind_of>
+            <item_color>white</item_color>
+            <defined_item_color>true</defined_item_color>
+        </ITEM>
+        <ITEM ID="IE00308" TYPE="IE">
+            <kind_of>bag</kind_of>
+            <item_color>navy</item_color>
+            <defined_item_color>true</defined_item_color>
+        </ITEM>
+    </ITEM_LIST>
+</xml>
