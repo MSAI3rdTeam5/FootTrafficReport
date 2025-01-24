@@ -2,6 +2,7 @@ from ultralytics import YOLO
 from datetime import datetime
 import os
 import torch
+import cv2
 
 class PersonTracker:
     def __init__(self, model_path, result_dir='results/', tracker_config="bytetrack.yaml", conf=0.5, device=None,
@@ -53,6 +54,23 @@ class PersonTracker:
 
             except Exception as e:
                 pass
+
+            key = cv2.waitKey(1) & 0xFF
+            if key == ord('q'):  # 'q'를 누르면 프로그램 종료
+                print("Exiting...")
+                break
+            elif key == ord('s'):  # 's'를 누르면 영상 정지
+                print("Pausing video...")
+                # 추적 중지 및 영상 정지
+                while True:
+                    # 계속해서 's'를 눌러서 정지 상태를 유지
+                    key = cv2.waitKey(1) & 0xFF
+                    if key == ord('s'):  # 's'를 다시 눌러 재개
+                        print("Resuming video...")
+                        break
+                    elif key == ord('q'):  # 'q'를 누르면 종료
+                        print("Exiting...")
+                        return
 
 ### Video
 if __name__ == '__main__':
