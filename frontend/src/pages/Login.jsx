@@ -4,13 +4,12 @@ import { useNavigate } from "react-router-dom";
 function Login() {
   const navigate = useNavigate();
 
-  // 폼 submit 시 호출 (예: 로그인 로직)
+  // 로그인 폼(submit) 처리
   const handleSubmit = (event) => {
     event.preventDefault();
-    // TODO: 아이디/비번 검증 로직 등
-
-    // 로그인 성공 시, 대시보드로 이동
-    navigate("/dashboard");
+    // TODO: 실제 아이디/비번 검증 후
+    // 백엔드에 로그인 요청, 성공 시 navigate("/monitor") 등
+    navigate("/monitor");
   };
 
   return (
@@ -43,7 +42,7 @@ function Login() {
                     name="email"
                     type="email"
                     required
-                    className="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 !rounded-button placeholder-gray-400 focus:outline-none focus:ring-custom focus:border-custom text-sm"
+                    className="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-button placeholder-gray-400 focus:outline-none focus:ring-custom focus:border-custom text-sm"
                     placeholder="이메일 주소를 입력하세요"
                   />
                 </div>
@@ -65,46 +64,15 @@ function Login() {
                     name="password"
                     type="password"
                     required
-                    className="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 !rounded-button placeholder-gray-400 focus:outline-none focus:ring-custom focus:border-custom text-sm"
+                    className="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-button placeholder-gray-400 focus:outline-none focus:ring-custom focus:border-custom text-sm"
                     placeholder="비밀번호를 입력하세요"
                   />
                 </div>
               </div>
 
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <input
-                    id="remember-me"
-                    name="remember-me"
-                    type="checkbox"
-                    className="h-4 w-4 text-custom focus:ring-custom border-gray-300 !rounded"
-                  />
-                  <label
-                    htmlFor="remember-me"
-                    className="ml-2 block text-sm text-gray-700"
-                  >
-                    아이디 저장
-                  </label>
-                </div>
-                <div className="flex items-center">
-                  <input
-                    id="auto-login"
-                    name="auto-login"
-                    type="checkbox"
-                    className="h-4 w-4 text-custom focus:ring-custom border-gray-300 !rounded"
-                  />
-                  <label
-                    htmlFor="auto-login"
-                    className="ml-2 block text-sm text-gray-700"
-                  >
-                    자동 로그인
-                  </label>
-                </div>
-              </div>
-
               <button
                 type="submit"
-                className="w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium !rounded-button text-white bg-custom hover:bg-custom/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-custom"
+                className="w-full flex justify-center py-2 px-4 text-sm font-medium rounded-button text-white bg-custom hover:bg-custom/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-custom"
               >
                 로그인
               </button>
@@ -117,6 +85,62 @@ function Login() {
               <a href="#" className="text-sm text-custom hover:text-custom/90">
                 비밀번호 찾기
               </a>
+            </div>
+
+            {/* 소셜 로그인 섹션 */}
+            <div className="mt-6 border-t pt-4">
+              <p className="text-xs text-gray-500 mb-3">
+                또는 소셜 계정으로 로그인
+              </p>
+              <div className="flex flex-col items-center space-y-2">
+                {/* 1) 구글 로그인 버튼 */}
+                <a
+                  href="http://localhost:3000/auth/google"
+                  className="relative inline-block w-[240px] h-[30px] hover:opacity-90"
+                >
+                  <img
+                    src="/google.png"
+                    alt="Google 로그인"
+                    className="absolute inset-0 w-full h-full object-contain"
+                  />
+                </a>
+
+                {/* 2) 페이스북 로그인 버튼 */}
+                <a
+                  href="http://localhost:3000/auth/facebook"
+                  className="relative inline-block w-[240px] h-[30px] hover:opacity-90"
+                >
+                  <img
+                    src="/facebook.png"
+                    alt="Facebook 로그인"
+                    className="absolute inset-0 w-full h-full object-contain"
+                  />
+                </a>
+
+                {/* 3) 카카오 로그인 버튼 */}
+                <a
+                  href="http://localhost:3000/auth/kakao"
+                  className="relative inline-block w-[240px] h-[30px] hover:opacity-90"
+                >
+                  <img
+                    src="/kakao.png"
+                    alt="Kakao 로그인"
+                    className="absolute inset-0 w-full h-full object-contain"
+                  />
+                </a>
+
+                {/* 4) 네이버 로그인 버튼 */}
+                <a
+                  href="http://localhost:3000/auth/naver"
+                  className="relative inline-block w-[240px] h-[30px] hover:opacity-90"
+                >
+                  <img
+                    src="/naver.png"
+                    alt="Naver 로그인"
+                    className="absolute inset-0 w-full h-full object-contain"
+                  />
+                </a>
+              </div>
             </div>
           </div>
         </div>
