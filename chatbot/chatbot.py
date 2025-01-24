@@ -117,8 +117,8 @@ def generate_response(question: str, filtered_data: pd.DataFrame, conditions: di
     response = openai.ChatCompletion.create(
         engine=AZURE_DEPLOYMENT_NAME,
         messages=messages,
-        max_tokens=500,
-        temperature=0.7,
+        max_tokens=2000,
+        temperature=0.8,
     )
 
     # LLM 응답 추가
