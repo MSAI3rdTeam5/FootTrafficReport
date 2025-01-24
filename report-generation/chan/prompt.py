@@ -11,7 +11,10 @@ import numpy as np
 
 load_dotenv()
 
-# 환경 변수 읽기
+#여성 가중치 데이터 활용
+data_file = "Female_weight.csv" 
+data = pd.read_csv(data_file)
+
 endpoint = os.getenv("ENDPOINT_URL")
 deployment = os.getenv("DEPLOYMENT_NAME")
 subscription_key = os.getenv("AZURE_OPENAI_API_KEY")   
@@ -22,6 +25,10 @@ client = AzureOpenAI(
     api_key=subscription_key,  
     api_version="2024-05-01-preview",
 )
+
+
+#데이터 전처리 과정(현재는 시뮬레이션 데이터 활용 중)
+#아래 데이터 전처리는 요일, 연령대, 성별, 시간대별 유동인구 합계를 구하는 과정
 def process_data(data, start_date, end_date):
    
     data["날짜"] = pd.to_datetime(data["날짜"])  
@@ -52,15 +59,14 @@ def process_data(data, start_date, end_date):
     
     return processed_data
 
-#폰트 설정
+#폰트 설정(맑은 고딕체)
 def set_korean_font():
     plt.rcParams["font.family"] = "Malgun Gothic"
     plt.rcParams["axes.unicode_minus"] = False
 
 set_korean_font()
 
-data_file = "Female_weight.csv" 
-data = pd.read_csv(data_file)
+
 
 def filter_data_by_date(data, start_date, end_date):
     
@@ -187,12 +193,13 @@ def create_visualizations(data, start_date=None, end_date=None):
 
     return graph_paths
 
-
+#GPT-4o 보고서 작성 파트
 def gpt_response(persona, user_input, graph_paths, start_date, end_date):
     processed_data = process_data(data, start_date, end_date)
     date = start_date + "~" + end_date
     today_date = datetime.now().strftime("%Y-%m-%d")
 
+    #graph경로 불러오기
     graph_map = {
         "요일별 유동인구 분석": next((path for path in graph_paths if "weekday_values" in path), None),
         "연령대별 유동인구 분석": next((path for path in graph_paths if "age_group_values" in path), None),
@@ -284,9 +291,9 @@ def gpt_response(persona, user_input, graph_paths, start_date, end_date):
 start_date = "2024-01-01"
 end_date = "2024-01-07"
 response = gpt_response(
-    "돼지고기집", 
-    "", 
-    graph_paths=create_visualizations(data, start_date=start_date, end_date=end_date), 
+    "돼지고기집", #페르소나나
+    "", #빈칸일 때 무한루프 돌아감. text를 채워야함 
+    graph_paths=create_visualizations(data, start_date=start_date, end_date=end_date), #그래프 경로 
     start_date=start_date, 
     end_date=end_date
 )
