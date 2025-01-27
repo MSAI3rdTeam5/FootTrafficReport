@@ -7,7 +7,7 @@ import random
 
 class PersonTracker:
     def __init__(self, model_path, result_dir='results/', tracker_config="config/botsort.yaml", conf=0.5, device=None,
-                 iou=0.5, img_size=(720, 1080)):
+                 iou=0.5, img_size=(720, 1080), output_dir='results_video'):  # output_dir 추가
         # Set device to 'cuda:0' if GPU is available, else use 'cpu'
         self.device = device if device else ('cuda:0' if torch.cuda.is_available() else 'cpu')
         
@@ -18,9 +18,12 @@ class PersonTracker:
         self.conf = conf
         self.iou = iou
         self.img_size = img_size
+        self.output_dir = output_dir  # output_dir 초기화
 
         # ID별 색상 매핑을 저장할 딕셔너리
         self.color_map = {}
+        self.frames = []  # 저장할 프레임을 담는 리스트
+        self.boxes = []  # 바운딩 박스 정보 저장
 
     def create_result_file(self):
         folder_name = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")  # 현재 시간으로 폴더 이름 생성
@@ -51,6 +54,9 @@ class PersonTracker:
             frame = result.orig_img  # 현재 프레임 가져오기
             boxes = result.boxes  # 박스 정보 가져오기
 
+            self.frames.append(frame)  # 저장할 프레임 추가
+            self.boxes.append(boxes)  # 바운딩 박스 정보 저장
+
             try:
                 id_count = boxes.id.int().tolist()
                 for box in boxes:
@@ -65,9 +71,6 @@ class PersonTracker:
                     cv2.putText(frame, f"ID: {obj_id}", (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
 
                 max_id = max(id_count) if id_count else 0  # 현재까지 탐지된 객체 수
-
-                # 사람 수 출력
-                #cv2.putText(frame, f"Total Persons: {max_id}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
 
                 # 사람이 추가될 때마다 결과 파일에 기록
                 if max_id > person_count:
@@ -101,6 +104,68 @@ class PersonTracker:
                         return
 
         cv2.destroyAllWindows()
+
+        # 사용자 입력을 받아 저장 여부 결정
+        self.save_video_prompt()
+
+    def save_video_prompt(self):
+        save_input = input("Do you want to save the video? (y/n): ").strip().lower()
+        if save_input == 'y':
+            save_dir = "results_video"  
+            os.makedirs(save_dir, exist_ok=True)  # 폴더 생성 (이미 존재하면 건너뜀)
+
+            video_name = datetime.now().strftime("%Y-%m-%d-%H-%M-%S") + ".webm"
+            video_path = os.path.join(self.result_dir, video_name)
+            fourcc = cv2.VideoWriter_fourcc(*'VP80')  # WebM 코덱 (VP80), MP4 코덱 (mp4v)
+            height, width, _ = self.frames[0].shape
+            out = cv2.VideoWriter(video_path, fourcc, 30, (width, height))
+
+            for frame in self.frames:
+                out.write(frame)
+
+            out.release()
+            print(f"Video saved at {video_path}")
+
+            # 바운딩 박스 내 영역을 블러 처리 호출
+            self.blur_bounding_box_areas(video_path)
+
+        elif save_input == 'n':
+            print("Video not saved.")
+        else:
+            print("Invalid input. Please enter 'y' or 'n'.")
+            self.save_video_prompt()
+
+    def blur_bounding_box_areas(self, video_path):
+        
+        #바운딩 박스 영역을 블러 처리하는 메서드
+        output_name = os.path.basename(video_path).replace(".webm", "_blurred.webm")
+        output_path = os.path.join(self.output_dir, output_name)
+        
+        # Video reading and processing
+        cap = cv2.VideoCapture(video_path)
+        fourcc = cv2.VideoWriter_fourcc(*'VP80') # WebM 코덱 (VP80), MP4 코덱 (mp4v)
+        out = cv2.VideoWriter(output_path, fourcc, 30, (int(cap.get(3)), int(cap.get(4))))
+        
+        for i in range(len(self.frames)):
+            ret, frame = cap.read()
+            if not ret:
+                break
+
+            boxes = self.boxes[i]  # 해당 프레임의 박스 정보 가져오기
+            for box in boxes:
+                x1, y1, x2, y2 = map(int, box.xyxy[0].tolist())
+                # 바운딩 박스 영역을 흐리게 처리
+                roi = frame[y1:y2, x1:x2]
+                blurred_roi = cv2.GaussianBlur(roi, (15, 15), 0)
+                frame[y1:y2, x1:x2] = blurred_roi
+
+            out.write(frame)
+
+        cap.release()
+        out.release()
+        print(f"Blurred video saved at {output_path}")
+
+
 
 ### Video
 if __name__ == '__main__':
