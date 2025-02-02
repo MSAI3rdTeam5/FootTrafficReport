@@ -1,48 +1,90 @@
 from ultralytics import YOLO
 from datetime import datetime
+#from FootTrafficReport import Azure
 import os
 import torch
 import cv2
 import random
+import pandas as pd
 
+# 저장할 CSV 파일 경로
+CSV_PATH = "results/person_data.csv"
+
+# 결과 저장을 위한 CSV 파일 생성 (없으면 생성)
+if not os.path.exists(CSV_PATH):
+    pd.DataFrame(columns=['ID', 'Gender', 'Gender_Confidence', 'Age', 'Age_Confidence']).to_csv(CSV_PATH, index=False)
+
+
+def save_cropped_person(frame, x1, y1, x2, y2, obj_id, save_dir="cropped_people/"):
+        """탐지된 사람을 크롭하여 저장하는 함수"""
+        os.makedirs(save_dir, exist_ok=True)  
+        cropped_img = frame[y1:y2, x1:x2]  
+
+        # 저장할 파일 이름 (객체 ID와 프레임 정보 활용)
+        file_name = f"{save_dir}person_{obj_id}.jpg"
+        #cv2.imwrite(file_name, cropped_img)
+        
+        # **디버깅용 출력**
+        print(f"📸 Cropping person {obj_id}: {file_name}")
+    
+        # 이미지 저장
+        success = cv2.imwrite(file_name, cropped_img)  
+
+        if success:
+            print(f"✅ Saved: {file_name}")
+        else:
+            print(f"❌ Failed to save: {file_name}")  
+
+        return file_name 
+    
+def save_to_csv(obj_id, gender, gender_conf, age, age_conf):
+    """ CSV에 예측된 데이터 저장 """
+    df = pd.read_csv(CSV_PATH)
+    new_data = pd.DataFrame([{
+        'ID': obj_id, 'Gender': gender, 'Gender_Confidence': gender_conf,
+        'Age': age, 'Age_Confidence': age_conf
+    }])
+    df = pd.concat([df, new_data], ignore_index=True)
+    df.to_csv(CSV_PATH, index=False)
+    
 class PersonTracker:
-    def __init__(self, model_path, result_dir='results/', tracker_config="config/botsort.yaml", conf=0.5, device=None,
-                 iou=0.5, img_size=(720, 1080), output_dir='results_video'):  # output_dir 추가
-        # Set device to 'cuda:0' if GPU is available, else use 'cpu'
+    def __init__(self, model_path, result_dir='results/', tracker_config="/Users/chonakyung/project-3/FootTrafficReport/people-detection/config/botsort.yaml", conf=0.5, device=None,
+                 iou=0.5, img_size=(720, 1080), output_dir='results_video'):
         self.device = device if device else ('cuda:0' if torch.cuda.is_available() else 'cpu')
         
-        # YOLO 모델 로드
         self.model = YOLO(model_path)
         self.result_dir = result_dir
         self.tracker_config = tracker_config
         self.conf = conf
         self.iou = iou
         self.img_size = img_size
-        self.output_dir = output_dir  # output_dir 초기화
+        self.output_dir = output_dir
 
-        # ID별 색상 매핑을 저장할 딕셔너리
         self.color_map = {}
         self.frames = []  # 저장할 프레임을 담는 리스트
         self.boxes = []  # 바운딩 박스 정보 저장
+        
+        self.detected_ids = set()
+
 
     def create_result_file(self):
-        folder_name = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")  # 현재 시간으로 폴더 이름 생성
-        result_file_path = os.path.join(self.result_dir, folder_name + ".txt")  # 결과 파일 경로
-        os.makedirs(self.result_dir, exist_ok=True)  # 결과 디렉토리가 없으면 생성
+        folder_name = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")  
+        result_file_path = os.path.join(self.result_dir, folder_name + ".txt") 
+        os.makedirs(self.result_dir, exist_ok=True)  
         with open(result_file_path, 'w') as file:
-            file.write(folder_name + "\n")  # 파일에 현재 폴더 이름을 기록
+            file.write(folder_name + "\n") 
         return result_file_path
 
     def generate_color(self, obj_id):
         # 객체 ID에 따라 고유 색상을 생성 (이미 있으면 기존 색상 반환)
         if obj_id not in self.color_map:
-            self.color_map[obj_id] = [random.randint(0, 255) for _ in range(3)]  # RGB 값 랜덤 생성
-        return self.color_map[obj_id]
-
+            self.color_map[obj_id] = [random.randint(0, 255) for _ in range(3)] 
+        return self.color_map[obj_id] 
+    
     def detect_and_track(self, source, show=True, logger=None):
-        result_file = self.create_result_file()  # 결과 파일 생성
-        person_count = 0  # 현재 사람 수
-        previous_person_count = 0  # 이전 사람 수
+        result_file = self.create_result_file()
+        person_count = 0  
+        previous_person_count = 0  
 
         # YOLO 모델을 사용하여 추적 시작
         results = self.model.track(
@@ -58,12 +100,39 @@ class PersonTracker:
             self.boxes.append(boxes)  # 바운딩 박스 정보 저장
 
             try:
-                id_count = boxes.id.int().tolist()
+                 # ID 가져오기 (예외처리 추가)
+                try:
+                    id_count = [int(box.id) for box in boxes]
+                except:
+                    id_count = []
+
                 for box in boxes:
                     x1, y1, x2, y2 = map(int, box.xyxy[0].tolist())  # 바운딩 박스 좌표
-                    obj_id = int(box.id)  # 객체 ID
-                    color = self.generate_color(obj_id)  # 객체 ID에 따른 색상 생성
+                    obj_id = int(box.id)  
+                    color = self.generate_color(obj_id)   
                     
+                     # **🔹 처음 감지된 사람만 크롭 & 저장**
+                    if obj_id not in self.detected_ids:
+                        self.detected_ids.add(obj_id)  # 감지된 ID 저장
+                        cropped_path = save_cropped_person(frame, x1, y1, x2, y2, obj_id)
+                        print(f"📤 Cropped Image Path: {cropped_path}")
+
+                        # **Azure Custom Vision API로 전송**
+                        predictions = Azure(cropped_path)
+
+                        # **결과를 CSV에 저장**
+                        gender, gender_conf, age, age_conf = None, 0, None, 0
+                        for pred in predictions:
+                            tag_name = pred['tagName']
+                            prob = pred['probability'] * 100
+                            if tag_name in ['male', 'female']:
+                                if prob > gender_conf:
+                                    gender, gender_conf = tag_name, prob
+                            elif tag_name in ['young', 'adult', 'old']:
+                                if prob > age_conf:
+                                    age, age_conf = tag_name, prob
+
+                        save_to_csv(obj_id, gender, gender_conf, age, age_conf)
                     # 바운딩 박스 그리기
                     cv2.rectangle(frame, (x1, y1), (x2, y2), color, 2)
 
@@ -71,6 +140,9 @@ class PersonTracker:
                     cv2.putText(frame, f"ID: {obj_id}", (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
 
                 max_id = max(id_count) if id_count else 0  # 현재까지 탐지된 객체 수
+
+                # 사람 수 출력
+                #cv2.putText(frame, f"Total Persons: {max_id}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
 
                 # 사람이 추가될 때마다 결과 파일에 기록
                 if max_id > person_count:
@@ -169,8 +241,8 @@ class PersonTracker:
 
 ### Video
 if __name__ == '__main__':
-    source = "data/street.webm"
-    tracker = PersonTracker(model_path='model/yolo11n.pt')
+    source = "/Users/chonakyung/project-3/FootTrafficReport/people-detection/data/street.webm"
+    tracker = PersonTracker(model_path='/Users/chonakyung/project-3/FootTrafficReport/people-detection/model/yolo11n.pt')
     tracker.detect_and_track(source=source)
 
 ### WebCam
