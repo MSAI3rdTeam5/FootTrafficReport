@@ -93,7 +93,7 @@ def save_to_csv(obj_id, gender, gender_conf, age, age_conf):
     df.to_csv(CSV_PATH, index=False)
     
 class PersonTracker:
-    def __init__(self, model_path, result_dir='results/', tracker_config="/Users/chonakyung/project-3/FootTrafficReport/people-detection/config/botsort.yaml", conf=0.5, device=None,
+    def __init__(self, model_path, result_dir='results/', tracker_config="config/botsort.yaml", conf=0.5, device=None,
                  iou=0.5, img_size=(720, 1080), output_dir='results_video'):
         self.device = device if device else ('cuda:0' if torch.cuda.is_available() else 'cpu')
         
@@ -111,6 +111,9 @@ class PersonTracker:
         
         self.detected_ids = set()
         self.azure_api = AzureAPI()  # Azure API 객체 생성
+
+        self.max_box_sizes = {}  # 최대 박스 크기 저장
+        self.saved_crops = {}  # 크롭한 이미지 경로 저장
 
         # 크롭 이미지 저장 폴더 생성
         self.cropped_dir = "cropped_people"
@@ -278,8 +281,8 @@ class PersonTracker:
 
 ### Video
 if __name__ == '__main__':
-    source = "/Users/chonakyung/project-3/FootTrafficReport/people-detection/data/street.webm"
-    tracker = PersonTracker(model_path='/Users/chonakyung/project-3/FootTrafficReport/people-detection/model/yolo11n.pt')
+    source = "data/street.webm"
+    tracker = PersonTracker(model_path='model/yolo11n.pt')
     tracker.detect_and_track(source=source)
 
 ### WebCam
