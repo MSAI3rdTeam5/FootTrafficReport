@@ -23,6 +23,19 @@ class AzureAPI:
         response = requests.post(self.url, headers=self.headers, data=image_data)
         result = response.json()
         return self.normalize_predictions(result['predictions'])
+    
+    def get_highest_confidence(self, predictions):
+        """ 성별 및 연령 분석 결과 중 가장 높은 확률을 가진 값을 반환 """
+        gender_preds = {p['tagName']: p['probability'] * 100 for p in predictions if p['tagName'] in ['male', 'female']}
+        age_preds = {p['tagName']: p['probability'] * 100 for p in predictions if p['tagName'] in ['adult', 'old', 'young']}
+
+        gender = max(gender_preds, key=gender_preds.get, default=None)
+        age = max(age_preds, key=age_preds.get, default=None)
+
+        return {
+            'Gender': gender,
+            'Age': age
+        }
 
     def normalize_predictions(self, predictions):
         """ 성별 및 연령 분석 결과를 정규화하여 반환 """
@@ -37,63 +50,43 @@ class AzureAPI:
 
 
 # 저장할 CSV 파일 경로
-CSV_PATH = "results/person_data.csv"
-os.makedirs(os.path.dirname(CSV_PATH), exist_ok=True)
-if not os.path.exists(CSV_PATH):
-    pd.DataFrame(columns=['ID', 'Gender', 'Age', 'Time']).to_csv(CSV_PATH, index=False)
+# CSV_PATH = "results/person_data.csv"
+# os.makedirs(os.path.dirname(CSV_PATH), exist_ok=True)
+# if not os.path.exists(CSV_PATH):
+#     pd.DataFrame(columns=['cctv_id', 'detected_time','person_label','gender','age']).to_csv(CSV_PATH, index=False)
 
 
-# CSV에 데이터 저장
-def save_to_csv(obj_id, gender, age):
-    df = pd.read_csv(CSV_PATH)
-    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    new_data = pd.DataFrame([{
-        'ID': obj_id, 'Gender': gender, 'Age': age, 'Time': current_time
-    }])
-    df = pd.concat([df, new_data], ignore_index=True)
-    df.to_csv(CSV_PATH, index=False)
+# # CSV에 데이터 저장
+# def save_to_csv(obj_id, gender, age):
+#     df = pd.read_csv(CSV_PATH)
+#     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+#     new_data = pd.DataFrame([{
+#         'cctv_id': None, 'detected_time': current_time, 'person_label': obj_id, 'gender': gender, 'age': age
+#     }])
+#     df = pd.concat([df, new_data], ignore_index=True)
+#     df.to_csv(CSV_PATH, index=False)
 
-def save_cropped_image(self, frame, box, obj_id):
-        """
-        바운딩 박스가 가장 크게 늘어났을 때 캡처하여 저장
-        """
-        x1, y1, x2, y2 = map(int, box.xyxy[0].tolist())
-        width, height = x2 - x1, y2 - y1
-        box_area = width * height  # 박스 면적 계산
+def save_cropped_person(frame, x1, y1, x2, y2, obj_id, save_dir="cropped_people/"):
+        """탐지된 사람을 크롭하여 저장하는 함수"""
+        os.makedirs(save_dir, exist_ok=True)  
+        cropped_img = frame[y1:y2, x1:x2]  
 
-        # 바운딩 박스 영역을 크롭한 이미지
-        cropped_img = frame[y1:y2, x1:x2]
+        # 저장할 파일 이름 (객체 ID와 프레임 정보 활용)
+        file_name = f"{save_dir}person_{obj_id}.jpg"
+        
+        print(f" Cropping person {obj_id}: {file_name}")
+        success = cv2.imwrite(file_name, cropped_img)  
 
-        # 빈 이미지 방지
-        if cropped_img.size == 0:
-            return
+        if success:
+            print(f"Saved: {file_name}")
+        else:
+            print(f"Failed to save: {file_name}")  
 
-        # 해당 객체 ID의 기존 최대 크기 가져오기 (없으면 0으로 초기화)
-        prev_max_area = self.max_box_sizes.get(obj_id, 0)
-
-        # 현재 박스가 이전보다 크면 저장
-        if box_area > prev_max_area:
-            self.max_box_sizes[obj_id] = box_area  # 새로운 최대 크기 업데이트
-
-            # 저장
-            save_path = os.path.join(self.cropped_dir, f"ID_{obj_id}.jpg")
-            cv2.imwrite(save_path, cropped_img)  # 크롭된 이미지를 저장
-
-        # 저장된 이미지 경로 관리
-        self.saved_crops[obj_id] = save_path
+        return file_name 
     
-def save_to_csv(obj_id, gender, gender_conf, age, age_conf):
-    """ CSV에 예측된 데이터 저장 """
-    df = pd.read_csv(CSV_PATH)
-    new_data = pd.DataFrame([{
-        'ID': obj_id, 'Gender': gender, 'Gender_Confidence': gender_conf,
-        'Age': age, 'Age_Confidence': age_conf
-    }])
-    df = pd.concat([df, new_data], ignore_index=True)
-    df.to_csv(CSV_PATH, index=False)
     
 class PersonTracker:
-    def __init__(self, model_path, result_dir='results/', tracker_config="config/botsort.yaml", conf=0.5, device=None,
+    def __init__(self, model_path, result_dir='results/', tracker_config="/Users/chonakyung/project-3/FootTrafficReport/people-detection/config/botsort.yaml", conf=0.5, device=None,
                  iou=0.5, img_size=(720, 1080), output_dir='results_video'):
         self.device = device if device else ('cuda:0' if torch.cuda.is_available() else 'cpu')
         
@@ -104,20 +97,13 @@ class PersonTracker:
         self.iou = iou
         self.img_size = img_size
         self.output_dir = output_dir
-
         self.color_map = {}
-        self.frames = []  # 저장할 프레임을 담는 리스트
-        self.boxes = []  # 바운딩 박스 정보 저장
+        self.frames = []  
+        self.boxes = []  
         
         self.detected_ids = set()
         self.azure_api = AzureAPI()  # Azure API 객체 생성
 
-        self.max_box_sizes = {}  # 최대 박스 크기 저장
-        self.saved_crops = {}  # 크롭한 이미지 경로 저장
-
-        # 크롭 이미지 저장 폴더 생성
-        self.cropped_dir = "cropped_people"
-        os.makedirs(self.cropped_dir, exist_ok=True)
 
     def create_result_file(self):
         folder_name = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")  
@@ -163,15 +149,27 @@ class PersonTracker:
                     obj_id = int(box.id)  
                     color = self.generate_color(obj_id)   
                     
-                    # Azure API로 분석할 때, 새로 크롭하는 대신 저장된 이미지를 사용
-                if obj_id not in self.detected_ids and obj_id in self.saved_crops:
-                    self.detected_ids.add(obj_id)  # 감지된 ID 저장
-                    cropped_path = self.saved_crops[obj_id]  # 저장된 크롭 이미지 경로
-                    print(f"📤 Cropped Image Path: {cropped_path}")
+                     # **🔹 처음 감지된 사람만 크롭 & 저장**
+                    if obj_id not in self.detected_ids:
+                        self.detected_ids.add(obj_id)  # 감지된 ID 저장
+                        cropped_path = save_cropped_person(frame, x1, y1, x2, y2, obj_id)
+                        print(f"📤 Cropped Image Path: {cropped_path}")
 
-                    # **Azure Custom Vision API로 전송**
-                    predictions = self.azure_api.analyze_image(cropped_path)
-                    print(predictions)  # 결과 출력
+                        # **Azure Custom Vision API로 전송**
+                        predictions = self.azure_api.analyze_image(cropped_path)
+                        print(predictions)  # 결과 출력
+                        
+                        # 확률이 가장 높은 성별과 연령 가져오기
+                        gender = max([k for k in predictions if k in ['male', 'female']], key=predictions.get, default="Unknown")
+                        age = max([k for k in predictions if k in ['adult', 'old', 'young']], key=predictions.get, default="Unknown")
+
+                         # 🔹 추가된 print문: 성별과 나이를 따로 출력
+                        print(f"Detected: {gender}, {age}")  
+                        
+                        gender = predictions.get('Gender', 'Unknown')
+                        age = predictions.get('Age', 'Unknown')
+                    
+                        #save_to_csv(obj_id, gender, age)
                         
                     # 바운딩 박스 그리기
                     cv2.rectangle(frame, (x1, y1), (x2, y2), color, 2)
@@ -281,8 +279,8 @@ class PersonTracker:
 
 ### Video
 if __name__ == '__main__':
-    source = "data/street.webm"
-    tracker = PersonTracker(model_path='model/yolo11n.pt')
+    source = "/Users/chonakyung/project-3/FootTrafficReport/people-detection/data/street.webm"
+    tracker = PersonTracker(model_path='/Users/chonakyung/project-3/FootTrafficReport/people-detection/model/yolo11n.pt')
     tracker.detect_and_track(source=source)
 
 ### WebCam
