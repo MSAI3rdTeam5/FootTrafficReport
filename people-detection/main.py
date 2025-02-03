@@ -53,23 +53,34 @@ def save_to_csv(obj_id, gender, age):
     df = pd.concat([df, new_data], ignore_index=True)
     df.to_csv(CSV_PATH, index=False)
 
-def save_cropped_person(frame, x1, y1, x2, y2, obj_id, save_dir="cropped_people/"):
-        """탐지된 사람을 크롭하여 저장하는 함수"""
-        os.makedirs(save_dir, exist_ok=True)  
-        cropped_img = frame[y1:y2, x1:x2]  
+def save_cropped_image(self, frame, box, obj_id):
+        """
+        바운딩 박스가 가장 크게 늘어났을 때 캡처하여 저장
+        """
+        x1, y1, x2, y2 = map(int, box.xyxy[0].tolist())
+        width, height = x2 - x1, y2 - y1
+        box_area = width * height  # 박스 면적 계산
 
-        # 저장할 파일 이름 (객체 ID와 프레임 정보 활용)
-        file_name = f"{save_dir}person_{obj_id}.jpg"
-        
-        print(f" Cropping person {obj_id}: {file_name}")
-        success = cv2.imwrite(file_name, cropped_img)  
+        # 바운딩 박스 영역을 크롭한 이미지
+        cropped_img = frame[y1:y2, x1:x2]
 
-        if success:
-            print(f"Saved: {file_name}")
-        else:
-            print(f"Failed to save: {file_name}")  
+        # 빈 이미지 방지
+        if cropped_img.size == 0:
+            return
 
-        return file_name 
+        # 해당 객체 ID의 기존 최대 크기 가져오기 (없으면 0으로 초기화)
+        prev_max_area = self.max_box_sizes.get(obj_id, 0)
+
+        # 현재 박스가 이전보다 크면 저장
+        if box_area > prev_max_area:
+            self.max_box_sizes[obj_id] = box_area  # 새로운 최대 크기 업데이트
+
+            # 저장
+            save_path = os.path.join(self.cropped_dir, f"ID_{obj_id}.jpg")
+            cv2.imwrite(save_path, cropped_img)  # 크롭된 이미지를 저장
+
+        # 저장된 이미지 경로 관리
+        self.saved_crops[obj_id] = save_path
     
 def save_to_csv(obj_id, gender, gender_conf, age, age_conf):
     """ CSV에 예측된 데이터 저장 """
@@ -101,6 +112,9 @@ class PersonTracker:
         self.detected_ids = set()
         self.azure_api = AzureAPI()  # Azure API 객체 생성
 
+        # 크롭 이미지 저장 폴더 생성
+        self.cropped_dir = "cropped_people"
+        os.makedirs(self.cropped_dir, exist_ok=True)
 
     def create_result_file(self):
         folder_name = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")  
@@ -146,16 +160,15 @@ class PersonTracker:
                     obj_id = int(box.id)  
                     color = self.generate_color(obj_id)   
                     
-                     # **🔹 처음 감지된 사람만 크롭 & 저장**
-                    if obj_id not in self.detected_ids:
-                        self.detected_ids.add(obj_id)  # 감지된 ID 저장
-                        cropped_path = save_cropped_person(frame, x1, y1, x2, y2, obj_id)
-                        print(f"📤 Cropped Image Path: {cropped_path}")
+                    # Azure API로 분석할 때, 새로 크롭하는 대신 저장된 이미지를 사용
+                if obj_id not in self.detected_ids and obj_id in self.saved_crops:
+                    self.detected_ids.add(obj_id)  # 감지된 ID 저장
+                    cropped_path = self.saved_crops[obj_id]  # 저장된 크롭 이미지 경로
+                    print(f"📤 Cropped Image Path: {cropped_path}")
 
-                        # **Azure Custom Vision API로 전송**
-                        predictions = self.azure_api.analyze_image(cropped_path)
-                        print(predictions)  # 결과 출력
-                        
+                    # **Azure Custom Vision API로 전송**
+                    predictions = self.azure_api.analyze_image(cropped_path)
+                    print(predictions)  # 결과 출력
                         
                     # 바운딩 박스 그리기
                     cv2.rectangle(frame, (x1, y1), (x2, y2), color, 2)
