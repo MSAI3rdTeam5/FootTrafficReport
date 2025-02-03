@@ -1,19 +1,57 @@
 from ultralytics import YOLO
 from datetime import datetime
-#from FootTrafficReport import Azure
 import os
 import torch
 import cv2
 import random
 import pandas as pd
+import requests
+
+# Azure Custom Vision API 호출을 위한 클래스
+class AzureAPI:
+    def __init__(self):
+        self.url = "https://cvteam5-prediction.cognitiveservices.azure.com/customvision/v3.0/Prediction/6bf7f6a6-8f58-48ef-a6ad-3c1cf2d37ced/classify/iterations/Iteration2/image"
+        self.headers = {
+            "Prediction-Key": "8Icrrz5XXYWn6WOToZXmP6wWZ68hWOQDF4X6fOa3g8jPXc3zmrR0JQQJ99BAACYeBjFXJ3w3AAAIACOGhaam",
+            "Content-Type": "application/octet-stream"
+        }
+
+    def analyze_image(self, image_path):
+        """ Azure API를 호출하여 이미지 분석 결과를 반환 """
+        with open(image_path, "rb") as image_file:
+            image_data = image_file.read()
+        response = requests.post(self.url, headers=self.headers, data=image_data)
+        result = response.json()
+        return self.normalize_predictions(result['predictions'])
+
+    def normalize_predictions(self, predictions):
+        """ 성별 및 연령 분석 결과를 정규화하여 반환 """
+        gender_preds = {p['tagName']: p['probability'] * 100 for p in predictions if p['tagName'] in ['male', 'female']}
+        age_preds = {p['tagName']: p['probability'] * 100 for p in predictions if p['tagName'] in ['adult', 'old', 'young']}
+        
+        def normalize_group(group_preds):
+            total = sum(group_preds.values())
+            return {k: (v/total)*100 for k, v in group_preds.items()} if total > 0 else group_preds
+        
+        return {**normalize_group(gender_preds), **normalize_group(age_preds)}
+
 
 # 저장할 CSV 파일 경로
 CSV_PATH = "results/person_data.csv"
-
-# 결과 저장을 위한 CSV 파일 생성 (없으면 생성)
+os.makedirs(os.path.dirname(CSV_PATH), exist_ok=True)
 if not os.path.exists(CSV_PATH):
-    pd.DataFrame(columns=['ID', 'Gender', 'Gender_Confidence', 'Age', 'Age_Confidence']).to_csv(CSV_PATH, index=False)
+    pd.DataFrame(columns=['ID', 'Gender', 'Age', 'Time']).to_csv(CSV_PATH, index=False)
 
+
+# CSV에 데이터 저장
+def save_to_csv(obj_id, gender, age):
+    df = pd.read_csv(CSV_PATH)
+    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    new_data = pd.DataFrame([{
+        'ID': obj_id, 'Gender': gender, 'Age': age, 'Time': current_time
+    }])
+    df = pd.concat([df, new_data], ignore_index=True)
+    df.to_csv(CSV_PATH, index=False)
 
 def save_cropped_person(frame, x1, y1, x2, y2, obj_id, save_dir="cropped_people/"):
         """탐지된 사람을 크롭하여 저장하는 함수"""
@@ -22,18 +60,14 @@ def save_cropped_person(frame, x1, y1, x2, y2, obj_id, save_dir="cropped_people/
 
         # 저장할 파일 이름 (객체 ID와 프레임 정보 활용)
         file_name = f"{save_dir}person_{obj_id}.jpg"
-        #cv2.imwrite(file_name, cropped_img)
         
-        # **디버깅용 출력**
-        print(f"📸 Cropping person {obj_id}: {file_name}")
-    
-        # 이미지 저장
+        print(f" Cropping person {obj_id}: {file_name}")
         success = cv2.imwrite(file_name, cropped_img)  
 
         if success:
-            print(f"✅ Saved: {file_name}")
+            print(f"Saved: {file_name}")
         else:
-            print(f"❌ Failed to save: {file_name}")  
+            print(f"Failed to save: {file_name}")  
 
         return file_name 
     
@@ -65,6 +99,7 @@ class PersonTracker:
         self.boxes = []  # 바운딩 박스 정보 저장
         
         self.detected_ids = set()
+        self.azure_api = AzureAPI()  # Azure API 객체 생성
 
 
     def create_result_file(self):
@@ -118,21 +153,10 @@ class PersonTracker:
                         print(f"📤 Cropped Image Path: {cropped_path}")
 
                         # **Azure Custom Vision API로 전송**
-                        predictions = Azure(cropped_path)
-
-                        # **결과를 CSV에 저장**
-                        gender, gender_conf, age, age_conf = None, 0, None, 0
-                        for pred in predictions:
-                            tag_name = pred['tagName']
-                            prob = pred['probability'] * 100
-                            if tag_name in ['male', 'female']:
-                                if prob > gender_conf:
-                                    gender, gender_conf = tag_name, prob
-                            elif tag_name in ['young', 'adult', 'old']:
-                                if prob > age_conf:
-                                    age, age_conf = tag_name, prob
-
-                        save_to_csv(obj_id, gender, gender_conf, age, age_conf)
+                        predictions = self.azure_api.analyze_image(cropped_path)
+                        print(predictions)  # 결과 출력
+                        
+                        
                     # 바운딩 박스 그리기
                     cv2.rectangle(frame, (x1, y1), (x2, y2), color, 2)
 
