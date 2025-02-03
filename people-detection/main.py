@@ -49,22 +49,24 @@ class AzureAPI:
         return {**normalize_group(gender_preds), **normalize_group(age_preds)}
 
 
-# 저장할 CSV 파일 경로
-# CSV_PATH = "results/person_data.csv"
-# os.makedirs(os.path.dirname(CSV_PATH), exist_ok=True)
-# if not os.path.exists(CSV_PATH):
-#     pd.DataFrame(columns=['cctv_id', 'detected_time','person_label','gender','age']).to_csv(CSV_PATH, index=False)
+ # 저장할 CSV 파일 경로
+CSV_PATH = "results/person_data.csv"
+os.makedirs(os.path.dirname(CSV_PATH), exist_ok=True)
 
+# CSV 파일이 없으면 생성
+if not os.path.exists(CSV_PATH):
+    # 컬럼 정의 후 빈 DataFrame 생성
+    pd.DataFrame(columns=['cctv_id', 'detected_time', 'person_label', 'gender', 'age']).to_csv(CSV_PATH, index=False)
 
-# # CSV에 데이터 저장
-# def save_to_csv(obj_id, gender, age):
-#     df = pd.read_csv(CSV_PATH)
-#     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-#     new_data = pd.DataFrame([{
-#         'cctv_id': None, 'detected_time': current_time, 'person_label': obj_id, 'gender': gender, 'age': age
-#     }])
-#     df = pd.concat([df, new_data], ignore_index=True)
-#     df.to_csv(CSV_PATH, index=False)
+# CSV에 데이터 저장
+def save_to_csv(obj_id, gender, age):
+    df = pd.read_csv(CSV_PATH)
+    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    new_data = pd.DataFrame([{
+        'cctv_id': None, 'detected_time': current_time, 'person_label': obj_id, 'gender': gender, 'age': age
+     }])
+    df = pd.concat([df, new_data], ignore_index=True)
+    df.to_csv(CSV_PATH, index=False)
 
 def save_cropped_person(frame, x1, y1, x2, y2, obj_id, save_dir="cropped_people/"):
         """탐지된 사람을 크롭하여 저장하는 함수"""
@@ -86,7 +88,7 @@ def save_cropped_person(frame, x1, y1, x2, y2, obj_id, save_dir="cropped_people/
     
     
 class PersonTracker:
-    def __init__(self, model_path, result_dir='results/', tracker_config="/Users/chonakyung/project-3/FootTrafficReport/people-detection/config/botsort.yaml", conf=0.5, device=None,
+    def __init__(self, model_path, result_dir='results/', tracker_config="config/botsort.yaml", conf=0.5, device=None,
                  iou=0.5, img_size=(720, 1080), output_dir='results_video'):
         self.device = device if device else ('cuda:0' if torch.cuda.is_available() else 'cpu')
         
@@ -104,15 +106,6 @@ class PersonTracker:
         self.detected_ids = set()
         self.azure_api = AzureAPI()  # Azure API 객체 생성
 
-
-    def create_result_file(self):
-        folder_name = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")  
-        result_file_path = os.path.join(self.result_dir, folder_name + ".txt") 
-        os.makedirs(self.result_dir, exist_ok=True)  
-        with open(result_file_path, 'w') as file:
-            file.write(folder_name + "\n") 
-        return result_file_path
-
     def generate_color(self, obj_id):
         # 객체 ID에 따라 고유 색상을 생성 (이미 있으면 기존 색상 반환)
         if obj_id not in self.color_map:
@@ -120,9 +113,8 @@ class PersonTracker:
         return self.color_map[obj_id] 
     
     def detect_and_track(self, source, show=True, logger=None):
-        result_file = self.create_result_file()
         person_count = 0  
-        previous_person_count = 0  
+        previous_person_count = 0   
 
         # YOLO 모델을 사용하여 추적 시작
         results = self.model.track(
@@ -165,11 +157,9 @@ class PersonTracker:
 
                          # 🔹 추가된 print문: 성별과 나이를 따로 출력
                         print(f"Detected: {gender}, {age}")  
-                        
-                        gender = predictions.get('Gender', 'Unknown')
-                        age = predictions.get('Age', 'Unknown')
                     
-                        #save_to_csv(obj_id, gender, age)
+                        # CSV에 저장
+                        save_to_csv(obj_id, gender, age)
                         
                     # 바운딩 박스 그리기
                     cv2.rectangle(frame, (x1, y1), (x2, y2), color, 2)
@@ -178,18 +168,6 @@ class PersonTracker:
                     cv2.putText(frame, f"ID: {obj_id}", (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
 
                 max_id = max(id_count) if id_count else 0  # 현재까지 탐지된 객체 수
-
-                # 사람 수 출력
-                #cv2.putText(frame, f"Total Persons: {max_id}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-
-                # 사람이 추가될 때마다 결과 파일에 기록
-                if max_id > person_count:
-                    person_count = max_id
-                    with open(result_file, 'a') as filewrite:
-                        filewrite.write(f"Person count: {person_count}\n")
-
-                    if logger:
-                        logger.info(f"Person count: {person_count}")
 
             except Exception as e:
                 print(f"Error: {e}")
@@ -279,8 +257,8 @@ class PersonTracker:
 
 ### Video
 if __name__ == '__main__':
-    source = "/Users/chonakyung/project-3/FootTrafficReport/people-detection/data/street.webm"
-    tracker = PersonTracker(model_path='/Users/chonakyung/project-3/FootTrafficReport/people-detection/model/yolo11n.pt')
+    source = "data/street.webm"
+    tracker = PersonTracker(model_path='model/yolo11n.pt')
     tracker.detect_and_track(source=source)
 
 ### WebCam

@@ -1,7 +1,0 @@
-2025-01-24-18-35-56
-Person count: 1
-Person count: 2
-Person count: 4
-Person count: 5
-Person count: 6
-Person count: 7
