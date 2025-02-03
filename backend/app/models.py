@@ -72,7 +72,7 @@ class Report(Base):
     __tablename__ = "report"
     id = Column(Integer, primary_key=True)
     member_id = Column(Integer, ForeignKey("member.id", ondelete="CASCADE"), nullable=False)
-    cctv_id = Column(Integer, nullable=False)
+    cctv_id = Column(Integer, ForeignKey("cctv_info.id"), nullable=False)
     report_title = Column(String(200), nullable=False)
     # Postgres BYTEA -> in SQLAlchemy, you can use LargeBinary or BLOB
     # pdf_data = Column(String)
