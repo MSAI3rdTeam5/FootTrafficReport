@@ -5,7 +5,7 @@ import markdown
 import pdfkit
 import re
 
-data_file = "./data/Female_weight.csv" 
+data_file = "./yearly_data/decrease_trend_year_data.csv" 
 data = pd.read_csv(data_file)
 start_date = "2024-01-01"
 end_date = "2024-01-07"
