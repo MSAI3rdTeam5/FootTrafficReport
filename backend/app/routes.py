@@ -353,6 +353,7 @@ def list_withdrawals(db: Session = Depends(get_db)):
 
 @router.post("/report", response_model=dict)
 async def upload_report(
+    member_id: int = Form(...),
     cctv_id: int = Form(...),
     report_title: str = Form(...),
     pdf_file: UploadFile = File(...),
@@ -360,7 +361,7 @@ async def upload_report(
 ):
     """
     Multipart/Form-Data로 PDF 업로드:
-    1) 'cctv_id' (int), 'report_title' (str)은 Form 필드로 받음
+    1) 'member_id','cctv_id' (int), 'report_title' (str)은 Form 필드로 받음
     2) 'pdf_file'은 File(...)로 업로드
     3) 읽은 bytes를 DB의 LargeBinary 컬럼에 저장
     """
@@ -371,6 +372,7 @@ async def upload_report(
 
     # 2) DB 저장
     new_report = Report(
+        member_id=member_id,
         cctv_id=cctv_id,
         report_title=report_title,
         pdf_data=pdf_bytes
