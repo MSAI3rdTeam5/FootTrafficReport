@@ -1,108 +1,78 @@
-from azure.ai.search import SearchClient, SearchIndexClient
-from azure.ai.search.models import *
-from azure.core.credentials import AzureKeyCredential
-import pandas as pd
+import os
 import openai
+from azure.search.documents import SearchClient
+from azure.search.documents.models import QueryType
+from dotenv import load_dotenv
+from azure.core.credentials import AzureKeyCredential
 
-# Azure Cognitive Search 설정
-search_service_name = "your-search-service-name"  # Azure 검색 서비스 이름
-index_name = "foot-traffic-index"  # 사용할 인덱스 이름
-search_api_key = "your-search-api-key"  # Azure 검색 서비스 API 키
+# .env 파일에서 환경 변수 로드
+load_dotenv()
 
-# OpenAI API 설정
-openai.api_key = "your-openai-api-key"  # OpenAI API 키
+# Azure Cognitive Search 정보
+SEARCH_ENDPOINT = os.getenv("AZURE_SEARCH_ENDPOINT")
+SEARCH_KEY = os.getenv("AZURE_SEARCH_KEY")
+INDEX_NAME = os.getenv("AZURE_INDEX_NAME")
 
-# Azure Cognitive Search 엔드포인트 설정
-endpoint = f"https://{search_service_name}.search.windows.net"
+# OpenAI API 정보
+AZURE_OPENAI_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT")
+AZURE_OPENAI_KEY = os.getenv("AZURE_OPENAI_KEY")
+AZURE_DEPLOYMENT_NAME = os.getenv("AZURE_DEPLOYMENT_NAME")
 
-# 클라이언트 설정
-index_client = SearchIndexClient(endpoint=endpoint, credential=AzureKeyCredential(search_api_key))
-search_client = SearchClient(endpoint=endpoint, index_name=index_name, credential=AzureKeyCredential(search_api_key))
+# Azure Cognitive Search 클라이언트 초기화
+search_client = SearchClient(
+    endpoint=SEARCH_ENDPOINT, 
+    index_name=INDEX_NAME, 
+    credential=AzureKeyCredential(SEARCH_KEY)  # API 키를 AzureKeyCredential로 전달
+)
 
-# 1. 인덱스 정의 및 생성
-def create_index():
-    fields = [
-        SearchField(name="date", type=SearchFieldDataType.String, filterable=True, searchable=True),
-        SearchField(name="time", type=SearchFieldDataType.String, filterable=True, searchable=True),
-        SearchField(name="day_of_week", type=SearchFieldDataType.String, filterable=True, searchable=True),
-        SearchField(name="young_men", type=SearchFieldDataType.Int32, filterable=False, searchable=False),
-        SearchField(name="young_women", type=SearchFieldDataType.Int32, filterable=False, searchable=False),
-        SearchField(name="middle_aged_men", type=SearchFieldDataType.Int32, filterable=False, searchable=False),
-        SearchField(name="middle_aged_women", type=SearchFieldDataType.Int32, filterable=False, searchable=False),
-        SearchField(name="youth_men", type=SearchFieldDataType.Int32, filterable=False, searchable=False),
-        SearchField(name="youth_women", type=SearchFieldDataType.Int32, filterable=False, searchable=False),
-    ]
+# OpenAI GPT 초기화
+openai.api_type = "azure"
+openai.api_base = AZURE_OPENAI_ENDPOINT
+openai.api_version = "2024-08-01-preview"
+openai.api_key = AZURE_OPENAI_KEY
 
-    index = SearchIndex(name=index_name, fields=fields)
-    index_client.create_index(index)
+# 검색 함수
+def search_cognitive_search(query):
+    results = search_client.search(query, query_type=QueryType.SIMPLE)
+    documents = [doc for doc in results]  # results에서 직접 반복문을 사용하여 접근
+    return documents
 
-# 2. 데이터 업로드
-def upload_data_to_search(csv_path):
-    df = pd.read_csv(csv_path)  # CSV 파일 로드
-    documents = []
-
-    for _, row in df.iterrows():
-        document = {
-            "date": row['날짜'],
-            "time": row['시간'],
-            "day_of_week": row['요일'],
-            "young_men": row['남자 청년'],
-            "young_women": row['여자 청년'],
-            "middle_aged_men": row['남자 중장년'],
-            "middle_aged_women": row['여자 중장년'],
-            "youth_men": row['남자 청소년 이하'],
-            "youth_women": row['여자 청소년 이하']
-        }
-        documents.append(document)
-
-    result = search_client.upload_documents(documents=documents)
-    print(f"Uploaded {len(result)} documents.")
-
-# 3. 사용자 질문 처리
-def get_traffic_info(query):
-    # 질문에서 날짜와 대상 추출
-    date = "2024-01-01"  # 질문에서 추출한 날짜 (예: 질문 파싱 필요)
-    category = "young_men"  # 질문에서 추출한 카테고리 (예: 질문 파싱 필요)
-
-    # Azure Cognitive Search에서 데이터 검색
-    search_results = search_client.search(search_text=date, top=100)
-
-    # 검색된 데이터를 합산
-    total_count = sum(result[category] for result in search_results)
-
-    return f"{date}의 {category} 수는 {total_count}명입니다."
-
-# 4. OpenAI를 통해 자연어 응답 생성
-def get_openai_answer(query, raw_answer):
-    prompt = f"질문: {query}\n답변: {raw_answer}\n\n자연스럽고 친근한 답변을 작성하세요."
-    response = openai.Completion.create(
-        model="text-davinci-003",
-        prompt=prompt,
-        temperature=0.7,
-        max_tokens=100
+# OpenAI GPT 답변 생성 함수
+def generate_answer(prompt):
+    response = openai.ChatCompletion.create(
+        deployment_id=AZURE_DEPLOYMENT_NAME,  # Azure에서 사용하는 deployment_id
+        messages=[{"role": "system", "content": "You are a helpful assistant."},
+                  {"role": "user", "content": prompt}],
+        max_tokens=2000
     )
-    return response.choices[0].text.strip()
+    return response['choices'][0]['message']['content'].strip()  # 답변 내용 추출
 
-# 5. 전체 프로세스 통합
-def chatbot_response(query):
-    # 5.1. Azure Search에서 데이터 검색 및 계산
-    raw_answer = get_traffic_info(query)
+# 사용자 질문 처리 함수
+def handle_question(question):
+    # Azure Cognitive Search에서 검색
+    search_results = search_cognitive_search(question)
     
-    # 5.2. OpenAI를 사용한 자연어 답변 생성
-    openai_answer = get_openai_answer(query, raw_answer)
+    # 검색 결과를 텍스트로 변환
+    context = "\n".join([str(result) for result in search_results])
     
-    return openai_answer
+    # GPT-4에 전달할 프롬프트 생성
+    prompt = f"""
+    다음은 데이터에서 검색한 결과입니다:
+    {context}
+    
+    사용자의 질문에 답변하세요:
+    {question}
+    """
+    # OpenAI를 사용하여 답변 생성
+    answer = generate_answer(prompt)
+    return answer
 
-# 실행 예시
+# 실행
 if __name__ == "__main__":
-    # 1. 인덱스 생성 (최초 1회 실행)
-    create_index()
-
-    # 2. 데이터 업로드
-    csv_file_path = "foot_traffic_data.csv"  # CSV 파일 경로
-    upload_data_to_search(csv_file_path)
-
-    # 3. 질문 처리
-    question = "2024년 1월 1일 남자 청년의 수를 알려줘."
-    answer = chatbot_response(question)
-    print(answer)
+    while True:
+        user_input = input("질문: ")
+        if user_input.lower() == "종료":
+            print("챗봇을 종료합니다.")
+            break
+        response = handle_question(user_input)
+        print(f"답변: {response}")
