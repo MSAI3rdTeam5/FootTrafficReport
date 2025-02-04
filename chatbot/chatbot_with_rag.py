@@ -1,78 +1,141 @@
 import os
-import openai
-from azure.search.documents import SearchClient
-from azure.search.documents.models import QueryType
 from dotenv import load_dotenv
-from azure.core.credentials import AzureKeyCredential
+import openai
+import re
+from langchain_community.vectorstores import AzureSearch
+from langchain_openai.embeddings import OpenAIEmbeddings
+from langchain.chains import RetrievalQA
+from langchain_community.chat_models import AzureChatOpenAI
+from langchain.prompts import PromptTemplate
+from langchain.schema import HumanMessage
 
-# .env 파일에서 환경 변수 로드
+
+# 환경 변수 로드
 load_dotenv()
 
-# Azure Cognitive Search 정보
-SEARCH_ENDPOINT = os.getenv("AZURE_SEARCH_ENDPOINT")
-SEARCH_KEY = os.getenv("AZURE_SEARCH_KEY")
-INDEX_NAME = os.getenv("AZURE_INDEX_NAME")
+# OpenAI API 설정
+openai.api_type = "azure"
+openai.api_base = os.getenv("AZURE_OPENAI_ENDPOINT")
+openai.api_version = "2024-08-01-preview"
+openai.api_key = os.getenv("AZURE_OPENAI_KEY")
 
-# OpenAI API 정보
-AZURE_OPENAI_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT")
-AZURE_OPENAI_KEY = os.getenv("AZURE_OPENAI_KEY")
 AZURE_DEPLOYMENT_NAME = os.getenv("AZURE_DEPLOYMENT_NAME")
+AZURE_SEARCH_ENDPOINT = os.getenv("AZURE_SEARCH_ENDPOINT")
+AZURE_SEARCH_KEY = os.getenv("AZURE_SEARCH_KEY")
 
-# Azure Cognitive Search 클라이언트 초기화
-search_client = SearchClient(
-    endpoint=SEARCH_ENDPOINT, 
-    index_name=INDEX_NAME, 
-    credential=AzureKeyCredential(SEARCH_KEY)  # API 키를 AzureKeyCredential로 전달
+# Embedding 모델 설정
+embedding_function = OpenAIEmbeddings(
+    deployment=os.getenv("AZURE_EMBEDDING_DEPLOYMENT_NAME"),  # embedding 모델 배포 이름 사용
+    openai_api_key=openai.api_key
 )
 
-# OpenAI GPT 초기화
-openai.api_type = "azure"
-openai.api_base = AZURE_OPENAI_ENDPOINT
-openai.api_version = "2024-08-01-preview"
-openai.api_key = AZURE_OPENAI_KEY
 
-# 검색 함수
-def search_cognitive_search(query):
-    results = search_client.search(query, query_type=QueryType.SIMPLE)
-    documents = [doc for doc in results]  # results에서 직접 반복문을 사용하여 접근
-    return documents
 
-# OpenAI GPT 답변 생성 함수
-def generate_answer(prompt):
-    response = openai.ChatCompletion.create(
-        deployment_id=AZURE_DEPLOYMENT_NAME,  # Azure에서 사용하는 deployment_id
-        messages=[{"role": "system", "content": "You are a helpful assistant."},
-                  {"role": "user", "content": prompt}],
-        max_tokens=2000
-    )
-    return response['choices'][0]['message']['content'].strip()  # 답변 내용 추출
 
-# 사용자 질문 처리 함수
-def handle_question(question):
-    # Azure Cognitive Search에서 검색
-    search_results = search_cognitive_search(question)
-    
-    # 검색 결과를 텍스트로 변환
-    context = "\n".join([str(result) for result in search_results])
-    
-    # GPT-4에 전달할 프롬프트 생성
-    prompt = f"""
-    다음은 데이터에서 검색한 결과입니다:
-    {context}
-    
-    사용자의 질문에 답변하세요:
-    {question}
+# AzureSearch 설정
+retriever = AzureSearch(
+    index_name="foot-index",
+    azure_search_endpoint=AZURE_SEARCH_ENDPOINT,
+    azure_search_key=AZURE_SEARCH_KEY,
+    embedding_function=embedding_function
+)
+
+# 질문 분석 함수
+def process_question(question):
+    # 날짜 추출
+    date = re.search(r'\d{4}-\d{2}-\d{2}', question)
+
+    # 시간 추출
+    time = re.search(r'\d{1,2}(시|:\d{2})', question)
+
+    # 성별 추출
+    gender = None
+    if "남자" in question:
+        gender = "male"
+    elif "여자" in question:
+        gender = "female"
+
+    # 연령대 추출
+    age_group = None
+    if "청년" in question:
+        age_group = "young"
+    elif "성인" in question:
+        age_group = "adult"
+    elif "노인" in question:
+        age_group = "old"
+
+    return {
+        "date": date.group(0) if date else None,
+        "time": time.group(0).replace("시", ":00") if time else None,
+        "gender": gender,
+        "age_group": age_group
+    }
+
+# 데이터 요청 함수
+def query_data_from_ai_search(question_details):
+    column = f"{question_details['gender']}_{question_details['age_group']}"
+
+    # 질문 템플릿
+    query_template = """
+    데이터베이스에서 다음 조건에 맞는 데이터를 검색하세요:
+    날짜: {date}
+    시간: {time}
+    성별 및 연령대: {column}
+
+    결과가 없으면 "관련 데이터를 찾을 수 없습니다."라고 반환하세요.
     """
-    # OpenAI를 사용하여 답변 생성
-    answer = generate_answer(prompt)
-    return answer
+    query_prompt = PromptTemplate.from_template(query_template)
 
-# 실행
+    query = query_prompt.format(
+        date=question_details.get("date", "제공되지 않음"),
+        time=question_details.get("time", "제공되지 않음"),
+        column=column
+    )
+
+    # 데이터 검색
+    results = retriever.get_relevant_documents(query)
+    if not results:
+        return "관련 데이터를 찾을 수 없습니다."
+    return results
+
+# GPT 응답 생성 함수
+def generate_response_from_gpt(question, result):
+    chat_model = AzureChatOpenAI(
+        deployment_name=AZURE_DEPLOYMENT_NAME,
+        temperature=0,
+        openai_api_key=openai.api_key
+    )
+
+    prompt = f"""
+    너는 데이터 분석 챗봇이야. 사용자가 질문한 내용을 데이터로 분석해 답변해줘.
+
+    질문: {question}
+
+    결과:
+    {result if result else "관련 데이터를 찾을 수 없습니다."}
+
+    답변을 자연스럽고 친절하게 작성해줘.
+    """
+
+    response = chat_model([HumanMessage(content=prompt)])
+    return response.content
+
+# 전체 처리 함수
+def chatbot_response(question):
+    question_details = process_question(question)
+    result = query_data_from_ai_search(question_details)
+    return generate_response_from_gpt(question, result)
+
+# 사용자 입력 처리
 if __name__ == "__main__":
+    print("안녕하세요! 데이터 분석 챗봇입니다. 질문을 입력해주세요.")
     while True:
-        user_input = input("질문: ")
-        if user_input.lower() == "종료":
-            print("챗봇을 종료합니다.")
+        user_question = input("질문: ")
+        if user_question.lower() in ["exit", "quit", "종료"]:
+            print("챗봇을 종료합니다. 이용해주셔서 감사합니다!")
             break
-        response = handle_question(user_input)
-        print(f"답변: {response}")
+        try:
+            response = chatbot_response(user_question)
+            print(f"답변: {response}")
+        except Exception as e:
+            print(f"오류가 발생했습니다: {e}")
