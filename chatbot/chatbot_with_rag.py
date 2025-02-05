@@ -23,12 +23,8 @@ AZURE_DEPLOYMENT_NAME = os.getenv("AZURE_DEPLOYMENT_NAME")
 AZURE_SEARCH_ENDPOINT = os.getenv("AZURE_SEARCH_ENDPOINT")
 AZURE_SEARCH_KEY = os.getenv("AZURE_SEARCH_KEY")
 
-# Embedding 모델 설정
-embedding_function = OpenAIEmbeddings(
-    deployment=os.getenv("AZURE_EMBEDDING_DEPLOYMENT_NAME"),  # embedding 모델 배포 이름 사용
-    openai_api_key=openai.api_key
-)
-
+# OpenAI Embedding 객체 생성
+embedding_function = OpenAIEmbeddings(openai_api_key=openai.api_key)
 
 
 
