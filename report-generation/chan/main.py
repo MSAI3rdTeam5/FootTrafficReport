@@ -5,10 +5,12 @@ import markdown
 import pdfkit
 import re
 
-data_file = "./FootTrafficReport/report-generation/chan/data/Female_weight.csv" 
+data_file = "./FootTrafficReport/report-generation/chan/yearly_data/decrease_trend_year_data.csv" 
 data = pd.read_csv(data_file)
+
 start_date = "2024-01-01"
 end_date = "2024-01-07"
+
 response = gpt_response(
     "돼지고기집", 
     "일주일간의 데이터를 기반으로 보고서 작성해주세요", 
@@ -99,3 +101,4 @@ def markdown_to_pdf(markdown_text, output_pdf_path):
 
 output_pdf_path = "report_v3.pdf"
 markdown_to_pdf(response, output_pdf_path)
+

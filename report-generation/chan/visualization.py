@@ -5,8 +5,8 @@ import numpy as np
 import pandas as pd
 
 def filter_data_by_date(data, start_date, end_date):
-    data['날짜'] = pd.to_datetime(data['날짜'])
-    return data[(data['날짜'] >= start_date) & (data['날짜'] <= end_date)]
+    data['date'] = pd.to_datetime(data['date'])
+    return data[(data['date'] >= start_date) & (data['date'] <= end_date)]
 
 def save_with_unique_name(folder, base_name, ext=".png"):
     if not os.path.exists(folder):
@@ -35,13 +35,13 @@ def create_visualizations(data, start_date=None, end_date=None):
     else:
         print('입력오류')
         
-    age_columns = ["남자 청년", "여자 청년", "남자 중장년", "여자 중장년", "남자 청소년 이하", "여자 청소년 이하"]
+    age_columns = ["male_adult", "female_adult", "male_old", "female_old", "male_young", "female_young"]
     
     # 요일별 유동인구
     weekday_order = ["월", "화", "수", "목", "금", "토", "일"]
-    data['요일'] = pd.Categorical(data['요일'], categories=weekday_order, ordered=True)
+    data['day_of_week'] = pd.Categorical(data['day_of_week'], categories=weekday_order, ordered=True)
     plt.figure(figsize=(10, 6))
-    weekday_values = data.groupby("요일")[age_columns].sum() / 1000  # 천 명 단위로 변환
+    weekday_values = data.groupby("day_of_week")[age_columns].sum() / 1000  # 천 명 단위로 변환
     weekday_values_total = weekday_values.sum(axis=1)
     bars = weekday_values_total.plot(kind="bar", color="purple")
     plt.title("요일별 유동인구 (합계, 천 명)")
@@ -77,8 +77,8 @@ def create_visualizations(data, start_date=None, end_date=None):
     graph_paths.append(age_graph_path)
 
     # 성별 유동인구 그래프
-    male_columns = [col for col in data.columns if col.startswith("남")]
-    female_columns = [col for col in data.columns if col.startswith("여")]
+    male_columns = [col for col in data.columns if col.startswith("male")]
+    female_columns = [col for col in data.columns if col.startswith("female")]
 
     male_values = data[male_columns].sum().sum() / 1000  
     female_values = data[female_columns].sum().sum() / 1000  
@@ -111,7 +111,7 @@ def create_visualizations(data, start_date=None, end_date=None):
     graph_paths.append(gender_graph_path)
 
     #시간대별 유동인구 그래프
-    data['시간_숫자'] = pd.to_datetime(data['시간'], format='%H:%M').dt.hour
+    data['시간_숫자'] = pd.to_datetime(data['time'], format='%H:%M').dt.hour
 
     plt.figure(figsize=(10, 6))
     morning_values = data[data['시간_숫자'] < 12].groupby('시간_숫자')[age_columns].sum().sum(axis=1) / 1000  # 천 명 단위
