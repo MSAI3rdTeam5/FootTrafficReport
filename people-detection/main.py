@@ -7,38 +7,22 @@ import random
 import pandas as pd
 import requests
 
-# Azure Custom Vision API 호출을 위한 클래스
 class AzureAPI:
     def __init__(self):
-        self.url = "https://cvteam5-prediction.cognitiveservices.azure.com/customvision/v3.0/Prediction/6bf7f6a6-8f58-48ef-a6ad-3c1cf2d37ced/classify/iterations/Iteration2/image"
+        self.url = "https://cvteam5-prediction.cognitiveservices.azure.com/customvision/v3.0/Prediction/b87cc58e-8c3d-4d37-8777-d33c07195f06/classify/iterations/Iteration2/image"
         self.headers = {
             "Prediction-Key": "8Icrrz5XXYWn6WOToZXmP6wWZ68hWOQDF4X6fOa3g8jPXc3zmrR0JQQJ99BAACYeBjFXJ3w3AAAIACOGhaam",
             "Content-Type": "application/octet-stream"
         }
 
     def analyze_image(self, image_path):
-        """ Azure API를 호출하여 이미지 분석 결과를 반환 """
         with open(image_path, "rb") as image_file:
             image_data = image_file.read()
         response = requests.post(self.url, headers=self.headers, data=image_data)
         result = response.json()
         return self.normalize_predictions(result['predictions'])
     
-    def get_highest_confidence(self, predictions):
-        """ 성별 및 연령 분석 결과 중 가장 높은 확률을 가진 값을 반환 """
-        gender_preds = {p['tagName']: p['probability'] * 100 for p in predictions if p['tagName'] in ['male', 'female']}
-        age_preds = {p['tagName']: p['probability'] * 100 for p in predictions if p['tagName'] in ['adult', 'old', 'young']}
-
-        gender = max(gender_preds, key=gender_preds.get, default=None)
-        age = max(age_preds, key=age_preds.get, default=None)
-
-        return {
-            'Gender': gender,
-            'Age': age
-        }
-
     def normalize_predictions(self, predictions):
-        """ 성별 및 연령 분석 결과를 정규화하여 반환 """
         gender_preds = {p['tagName']: p['probability'] * 100 for p in predictions if p['tagName'] in ['male', 'female']}
         age_preds = {p['tagName']: p['probability'] * 100 for p in predictions if p['tagName'] in ['adult', 'old', 'young']}
         
@@ -48,50 +32,23 @@ class AzureAPI:
         
         return {**normalize_group(gender_preds), **normalize_group(age_preds)}
 
-
- # 저장할 CSV 파일 경로
-CSV_PATH = "results/person_data.csv"
-os.makedirs(os.path.dirname(CSV_PATH), exist_ok=True)
-
-# CSV 파일이 없으면 생성
-if not os.path.exists(CSV_PATH):
-    # 컬럼 정의 후 빈 DataFrame 생성
-    pd.DataFrame(columns=['cctv_id', 'detected_time', 'person_label', 'gender', 'age']).to_csv(CSV_PATH, index=False)
-
-# CSV에 데이터 저장
-def save_to_csv(obj_id, gender, age):
-    df = pd.read_csv(CSV_PATH)
-    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    new_data = pd.DataFrame([{
-        'cctv_id': None, 'detected_time': current_time, 'person_label': obj_id, 'gender': gender, 'age': age
-     }])
-    df = pd.concat([df, new_data], ignore_index=True)
-    df.to_csv(CSV_PATH, index=False)
-
+"""탐지된 사람을 크롭하여 저장하는 함수"""
 def save_cropped_person(frame, x1, y1, x2, y2, obj_id, save_dir="cropped_people/"):
-        """탐지된 사람을 크롭하여 저장하는 함수"""
         os.makedirs(save_dir, exist_ok=True)  
         cropped_img = frame[y1:y2, x1:x2]  
 
-        # 저장할 파일 이름 (객체 ID와 프레임 정보 활용)
         file_name = f"{save_dir}person_{obj_id}.jpg"
         
         print(f" Cropping person {obj_id}: {file_name}")
         success = cv2.imwrite(file_name, cropped_img)  
-
-        if success:
-            print(f"Saved: {file_name}")
-        else:
-            print(f"Failed to save: {file_name}")  
-
+        
         return file_name 
     
     
 class PersonTracker:
-    def __init__(self, model_path, result_dir='results/', tracker_config="config/botsort.yaml", conf=0.5, device=None,
+    def __init__(self, model_path, result_dir='results/', tracker_config="/Users/chonakyung/project-3/FootTrafficReport/people-detection/config/botsort.yaml", conf=0.5, device=None,
                  iou=0.5, img_size=(720, 1080), output_dir='results_video'):
         self.device = device if device else ('cuda:0' if torch.cuda.is_available() else 'cpu')
-        
         self.model = YOLO(model_path)
         self.result_dir = result_dir
         self.tracker_config = tracker_config
@@ -102,109 +59,102 @@ class PersonTracker:
         self.color_map = {}
         self.frames = []  
         self.boxes = []  
-        
         self.detected_ids = set()
-        self.azure_api = AzureAPI()  # Azure API 객체 생성
+        self.azure_api = AzureAPI()  
 
     def generate_color(self, obj_id):
-        # 객체 ID에 따라 고유 색상을 생성 (이미 있으면 기존 색상 반환)
         if obj_id not in self.color_map:
             self.color_map[obj_id] = [random.randint(0, 255) for _ in range(3)] 
         return self.color_map[obj_id] 
     
-    def detect_and_track(self, source, show=True, logger=None):
-        person_count = 0  
-        previous_person_count = 0   
-
-        # YOLO 모델을 사용하여 추적 시작
+    ''' save_cropped_person 함수를 호출하여 크롭된 이미지를 저장하고, Azure API를 호출하여 성별과 나이를 분석하는 함수'''
+    def detect_and_track(self, source, cctv_id, show=True, logger=None):
         results = self.model.track(
             source, show=False, stream=True, tracker=self.tracker_config, conf=self.conf,
             device=self.device, iou=self.iou, stream_buffer=True, classes=[0], imgsz=self.img_size
         )
 
         for i, result in enumerate(results):
-            frame = result.orig_img  # 현재 프레임 가져오기
-            boxes = result.boxes  # 박스 정보 가져오기
+            frame = result.orig_img  
+            boxes = result.boxes  
 
-            self.frames.append(frame)  # 저장할 프레임 추가
-            self.boxes.append(boxes)  # 바운딩 박스 정보 저장
+            self.frames.append(frame)  
+            self.boxes.append(boxes)  
 
             try:
-                 # ID 가져오기 (예외처리 추가)
                 try:
                     id_count = [int(box.id) for box in boxes]
                 except:
                     id_count = []
 
                 for box in boxes:
-                    x1, y1, x2, y2 = map(int, box.xyxy[0].tolist())  # 바운딩 박스 좌표
+                    x1, y1, x2, y2 = map(int, box.xyxy[0].tolist())  
                     obj_id = int(box.id)  
                     color = self.generate_color(obj_id)   
                     
-                     # **🔹 처음 감지된 사람만 크롭 & 저장**
                     if obj_id not in self.detected_ids:
-                        self.detected_ids.add(obj_id)  # 감지된 ID 저장
+                        self.detected_ids.add(obj_id) 
                         cropped_path = save_cropped_person(frame, x1, y1, x2, y2, obj_id)
-                        print(f"📤 Cropped Image Path: {cropped_path}")
-
-                        # **Azure Custom Vision API로 전송**
-                        predictions = self.azure_api.analyze_image(cropped_path)
-                        print(predictions)  # 결과 출력
                         
-                        # 확률이 가장 높은 성별과 연령 가져오기
+                        predictions = self.azure_api.analyze_image(cropped_path)
+                        
                         gender = max([k for k in predictions if k in ['male', 'female']], key=predictions.get, default="Unknown")
                         age = max([k for k in predictions if k in ['adult', 'old', 'young']], key=predictions.get, default="Unknown")
 
-                         # 🔹 추가된 print문: 성별과 나이를 따로 출력
                         print(f"Detected: {gender}, {age}")  
                     
-                        # CSV에 저장
-                        save_to_csv(obj_id, gender, age)
+                        # 백엔드 서버의 URL (API endpoint)
+                        url = "https://msteam5iseeu.ddns.net/api/cctv_data" 
                         
-                    # 바운딩 박스 그리기
+                        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+                        data = {
+                            "cctv_id": cctv_id,
+                            "detected_time": current_time,
+                            "person_label": obj_id,
+                            "gender": gender,
+                            "age": age
+                        }
+                        
+                        response = requests.post(url, json=data, verify=False)
+                
+                        print(response.json())
+
                     cv2.rectangle(frame, (x1, y1), (x2, y2), color, 2)
 
-                    # 객체 ID 텍스트 추가
                     cv2.putText(frame, f"ID: {obj_id}", (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
 
-                max_id = max(id_count) if id_count else 0  # 현재까지 탐지된 객체 수
+                max_id = max(id_count) if id_count else 0  
 
             except Exception as e:
                 print(f"Error: {e}")
 
-            # 프레임 디스플레이
             cv2.imshow("Person Tracking", frame)
-
-            # 키 입력 처리
+            
             key = cv2.waitKey(1) & 0xFF
-            if key == ord('q'):  # 'q'를 누르면 프로그램 종료
-                print("Exiting...")
+            if key == ord('q'): 
                 break
-            elif key == ord('s'):  # 's'를 누르면 영상 정지
-                print("Pausing video...")
+            elif key == ord('s'):  
                 while True:
                     key = cv2.waitKey(1) & 0xFF
-                    if key == ord('s'):  # 's'를 다시 눌러 재개
-                        print("Resuming video...")
+                    if key == ord('s'):  
                         break
-                    elif key == ord('q'):  # 'q'를 누르면 종료
-                        print("Exiting...")
+                    elif key == ord('q'):  
                         return
 
         cv2.destroyAllWindows()
 
-        # 사용자 입력을 받아 저장 여부 결정
         self.save_video_prompt()
 
     def save_video_prompt(self):
         save_input = input("Do you want to save the video? (y/n): ").strip().lower()
         if save_input == 'y':
             save_dir = "results_video"  
-            os.makedirs(save_dir, exist_ok=True)  # 폴더 생성 (이미 존재하면 건너뜀)
+            os.makedirs(save_dir, exist_ok=True)  
 
             video_name = datetime.now().strftime("%Y-%m-%d-%H-%M-%S") + ".webm"
             video_path = os.path.join(self.result_dir, video_name)
-            fourcc = cv2.VideoWriter_fourcc(*'VP80')  # WebM 코덱 (VP80), MP4 코덱 (mp4v)
+            fourcc = cv2.VideoWriter_fourcc(*'VP80')  
             height, width, _ = self.frames[0].shape
             out = cv2.VideoWriter(video_path, fourcc, 30, (width, height))
 
@@ -214,7 +164,6 @@ class PersonTracker:
             out.release()
             print(f"Video saved at {video_path}")
 
-            # 바운딩 박스 내 영역을 블러 처리 호출
             self.blur_bounding_box_areas(video_path)
 
         elif save_input == 'n':
@@ -225,13 +174,11 @@ class PersonTracker:
 
     def blur_bounding_box_areas(self, video_path):
         
-        #바운딩 박스 영역을 블러 처리하는 메서드
         output_name = os.path.basename(video_path).replace(".webm", "_blurred.webm")
         output_path = os.path.join(self.output_dir, output_name)
         
-        # Video reading and processing
         cap = cv2.VideoCapture(video_path)
-        fourcc = cv2.VideoWriter_fourcc(*'VP80') # WebM 코덱 (VP80), MP4 코덱 (mp4v)
+        fourcc = cv2.VideoWriter_fourcc(*'VP80') 
         out = cv2.VideoWriter(output_path, fourcc, 30, (int(cap.get(3)), int(cap.get(4))))
         
         for i in range(len(self.frames)):
@@ -239,10 +186,9 @@ class PersonTracker:
             if not ret:
                 break
 
-            boxes = self.boxes[i]  # 해당 프레임의 박스 정보 가져오기
+            boxes = self.boxes[i]  
             for box in boxes:
                 x1, y1, x2, y2 = map(int, box.xyxy[0].tolist())
-                # 바운딩 박스 영역을 흐리게 처리
                 roi = frame[y1:y2, x1:x2]
                 blurred_roi = cv2.GaussianBlur(roi, (15, 15), 0)
                 frame[y1:y2, x1:x2] = blurred_roi
@@ -252,17 +198,18 @@ class PersonTracker:
         cap.release()
         out.release()
         print(f"Blurred video saved at {output_path}")
-
-
-
-### Video
+'''
+Test code 할때는 __name__ == "__main__"으로 실행 (detect_people 함수는 주석 처리)
+웹으로 호출해서 실제 cctv에서 실행할때는 detect_people로 실행 (__name__ == "__main__" 주석 처리)
+'''
+### 웹으로 호출되는 함수로 매개변수 (soruce url(cctv_url), cctv_id)를 받아서 실행
+# def detect_people(source, cctv_id):
+#     tracker = PersonTracker(model_path='/Users/chonakyung/project-3/FootTrafficReport/people-detection/model/yolo11n.pt')
+#     tracker.detect_and_track(source=source, cctv_id=cctv_id)
+    
+### Test할때 하는 작업
 if __name__ == '__main__':
-    source = "data/street.webm"
-    tracker = PersonTracker(model_path='model/yolo11n.pt')
-    tracker.detect_and_track(source=source)
+    source = "/Users/chonakyung/project-3/FootTrafficReport/people-detection/data/08_store.mp4"
+    tracker = PersonTracker(model_path='/Users/chonakyung/project-3/FootTrafficReport/people-detection/model/yolo11n.pt')
+    tracker.detect_and_track(source=source, cctv_id= 13)
 
-### WebCam
-#if __name__ == '__main__':
-#    source = 0  # Use 0 for the default webcam
-#    tracker = PersonTracker(model_path='model/yolo11n.pt')
-#    tracker.detect_and_track(source=source)
