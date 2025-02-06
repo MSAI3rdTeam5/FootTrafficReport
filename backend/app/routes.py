@@ -101,10 +101,12 @@ def delete_member(member_id: int, db: Session = Depends(get_db)):
 class CctvInfoCreate(BaseModel):
     member_id: int
     cctv_name: str
+    api_url: Optional[str] = None  # CCTV API 주소 (nullable)
     location: Optional[str] = None
 
 class CctvInfoUpdate(BaseModel):
     cctv_name: Optional[str] = None
+    api_url: Optional[str] = None  # CCTV API 주소 (nullable)
     location: Optional[str] = None
 
 @router.post("/cctvs", response_model=dict)
@@ -112,7 +114,8 @@ def create_cctv(data: CctvInfoCreate, db: Session = Depends(get_db)):
     new_cctv = CctvInfo(
         member_id=data.member_id,
         cctv_name=data.cctv_name,
-        location=data.location
+        api_url=data.api_url,  # 추가
+        location=data.location,
     )
     db.add(new_cctv)
     db.commit()
@@ -127,6 +130,7 @@ def list_cctvs(db: Session = Depends(get_db)):
             "id": c.id,
             "member_id": c.member_id,
             "cctv_name": c.cctv_name,
+            "api_url": c.api_url,
             "location": c.location
         } for c in cctvs
     ]
@@ -140,6 +144,7 @@ def get_cctv(cctv_id: int, db: Session = Depends(get_db)):
         "id": cctv.id,
         "member_id": cctv.member_id,
         "cctv_name": cctv.cctv_name,
+        "api_url": cctv.api_url,
         "location": cctv.location
     }
 
@@ -153,6 +158,8 @@ def update_cctv(cctv_id: int, data: CctvInfoUpdate, db: Session = Depends(get_db
         cctv.cctv_name = data.cctv_name
     if data.location is not None:
         cctv.location = data.location
+    if data.api_url is not None:
+        cctv.api_url = data.api_url
 
     db.commit()
     db.refresh(cctv)

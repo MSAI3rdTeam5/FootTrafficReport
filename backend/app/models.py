@@ -22,6 +22,7 @@ class CctvInfo(Base):
     id = Column(Integer, primary_key=True)
     member_id = Column(Integer, ForeignKey("member.id", ondelete="CASCADE"), nullable=False)
     cctv_name = Column(String(100), nullable=False)
+    api_url = Column(String(255), nullable=True)  # CCTV API 주소
     location = Column(String(100))
     created_at = Column(TIMESTAMP, server_default=func.now())
     owner = relationship("Member", back_populates="cctvs")
