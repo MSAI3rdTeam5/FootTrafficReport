@@ -2,11 +2,11 @@ import requests
 
 def Azure():
     # 1. URL 설정
-    url = "https://cvteam5-prediction.cognitiveservices.azure.com/customvision/v3.0/Prediction/6bf7f6a6-8f58-48ef-a6ad-3c1cf2d37ced/classify/iterations/Iteration2/image"
+    url = "Published Prediction URL"
 
     # 2&3. Headers 설정
     headers = {
-        "Prediction-Key": "8Icrrz5XXYWn6WOToZXmP6wWZ68hWOQDF4X6fOa3g8jPXc3zmrR0JQQJ99BAACYeBjFXJ3w3AAAIACOGhaam",
+        "Prediction-Key": "Published Prediction Key",
         "Content-Type": "application/octet-stream"
     }
 
@@ -22,7 +22,6 @@ def Azure():
 
     # 결과 확인
     result = response.json()
-    #print(result)
 
     # predictions 딕셔너리 생성
     predictions = {}
