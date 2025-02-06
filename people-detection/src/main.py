@@ -66,7 +66,7 @@ class PersonTracker:
             self.color_map[obj_id] = [random.randint(0, 255) for _ in range(3)]
         return self.color_map[obj_id]
 
-    async def detect_and_track(self, source):
+    async def detect_and_track(self, source, cctv_id):
         results = self.model.track(
             source, show=False, stream=True, tracker=self.tracker_config, conf=self.conf,
             device=self.device, iou=self.iou, stream_buffer=True, classes=[0], imgsz=self.img_size
@@ -96,7 +96,7 @@ class PersonTracker:
                     self.detected_ids.add(obj_id)
                     # 원본 프레임에서 크롭
                     cropped_path = self.save_cropped_person(frame, x1, y1, x2, y2, obj_id)
-                    tasks.append(self.process_person(obj_id, cropped_path))
+                    tasks.append(self.process_person(obj_id, cropped_path, cctv_id))
 
                 # 디스플레이 프레임에만 바운딩 박스 그리기
                 cv2.rectangle(display_frame, (x1, y1), (x2, y2), color, 2)
@@ -118,33 +118,39 @@ class PersonTracker:
         await self.azure_api.close()
         self.save_blurred_video_prompt()
 
-    async def process_person(self, obj_id, cropped_path):
+    async def process_person(self, obj_id, cropped_path, cctv_id):
         predictions = await self.azure_api.analyze_image(cropped_path)
         gender = max([k for k in predictions if k in ['male', 'female']], key=predictions.get, default="Unknown")
         age = max([k for k in predictions if k in ['adult', 'old', 'young']], key=predictions.get, default="Unknown")
-        await self.save_to_csv(obj_id, gender, age)
+        
+        await self.send_data_to_server(obj_id, gender, age, cctv_id)
 
+    async def send_data_to_server(self, obj_id, gender, age, cctv_id):
+        """백엔드 서버로 분석 결과 전송"""
+        url = "https://msteam5iseeu.ddns.net/api/cctv_data"
+        data = {
+            "cctv_id": cctv_id,
+            "detected_time": datetime.now().isoformat(),
+            "person_label": str(obj_id),  # 문자열로 변환
+            "gender": gender,
+            "age": age
+        }
+ 
+        session = aiohttp.ClientSession()
+        try:
+            async with session.post(url, json=data) as response:
+                print(await response.json())
+        except aiohttp.ClientError as e:
+            print(f"⚠️ Failed to connect to server: {e}")
+        finally:
+            await session.close()
+                
     def save_cropped_person(self, frame, x1, y1, x2, y2, obj_id, save_dir="../outputs/cropped_people/"):
         os.makedirs(save_dir, exist_ok=True)
-        cropped_img = frame[y1:y2, x1:x2]
         file_name = f"{save_dir}person_{obj_id}.jpg"
-        cv2.imwrite(file_name, cropped_img)
+        cv2.imwrite(file_name, frame[y1:y2, x1:x2])
         return file_name
-
-    async def save_to_csv(self, obj_id, gender, age):
-        csv_path = "../outputs/results/person_data.csv"
-        os.makedirs(os.path.dirname(csv_path), exist_ok=True)
-        if not os.path.exists(csv_path):
-            pd.DataFrame(columns=['cctv_id', 'detected_time', 'person_label', 'gender', 'age']).to_csv(csv_path, index=False)
-        
-        df = pd.read_csv(csv_path)
-        new_data = pd.DataFrame([{
-            'cctv_id': None, 'detected_time': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            'person_label': obj_id, 'gender': gender, 'age': age
-        }])
-        df = pd.concat([df, new_data], ignore_index=True)
-        df.to_csv(csv_path, index=False)
-
+    
     def save_blurred_video_prompt(self):
         save_input = input("Do you want to save the blurred video? (y/n): ").strip().lower()
         if save_input == 'y':
@@ -176,7 +182,17 @@ class PersonTracker:
         out.release()
         print(f"Blurred video saved at {output_path}")
 
+'''
+Test code 할때는 __name__ == "__main__"으로 실행 (detect_people 함수는 주석 처리)
+웹으로 호출해서 실제 cctv에서 실행할때는 detect_people로 실행 (__name__ == "__main__" 주석 처리)
+'''
+### 웹으로 호출되는 함수로 매개변수 (soruce url(cctv_url), cctv_id)를 받아서 실행
+# def detect_people(source, cctv_id):
+#     tracker = PersonTracker(model_path='/Users/chonakyung/project-3/FootTrafficReport/people-detection/model/yolo11n.pt')
+#     asyncio.run(tracker.detect_and_track(source=source, cctv_id=cctv_id)) 
+
+### Test할때 하는 작업 (cctv_id는 임의로 설정)
 if __name__ == '__main__':
-    source = "../data/videos/02_도로.mp4"    # source = 0  # Use 0 for the default webcam
-    tracker = PersonTracker(model_path="../model/yolo11n-pose.pt")
-    asyncio.run(tracker.detect_and_track(source=source))
+    source = "../data/videos/02_도로.mp4"
+    tracker = PersonTracker(model_path='../model/yolo11n-pose.pt')
+    asyncio.run(tracker.detect_and_track(source=source, cctv_id=1))
