@@ -4,6 +4,9 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import PrivacyOverlay from "./PrivacyOverlay";
 
+// API 호출 헬퍼 함수 임포트
+import { callPeopleDetection } from "../utils/api";
+
 function Monitor() {
   const location = useLocation();
 
@@ -88,18 +91,40 @@ function Monitor() {
   // === [추가: 실시간 영상 오버레이 상태] ===
   const [showVideoOverlay, setShowVideoOverlay] = useState(false);
   const [selectedDevice, setSelectedDevice] = useState(null);
+  // 모달 상태에 추가 데이터를 포함하도록 확장
+  const [videoOverlayData, setVideoOverlayData] = useState(null);
 
   // 장치 클릭 시 오버레이 열기
-  const openVideoOverlay = (device) => {
-    setSelectedDevice(device);
-    setShowVideoOverlay(true);
+  // const openVideoOverlay = (device) => {
+  //   setSelectedDevice(device);
+  //   setShowVideoOverlay(true);
+  // };
+    // 오버레이 닫기
+  // const closeVideoOverlay = () => {
+  //   setSelectedDevice(null);
+  //   setShowVideoOverlay(false);
+  // };
+  const openVideoOverlayWithDetection = async (deviceInfo) => {
+    // deviceInfo에 cctv_url, cctv_id 추가 (예시 값; 실제 값은 장치 정보에서 받아야 함)
+    const cctv_url = "https://videos-3.earthcam.com/fecnetwork/32781.flv/chunklist_w678325738.m3u8?t=wFpB2Fyz3qRC%2BL7EEuRepKwbaynYM1VRHVhMSXiPmu6doVjT%2BpI06iVNLdLPV4ra&td=202502042208"; // 예시: 실제 CCTV 영상 URL
+    const cctv_id = "1"; // 예시: 장치 고유 ID
+
+    try {
+      // people-detection API 호출
+      const detectionData = await callPeopleDetection(cctv_url, cctv_id);
+      // detectionData가 { videoStreamUrl, recognitionLog } 형태라고 가정
+      // 모달에 device 정보와 detectionData를 합쳐서 전달
+      setVideoOverlayData({
+        ...deviceInfo,
+        videoStreamUrl: detectionData.videoStreamUrl,
+        recognitionLog: detectionData.recognitionLog,
+      });
+    } catch (error) {
+      console.error("Failed to call people-detection service:", error);
+      // 에러 처리 (예: 알림 표시)
+    }
   };
 
-  // 오버레이 닫기
-  const closeVideoOverlay = () => {
-    setSelectedDevice(null);
-    setShowVideoOverlay(false);
-  };
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans">
@@ -290,7 +315,7 @@ function Monitor() {
               <div
                 className="relative cursor-pointer"
                 onClick={() =>
-                  openVideoOverlay({
+                  openVideoOverlayWithDetection({
                     title: "정문 CCTV",
                     status: "온라인",
                     location: "서울시 강남구",
@@ -321,7 +346,7 @@ function Monitor() {
               <div
                 className="relative cursor-pointer"
                 onClick={() =>
-                  openVideoOverlay({
+                  openVideoOverlayWithDetection({
                     title: "로비 CCTV",
                     status: "온라인",
                     location: "서울시 강남구",
@@ -352,7 +377,7 @@ function Monitor() {
               <div
                 className="relative cursor-pointer"
                 onClick={() =>
-                  openVideoOverlay({
+                  openVideoOverlayWithDetection({
                     title: "주차장 CCTV",
                     status: "오프라인",
                     location: "서울시 강남구",
@@ -576,8 +601,11 @@ function Monitor() {
       {privacyOpen && <PrivacyOverlay open={privacyOpen} onClose={closePrivacy} />}
 
       {/* ====== 실시간 영상 오버레이 ====== */}
-      {showVideoOverlay && selectedDevice && (
-        <LiveVideoOverlay device={selectedDevice} onClose={closeVideoOverlay} />
+      {videoOverlayData && (
+        <LiveVideoOverlay
+          device={videoOverlayData}
+          onClose={() => setVideoOverlayData(null)}
+        />
       )}
     </div>
   );
@@ -610,21 +638,33 @@ function LiveVideoOverlay({ device, onClose }) {
         <div className="flex flex-1 overflow-hidden">
           {/* 좌측: 실시간 영상 (추후 스트리밍/서버 연결) */}
           <div className="flex-1 border-r p-4 flex items-center justify-center">
-            <div className="bg-gray-100 w-full h-full flex items-center justify-center">
-              <span className="text-gray-500">실시간 영상 Placeholder</span>
-            </div>
+            {device.videoStreamUrl ? (
+              <video className="w-full h-full" controls autoPlay>
+                <source src={device.videoStreamUrl} type="application/x-mpegURL" />
+                브라우저가 비디오 태그를 지원하지 않습니다.
+              </video>
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                <span className="text-gray-500">실시간 영상 없음</span>
+              </div>
+            )}
           </div>
 
           {/* 우측: 로그 (추후 DB 연동) */}
           <div className="w-1/3 p-4 flex flex-col">
             <h3 className="font-semibold mb-2 text-gray-800">데이터 로그</h3>
             <div className="flex-1 bg-gray-50 rounded p-2 overflow-auto text-sm text-gray-700">
+              {device.recognitionLog ? (
+                  <pre>{device.recognitionLog}</pre>
+                ) : (
+                  <p>로그 없음</p>
+                )}
               {/* 임의의 로그 예시 */}
-              <p>[12:01:23] 남성, 30대</p>
+              {/* <p>[12:01:23] 남성, 30대</p>
               <p>[12:05:10] 여성, 20대</p>
               <p>[12:10:33] 남성, 40대</p>
               <p>[12:15:47] 여성, 50대</p>
-              <p>[12:20:59] 남성, 20대</p>
+              <p>[12:20:59] 남성, 20대</p> */}
               {/* ... */}
             </div>
           </div>
