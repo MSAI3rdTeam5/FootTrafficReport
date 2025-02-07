@@ -30,8 +30,8 @@ def get_monthly_sales(region, industry):
     return None
 
 # 사용 예시
-region = "��Ű����б�"
-industry = "������ ����"
+region = "이북5도청사"
+industry = "한식음식점"
 monthly_sales = get_monthly_sales(region, industry)
 
 if monthly_sales:
