@@ -11,10 +11,10 @@ import asyncio
 
 class AzureAPI:
     def __init__(self):
-        self.url = "https://cvteam5-prediction.cognitiveservices.azure.com/customvision/v3.0/Prediction/b87cc58e-8c3d-4d37-8777-d33c07195f06/classify/iterations/Iteration2/image"
+        self.url = "PATH_YOUR_URL"
         self.headers = {
-            "Prediction-Key": "8Icrrz5XXYWn6WOToZXmP6wWZ68hWOQDF4X6fOa3g8jPXc3zmrR0JQQJ99BAACYeBjFXJ3w3AAAIACOGhaam",
-            "Content-Type": "application/octet-stream"
+            "Prediction-Key": "PATH_YOUR_KEY",
+            "Content-Type": "PATH_YOUR_TYPE"
         }
         self.session = None
 
