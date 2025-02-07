@@ -31,7 +31,7 @@ def get_monthly_sales(region, industry):
 
 # 사용 예시
 region = "이북5도청사"
-industry = "편의점점"
+industry = "편의점"
 monthly_sales = get_monthly_sales(region, industry)
 
 if monthly_sales:
