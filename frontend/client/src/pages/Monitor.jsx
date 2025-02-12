@@ -4,8 +4,8 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import PrivacyOverlay from "./PrivacyOverlay";
 
-// API 호출 헬퍼 함수 임포트
-import { callPeopleDetection } from "../utils/api";
+// API 호출 헬퍼 함수 (예: 사람 감지용)
+// import { callPeopleDetection } from "../utils/api"; // 필요 시 사용
 
 function Monitor() {
   const location = useLocation();
@@ -28,20 +28,8 @@ function Monitor() {
   const [deviceUser, setDeviceUser] = useState("");
   const [devicePass, setDevicePass] = useState("");
 
-  const openDeviceModal = (type) => {
-    setDeviceType(type);
-    setDeviceModalOpen(true);
-  };
-  const closeDeviceModal = () => {
-    setDeviceModalOpen(false);
-    setDeviceType(null);
-    setDeviceName("");
-    setDeviceIP("");
-    setDevicePort("");
-    setDeviceUser("");
-    setDevicePass("");
-  };
-  const handleSubmitDevice = (e) => {
+  // [수정점] 실제 등록 함수
+  const handleSubmitDevice = async (e) => {
     e.preventDefault();
     console.log("[장치 등록]", {
       deviceType,
@@ -51,7 +39,32 @@ function Monitor() {
       deviceUser,
       devicePass,
     });
-    setDeviceModalOpen(false);
+
+    // 예: cameraId = deviceName, rtspUrl = "rtsp://IP:Port"
+    // 실제로는 deviceUser/devicePass를 rtsp URL에 포함하거나, 
+    // 다른 방식으로 전달할 수도 있음
+    const cameraId = deviceName || `cam-${Date.now()}`;
+    const rtspUrl = `rtsp://${deviceIP || "192.168.0.10"}:${devicePort || "554"}`;
+
+    try {
+      const res = await fetch("/api/cameras", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cameraId, rtspUrl }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        console.log("카메라 등록 성공:", data);
+        // data.hlsUrl 등을 UI에 표시하거나, cameraList에 추가
+        setCameraList((prev) => [...prev, { cameraId, hlsUrl: data.hlsUrl }]);
+      } else {
+        alert(data.error || "카메라 등록 실패");
+      }
+    } catch (err) {
+      console.error("Failed to register camera:", err);
+    }
+
+    closeDeviceModal();
   };
 
   // 탭 강조 로직
@@ -68,14 +81,10 @@ function Monitor() {
   // ---- [추가] 로그인된 사용자의 displayName 관리 ----
   const [displayName, setDisplayName] = useState("김관리자");
   useEffect(() => {
-    console.log("Monitor useEffect triggered");
     // 서버에서 현재 유저 정보 가져오기 (예시)
     fetch("/api/user", { credentials: "include" })
       .then((res) => {
-        if (!res.ok) {
-          // 로그인 안 된 상태 등
-          return null;
-        }
+        if (!res.ok) return null; // 로그인 안 된 상태
         return res.json();
       })
       .then((data) => {
@@ -88,43 +97,26 @@ function Monitor() {
       });
   }, []);
 
-  // === [추가: 실시간 영상 오버레이 상태] ===
-  const [showVideoOverlay, setShowVideoOverlay] = useState(false);
-  const [selectedDevice, setSelectedDevice] = useState(null);
-  // 모달 상태에 추가 데이터를 포함하도록 확장
-  const [videoOverlayData, setVideoOverlayData] = useState(null);
+  // [수정점] 등록된 카메라 목록 관리
+  const [cameraList, setCameraList] = useState([
+    // 예시로 몇 개 넣을 수도 있음
+    // { cameraId: "cam1", hlsUrl: "/hls/cam1/playlist.m3u8" }
+  ]);
 
-  // 장치 클릭 시 오버레이 열기
-  // const openVideoOverlay = (device) => {
-  //   setSelectedDevice(device);
-  //   setShowVideoOverlay(true);
-  // };
-    // 오버레이 닫기
-  // const closeVideoOverlay = () => {
-  //   setSelectedDevice(null);
-  //   setShowVideoOverlay(false);
-  // };
-  const openVideoOverlayWithDetection = async (deviceInfo) => {
-    // deviceInfo에 cctv_url, cctv_id 추가 (예시 값; 실제 값은 장치 정보에서 받아야 함)
-    const cctv_url = "https://videos-3.earthcam.com/fecnetwork/32781.flv/chunklist_w678325738.m3u8?t=wFpB2Fyz3qRC%2BL7EEuRepKwbaynYM1VRHVhMSXiPmu6doVjT%2BpI06iVNLdLPV4ra&td=202502042208"; // 예시: 실제 CCTV 영상 URL
-    const cctv_id = "1"; // 예시: 장치 고유 ID
-
-    try {
-      // people-detection API 호출
-      const detectionData = await callPeopleDetection(cctv_url, cctv_id);
-      // detectionData가 { videoStreamUrl, recognitionLog } 형태라고 가정
-      // 모달에 device 정보와 detectionData를 합쳐서 전달
-      setVideoOverlayData({
-        ...deviceInfo,
-        videoStreamUrl: detectionData.videoStreamUrl,
-        recognitionLog: detectionData.recognitionLog,
-      });
-    } catch (error) {
-      console.error("Failed to call people-detection service:", error);
-      // 에러 처리 (예: 알림 표시)
-    }
+  // [수정점] 장치 연결 모달 열기/닫기
+  const openDeviceModal = (type) => {
+    setDeviceType(type);
+    setDeviceModalOpen(true);
   };
-
+  const closeDeviceModal = () => {
+    setDeviceModalOpen(false);
+    setDeviceType(null);
+    setDeviceName("");
+    setDeviceIP("");
+    setDevicePort("");
+    setDeviceUser("");
+    setDevicePass("");
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans">
@@ -306,106 +298,9 @@ function Monitor() {
           </div>
         </div>
 
-        {/* 연결된 장치 목록 예시 */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-          <div className="p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">연결된 장치</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {/* 정문 CCTV (온라인) */}
-              <div
-                className="relative cursor-pointer"
-                onClick={() =>
-                  openVideoOverlayWithDetection({
-                    title: "정문 CCTV",
-                    status: "온라인",
-                    location: "서울시 강남구",
-                  })
-                }
-              >
-                <div className="w-full h-[180px] rounded-lg overflow-hidden">
-                  <img
-                    src="/정문.png"
-                    alt="정문 CCTV"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <div className="absolute top-2 left-2">
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                    온라인
-                  </span>
-                </div>
-                <div className="mt-2">
-                  <h3 className="text-sm font-medium text-gray-900">
-                    정문 CCTV
-                  </h3>
-                  <p className="text-sm text-gray-500">서울시 강남구</p>
-                </div>
-              </div>
+        {/* [수정점] 등록된 카메라 목록 표시 */}
+        <ConnectedDevices cameraList={cameraList} />
 
-              {/* 로비 CCTV (온라인) */}
-              <div
-                className="relative cursor-pointer"
-                onClick={() =>
-                  openVideoOverlayWithDetection({
-                    title: "로비 CCTV",
-                    status: "온라인",
-                    location: "서울시 강남구",
-                  })
-                }
-              >
-                <div className="w-full h-[180px] rounded-lg overflow-hidden">
-                  <img
-                    src="/로비.png"
-                    alt="로비 CCTV"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <div className="absolute top-2 left-2">
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                    온라인
-                  </span>
-                </div>
-                <div className="mt-2">
-                  <h3 className="text-sm font-medium text-gray-900">
-                    로비 CCTV
-                  </h3>
-                  <p className="text-sm text-gray-500">서울시 강남구</p>
-                </div>
-              </div>
-
-              {/* 주차장 CCTV (오프라인) */}
-              <div
-                className="relative cursor-pointer"
-                onClick={() =>
-                  openVideoOverlayWithDetection({
-                    title: "주차장 CCTV",
-                    status: "오프라인",
-                    location: "서울시 강남구",
-                  })
-                }
-              >
-                <div className="w-full h-[180px] rounded-lg overflow-hidden">
-                  <img
-                    src="/주차장.png"
-                    alt="주차장 CCTV"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <div className="absolute top-2 left-2">
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                    오프라인
-                  </span>
-                </div>
-                <div className="mt-2">
-                  <h3 className="text-sm font-medium text-gray-900">
-                    주차장 CCTV
-                  </h3>
-                  <p className="text-sm text-gray-500">서울시 강남구</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
 
       <footer className="bg-white border-t border-gray-200 mt-8">
@@ -511,6 +406,7 @@ function Monitor() {
               )}
             </div>
 
+            {/* [수정점] 실제 등록 함수와 연결 */}
             <form onSubmit={handleSubmitDevice}>
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -601,74 +497,34 @@ function Monitor() {
       {privacyOpen && <PrivacyOverlay open={privacyOpen} onClose={closePrivacy} />}
 
       {/* ====== 실시간 영상 오버레이 ====== */}
-      {videoOverlayData && (
-        <LiveVideoOverlay
-          device={videoOverlayData}
-          onClose={() => setVideoOverlayData(null)}
-        />
-      )}
+      {/* 현재 코드와 동일: videoOverlayData 등 활용 시 */}
     </div>
   );
 }
 
-/**
- * 실시간 영상 오버레이
- * - 상단에 영상 제목
- * - 좌측: 실시간 영상(Placeholder), 우측: 로그 창(Placeholder)
- */
-function LiveVideoOverlay({ device, onClose }) {
+// [수정점] 간단히 등록된 카메라 목록을 나타내는 컴포넌트
+function ConnectedDevices({ cameraList }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      {/* 오버레이 박스 */}
-      <div className="bg-white w-11/12 max-w-5xl h-5/6 rounded-md shadow-lg relative flex flex-col">
-        {/* 헤더 영역 */}
-        <div className="px-4 py-2 border-b flex justify-between items-center">
-          <h2 className="text-lg font-semibold">
-            {device.title || "실시간 영상"}
-          </h2>
-          <button
-            className="text-gray-600 hover:text-gray-900"
-            onClick={onClose}
-          >
-            닫기
-          </button>
-        </div>
-
-        {/* 내용 영역 */}
-        <div className="flex flex-1 overflow-hidden">
-          {/* 좌측: 실시간 영상 (추후 스트리밍/서버 연결) */}
-          <div className="flex-1 border-r p-4 flex items-center justify-center">
-            {device.videoStreamUrl ? (
-              <video className="w-full h-full" controls autoPlay>
-                <source src={device.videoStreamUrl} type="application/x-mpegURL" />
-                브라우저가 비디오 태그를 지원하지 않습니다.
-              </video>
-            ) : (
-              <div className="w-full h-full flex items-center justify-center bg-gray-100">
-                <span className="text-gray-500">실시간 영상 없음</span>
-              </div>
-            )}
-          </div>
-
-          {/* 우측: 로그 (추후 DB 연동) */}
-          <div className="w-1/3 p-4 flex flex-col">
-            <h3 className="font-semibold mb-2 text-gray-800">데이터 로그</h3>
-            <div className="flex-1 bg-gray-50 rounded p-2 overflow-auto text-sm text-gray-700">
-              {device.recognitionLog ? (
-                  <pre>{device.recognitionLog}</pre>
-                ) : (
-                  <p>로그 없음</p>
-                )}
-              {/* 임의의 로그 예시 */}
-              {/* <p>[12:01:23] 남성, 30대</p>
-              <p>[12:05:10] 여성, 20대</p>
-              <p>[12:10:33] 남성, 40대</p>
-              <p>[12:15:47] 여성, 50대</p>
-              <p>[12:20:59] 남성, 20대</p> */}
-              {/* ... */}
-            </div>
-          </div>
-        </div>
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden mb-6">
+      <div className="p-6">
+        <h2 className="text-xl font-bold text-gray-900 mb-4">연결된 장치</h2>
+        {cameraList.length === 0 ? (
+          <p className="text-gray-500">아직 등록된 카메라가 없습니다.</p>
+        ) : (
+          <ul className="space-y-3">
+            {cameraList.map((cam) => (
+              <li key={cam.cameraId} className="p-2 bg-gray-50 rounded">
+                <div className="flex justify-between items-center">
+                  <span className="font-medium text-gray-700">
+                    {cam.cameraId}
+                  </span>
+                  {/* 예: HLS URL 표시 or 복사 */}
+                  <span className="text-xs text-gray-400">{cam.hlsUrl}</span>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </div>
   );
