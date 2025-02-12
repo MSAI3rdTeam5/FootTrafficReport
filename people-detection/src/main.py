@@ -9,7 +9,6 @@ import pandas as pd
 import aiohttp
 import asyncio
 
-# Initialize Azure API connection details
 # Azure API 연결 세부 정보 초기화
 class AzureAPI:
     def __init__(self):
@@ -20,7 +19,6 @@ class AzureAPI:
         }
         self.session = None
 
-    # Start an aiohttp client session
     # aiohttp 클라이언트 세션 시작
     async def start(self):
         self.session = aiohttp.ClientSession()
