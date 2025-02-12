@@ -8,25 +8,29 @@ import pandas as pd
 
 load_dotenv()
 
-# 환경 변수 읽기
+# env파일 불러오기. GPT-4o or o1 사용가능
 endpoint = os.getenv("ENDPOINT_URL")
 deployment = os.getenv("DEPLOYMENT_NAME")
 subscription_key = os.getenv("AZURE_OPENAI_API_KEY")   
 
-# Initialize Azure OpenAI Service client with key-based authentication    
 client = AzureOpenAI(  
     azure_endpoint=endpoint,  
     api_key=subscription_key,  
     api_version="2024-05-01-preview",
 )
 
-
+# Azure Open AI를 활용해 Chat-bot으로 보고서 생성 코드
 def gpt_response(persona, user_input, data, start_date, end_date):
+    
+    #데이터 시각화 그래프 경로 불러오기
     graph_paths = create_visualizations(data, start_date=start_date, end_date=end_date)
+    
+    #가공된 데이터 불러오기
     processed_data = process_data(data, start_date, end_date)
     date = start_date + "~" + end_date
     today_date = datetime.now().strftime("%Y-%m-%d")
 
+    #불러온 그래프 경로활용
     graph_map = {
         "요일별 유동인구 분석": next((path for path in graph_paths if "weekday_values" in path), None),
         "연령대별 유동인구 분석": next((path for path in graph_paths if "age_group_values" in path), None),
@@ -34,6 +38,7 @@ def gpt_response(persona, user_input, data, start_date, end_date):
         "시간대별 유동인구 분석": next((path for path in graph_paths if "time_values" in path), None),
     }
 
+    # 프롬프팅 구현
     chat_prompt = [
         {
             "role": "system",
@@ -115,7 +120,7 @@ def gpt_response(persona, user_input, data, start_date, end_date):
     completion = client.chat.completions.create(
         model=deployment,
         messages=chat_prompt,
-        max_tokens=3500,
+        max_tokens=3500, # default token 수는 보고서 생성에 제약이 있어 늘림
         temperature=0.7,
         top_p=0.95,
         frequency_penalty=0,
@@ -124,6 +129,7 @@ def gpt_response(persona, user_input, data, start_date, end_date):
         stream=False
     )
     
+    # HTML형식으로 Output값이 나오게 하며 그 값을 return함
     if completion.choices:
         content = completion.choices[0].message.content
     else:

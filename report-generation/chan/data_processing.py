@@ -1,6 +1,9 @@
 import pandas as pd
 
+# 전달 받은 데이터를 전처리하는 과정
 def process_data(data, start_date, end_date):
+    
+    # 수많은 기간의 데이터에서 뽑아내고 싶은 기간을 뽑아내기 
     data["date"] = pd.to_datetime(data["date"])
     filtered_data = data[(data["date"] >= start_date) & (data["date"] <= end_date)]
     
@@ -20,11 +23,11 @@ def process_data(data, start_date, end_date):
     time_means = filtered_data.groupby("time")[age_columns].sum().sum(axis=1)
     
     processed_data = {
-        "weekday_means": weekday_means.to_dict(),
-        "age_means": age_means.to_dict(),
-        "male_values": male_values.to_dict(),
-        "female_values": female_values.to_dict(),
-        "time_means": time_means.to_dict()
+        "weekday_means": weekday_means.to_dict(), # 요일별 유동인구
+        "age_means": age_means.to_dict(),         # 연령별 유동인구
+        "male_values": male_values.to_dict(),     # 성별 유동인구
+        "female_values": female_values.to_dict(), # 성별 유동인구
+        "time_means": time_means.to_dict()        # 시간대별 유동인구
     }
     
     return processed_data
