@@ -1,2 +1,67 @@
+# report-generation
 report-generation/chan/.env
 report-generation/hyunjun/.env
+
+# backend
+docker-compose.yml
+
+# 1) Python 일반
+__pycache__/
+*.py[cod]
+*.egg
+*.egg-info
+dist/
+build/
+*.log
+*.sqlite3
+
+# 2) 가상환경
+venv/
+.venv/
+env/
+
+# 3) 환경변수/민감정보
+.env
+*.env
+
+# 4) Docker 볼륨 / 임시 폴더
+db_data/
+logs/
+
+# 5) OS 특수 파일
+.DS_Store
+Thumbs.db
+
+# 6) Alembic 캐시만 무시(마이그레이션 파일은 커밋)
+alembic/versions/__pycache__/
+alembic/__pycache__/
+
+
+# frontend/.gitignore
+ # Logs
+ logs
+ *.log
+ npm-debug.log*
+ yarn-debug.log*
+ yarn-error.log*
+ pnpm-debug.log*
+ lerna-debug.log*
+
+ **/node_modules
+ dist
+ dist-ssr
+ *.local
+
+ # Editor directories and files
+ .vscode/*
+ !.vscode/extensions.json
+ .idea
+ .DS_Store
+ *.suo
+ *.ntvs*
+ *.njsproj
+ *.sln
+ *.sw?
+
++# Local environment secrets
++server/.env
