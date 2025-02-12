@@ -8,7 +8,7 @@ from IPython.display import HTML
 
 
 # 데이터 경로 호출(당장은 실행되나 데이터 경로는 합치는 과정에서 수정과정 필요)
-data_file = "./FootTrafficReport/report-generation/chan/yearly_data/decrease_trend_year_data.csv" 
+data_file = "./FootTrafficReport/report-generation/yearly_data/decrease_trend_year_data.csv" 
 data = pd.read_csv(data_file)
 
 # 현재는 임의로 날짜를 기입했으나 여긴 프론트에서 바로 Input이 가능한 부분이 있는지 확인
