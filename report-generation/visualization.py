@@ -33,7 +33,7 @@ def create_visualizations(data, start_date=None, end_date=None):
     set_korean_font()
     
     graph_paths = []
-    data_folder = "data_graph" #현재 로컬에선 data_graph경로로 설정해 활용중이지만 추후 경로수정 필요
+    data_folder = "./FootTrafficReport/report-generation/data_graph" #현재 로컬에선 data_graph경로로 설정해 활용중이지만 추후 경로수정 필요
 
     if start_date and end_date:
         data = filter_data_by_date(data, start_date, end_date)

@@ -1,11 +1,13 @@
 import pandas as pd
-from gpt_response import gpt_response
+
 import os
 import markdown
 import pdfkit
 import re
 from IPython.display import HTML
-
+import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+from gpt_response import gpt_response
 
 # 데이터 경로 호출(당장은 실행되나 데이터 경로는 합치는 과정에서 수정과정 필요)
 data_file = "./FootTrafficReport/report-generation/yearly_data/decrease_trend_year_data.csv" 
