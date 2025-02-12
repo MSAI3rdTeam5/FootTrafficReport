@@ -8,6 +8,15 @@ import asyncio
 import requests
 from datetime import datetime
 from ultralytics import YOLO
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+
+app = FastAPI()
+
+# 프론트엔드에서 전달하는 요청 body의 구조를 정의하는 Pydantic 모델
+class DetectionRequest(BaseModel):
+    cctv_url: str
+    cctv_id: str
 
 class AzureAPI:
     def __init__(self):
@@ -128,7 +137,7 @@ class PersonTracker:
         data = {
             "cctv_id": cctv_id,
             "detected_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "person_label": obj_id,
+            "person_label": str(obj_id),
             "gender": gender,
             "age": age
         }
@@ -183,15 +192,42 @@ class PersonTracker:
 Test code 할때는 __name__ == "__main__"으로 실행 (detect_people 함수는 주석 처리)
 웹으로 호출해서 실제 cctv에서 실행할때는 detect_people로 실행 (__name__ == "__main__" 주석 처리)
 '''
+
+# 비동기 함수로 정의하여 await를 사용할 수 있도록 합니다.
+@app.post("/detect")
+async def detect_people(request: DetectionRequest):
+    try:
+        # PersonTracker 초기화 (모델 경로는 실제 경로로 수정)
+        tracker = PersonTracker(
+            model_path='/Users/chonakyung/project-3/FootTrafficReport/people-detection/model/yolo11n.pt'
+        )
+        # 프론트엔드에서 받은 cctv_url을 source로 전달
+        result = await tracker.detect_and_track(source=request.cctv_url, cctv_id=request.cctv_id)
+        # 예를 들어, 결과가 videoStreamUrl, recognitionLog 등을 포함한다고 가정
+        return result
+    except Exception as e:
+        # 에러 발생 시 HTTP 500 에러 반환
+        raise HTTPException(status_code=500, detail=str(e))
+
 ### 웹으로 호출되는 함수로 매개변수 (soruce url(cctv_url), cctv_id)를 받아서 실행
+# @app.post("/detect")
+# def detect_people(payload: dict):
+#     source = payload["cctv_url"]
+#     cctv_id = payload["cctv_id"]
+#     tracker = PersonTracker(model_path='/Users/chonakyung/project-3/FootTrafficReport/people-detection/model/yolo11n.pt')
+#     asyncio.run(tracker.detect_and_track(source=source, cctv_id=cctv_id))
+
 # def detect_people(source, cctv_id):
 #     tracker = PersonTracker(model_path='/Users/chonakyung/project-3/FootTrafficReport/people-detection/model/yolo11n.pt')
 #     asyncio.run(tracker.detect_and_track(source=source, cctv_id=cctv_id)) 
-
+   
 ### Test할때 하는 작업 (cctv_id는 임의로 설정)
-if __name__ == '__main__':
-    source = "/Users/chonakyung/project-3/FootTrafficReport/people-detection/data/08_store.mp4"
-    tracker = PersonTracker(model_path='/Users/chonakyung/project-3/FootTrafficReport/people-detection/model/yolo11n.pt')
+# if __name__ == '__main__':
+#     source = "/Users/chonakyung/project-3/FootTrafficReport/people-detection/data/08_store.mp4"
+#     tracker = PersonTracker(model_path='/Users/chonakyung/project-3/FootTrafficReport/people-detection/model/yolo11n.pt')
     
-    asyncio.run(tracker.detect_and_track(source=source, cctv_id=13))  
+#     asyncio.run(tracker.detect_and_track(source=source, cctv_id=13))  
 
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8500)
