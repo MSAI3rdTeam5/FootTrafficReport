@@ -1,16 +1,18 @@
-# report-generation/Dockerfile (예시)
+# report-generation/Dockerfile
+
 FROM python:3.12-slim
 
-# 작업 디렉토리 설정
-WORKDIR /
+WORKDIR /app
 
-# 의존성 파일 복사 및 설치
-# report-generation 모듈에 필요한 라이브러리들을 report-generation/requirements.txt에 명시
+# report-generation 서비스에 필요한 의존성 설치
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# 전체 소스 코드 복사
-COPY . .
+# 소스 코드 복사 (report-generation 서비스는 src 폴더에 코드가 위치)
+COPY src/ ./src/
 
-# 서비스 실행: 예시로 src/main.py를 실행
-CMD ["python", "src/main.py"]
+# 컨테이너에서 사용할 포트 노출 (report-generation 서비스는 8600번)
+EXPOSE 8600
+
+# FastAPI 앱을 uvicorn으로 실행
+CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8600"]
