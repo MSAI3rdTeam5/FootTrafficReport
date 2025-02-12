@@ -9,22 +9,30 @@ import pandas as pd
 import aiohttp
 import asyncio
 
+# Initialize Azure API connection details
+# Azure API 연결 세부 정보 초기화
 class AzureAPI:
     def __init__(self):
-        self.url = "https://cvteam5-prediction.cognitiveservices.azure.com/customvision/v3.0/Prediction/b87cc58e-8c3d-4d37-8777-d33c07195f06/classify/iterations/Iteration2/image"
+        self.url = "PATH_YOUR_URL"
         self.headers = {
-            "Prediction-Key": "8Icrrz5XXYWn6WOToZXmP6wWZ68hWOQDF4X6fOa3g8jPXc3zmrR0JQQJ99BAACYeBjFXJ3w3AAAIACOGhaam",
-            "Content-Type": "application/octet-stream"
+            "Prediction-Key": "PATH_YOUR_KEY",
+            "Content-Type": "PATH_YOUR_TYPE"
         }
         self.session = None
 
+    # Start an aiohttp client session
+    # aiohttp 클라이언트 세션 시작
     async def start(self):
         self.session = aiohttp.ClientSession()
 
+    # Close the aiohttp client session
+    # aiohttp 클라이언트 세션 종료
     async def close(self):
         if self.session:
             await self.session.close()
 
+    # Analyze an image using Azure API
+    # Azure API를 사용하여 이미지 분석
     async def analyze_image(self, image_path):
         if not self.session:
             await self.start()
@@ -33,7 +41,9 @@ class AzureAPI:
         async with self.session.post(self.url, headers=self.headers, data=image_data) as response:
             result = await response.json()
         return self.normalize_predictions(result['predictions'])
-
+    
+    # Normalize prediction results
+    # 예측 결과 정규화
     def normalize_predictions(self, predictions):
         gender_preds = {p['tagName']: p['probability'] * 100 for p in predictions if p['tagName'] in ['male', 'female']}
         age_preds = {p['tagName']: p['probability'] * 100 for p in predictions if p['tagName'] in ['adult', 'old', 'young']}
@@ -44,6 +54,8 @@ class AzureAPI:
         
         return {**normalize_group(gender_preds), **normalize_group(age_preds)}
 
+# Initialize PersonTracker with model and configuration
+# 모델 및 구성으로 PersonTracker 초기화
 class PersonTracker:
     def __init__(self, model_path, result_dir='../outputs/results/', tracker_config="../data/config/botsort.yaml", conf=0.5, device=None,
                  iou=0.5, img_size=(720, 1080), output_dir='../outputs/results_video'):
@@ -61,11 +73,15 @@ class PersonTracker:
         self.detected_ids = set()
         self.azure_api = AzureAPI()
 
+    # Generate a unique color for each object ID
+    # 각 객체 ID에 대한 고유한 색상 생성
     def generate_color(self, obj_id):
         if obj_id not in self.color_map:
             self.color_map[obj_id] = [random.randint(0, 255) for _ in range(3)]
         return self.color_map[obj_id]
 
+    # Detect and track people in the video stream
+    # 비디오 스트림에서 사람을 감지하고 추적
     async def detect_and_track(self, source, cctv_id):
         results = self.model.track(
             source, show=False, stream=True, tracker=self.tracker_config, conf=self.conf,
@@ -118,6 +134,8 @@ class PersonTracker:
         await self.azure_api.close()
         self.save_blurred_video_prompt()
 
+    # Process detected person using Azure API
+    # Azure API를 사용하여 감지된 사람 처리
     async def process_person(self, obj_id, cropped_path, cctv_id):
         predictions = await self.azure_api.analyze_image(cropped_path)
         gender = max([k for k in predictions if k in ['male', 'female']], key=predictions.get, default="Unknown")
@@ -125,6 +143,8 @@ class PersonTracker:
         
         await self.send_data_to_server(obj_id, gender, age, cctv_id)
 
+    # Send analysis results to the backend server
+    # 분석 결과를 백엔드 서버로 전송
     async def send_data_to_server(self, obj_id, gender, age, cctv_id):
         """백엔드 서버로 분석 결과 전송"""
         url = "https://msteam5iseeu.ddns.net/api/cctv_data"
@@ -144,13 +164,17 @@ class PersonTracker:
             print(f"⚠️ Failed to connect to server: {e}")
         finally:
             await session.close()
-                
+
+    # Save cropped image of detected person
+    # 감지된 사람의 크롭된 이미지 저장     
     def save_cropped_person(self, frame, x1, y1, x2, y2, obj_id, save_dir="../outputs/cropped_people/"):
         os.makedirs(save_dir, exist_ok=True)
         file_name = f"{save_dir}person_{obj_id}.jpg"
         cv2.imwrite(file_name, frame[y1:y2, x1:x2])
         return file_name
     
+    # Prompt user to save blurred video
+    # 사용자에게 블러 처리된 비디오 저장 여부 묻기
     def save_blurred_video_prompt(self):
         save_input = input("Do you want to save the blurred video? (y/n): ").strip().lower()
         if save_input == 'y':
@@ -161,6 +185,8 @@ class PersonTracker:
             print("Invalid input. Please enter 'y' or 'n'.")
             self.save_blurred_video_prompt()
 
+    # Save video with blurred faces
+    # 얼굴이 블러 처리된 비디오 저장
     def save_blurred_video(self):
         os.makedirs(self.output_dir, exist_ok=True)
         video_name = datetime.now().strftime("%Y-%m-%d-%H-%M-%S") + "_blurred.webm"
