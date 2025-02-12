@@ -61,7 +61,7 @@ def convert_html_to_pdf(html_file, pdf_file):
     except Exception as e:
         print(f'PDF 생성 중 오류가 발생했습니다: {e}')
 
-# 사용 예시
+
 print(response)
 save_html(response, 'response.html')
 convert_html_to_pdf('response.html', 'output_v3.pdf')
