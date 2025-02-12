@@ -1,5 +1,7 @@
 from ultralytics import YOLO
 from datetime import datetime
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
 
 import os
 import torch
@@ -9,7 +11,13 @@ import pandas as pd
 import aiohttp
 import asyncio
 
-# Initialize Azure API connection details
+app = FastAPI()
+
+# 프론트엔드에서 전달하는 요청 body의 구조를 정의하는 Pydantic 모델
+class DetectionRequest(BaseModel):
+    cctv_url: str
+    cctv_id: str
+
 # Azure API 연결 세부 정보 초기화
 class AzureAPI:
     def __init__(self):
@@ -20,7 +28,6 @@ class AzureAPI:
         }
         self.session = None
 
-    # Start an aiohttp client session
     # aiohttp 클라이언트 세션 시작
     async def start(self):
         self.session = aiohttp.ClientSession()
@@ -91,8 +98,8 @@ class PersonTracker:
         await self.azure_api.start()
 
         for result in results:
-            frame = result.orig_img.copy()  # 원본 프레임 복사
-            display_frame = frame.copy()    # 화면 표시용 프레임 복사
+            frame = result.orig_img.copy()  
+            display_frame = frame.copy()    
             boxes = result.boxes
 
             self.frames.append(frame)
@@ -110,11 +117,9 @@ class PersonTracker:
 
                 if obj_id not in self.detected_ids:
                     self.detected_ids.add(obj_id)
-                    # 원본 프레임에서 크롭
                     cropped_path = self.save_cropped_person(frame, x1, y1, x2, y2, obj_id)
                     tasks.append(self.process_person(obj_id, cropped_path, cctv_id))
 
-                # 디스플레이 프레임에만 바운딩 박스 그리기
                 cv2.rectangle(display_frame, (x1, y1), (x2, y2), color, 2)
                 cv2.putText(display_frame, f"ID: {obj_id}", (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
 
@@ -151,7 +156,7 @@ class PersonTracker:
         data = {
             "cctv_id": cctv_id,
             "detected_time": datetime.now().isoformat(),
-            "person_label": str(obj_id),  # 문자열로 변환
+            "person_label": str(obj_id), 
             "gender": gender,
             "age": age
         }
@@ -212,13 +217,26 @@ class PersonTracker:
 Test code 할때는 __name__ == "__main__"으로 실행 (detect_people 함수는 주석 처리)
 웹으로 호출해서 실제 cctv에서 실행할때는 detect_people로 실행 (__name__ == "__main__" 주석 처리)
 '''
-### 웹으로 호출되는 함수로 매개변수 (soruce url(cctv_url), cctv_id)를 받아서 실행
-# def detect_people(source, cctv_id):
-#     tracker = PersonTracker(model_path='/Users/chonakyung/project-3/FootTrafficReport/people-detection/model/yolo11n.pt')
-#     asyncio.run(tracker.detect_and_track(source=source, cctv_id=cctv_id)) 
+# 웹으로 호출되는 함수
+@app.post("/detect") 
+async def detect_people(request: DetectionRequest):
+    try:
+        tracker = PersonTracker(
+            model_path='FootTrafficReport/people-detection/model/yolo11n-pose.pt'
+        )
+        result = await tracker.detect_and_track(source=request.cctv_url, cctv_id=request.cctv_id)
+        return result
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8500)
+
 
 ### Test할때 하는 작업 (cctv_id는 임의로 설정)
-if __name__ == '__main__':
-    source = "../data/videos/02_도로.mp4"
-    tracker = PersonTracker(model_path='../model/yolo11n-pose.pt')
-    asyncio.run(tracker.detect_and_track(source=source, cctv_id=1))
+# if __name__ == '__main__':
+#     source = "../data/videos/02_도로.mp4"
+#     tracker = PersonTracker(model_path='../model/yolo11n-pose.pt')
+#     asyncio.run(tracker.detect_and_track(source=source, cctv_id=1))
