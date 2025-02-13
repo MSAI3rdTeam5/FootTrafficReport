@@ -13,10 +13,6 @@ import asyncio
 
 app = FastAPI()
 
-# 프론트엔드에서 전달하는 요청 body의 구조를 정의하는 Pydantic 모델
-class DetectionRequest(BaseModel):
-    cctv_url: str
-    cctv_id: str
 
 # Azure API 연결 세부 정보 초기화
 class AzureAPI:
@@ -217,6 +213,12 @@ class PersonTracker:
 Test code 할때는 __name__ == "__main__"으로 실행 (detect_people 함수는 주석 처리)
 웹으로 호출해서 실제 cctv에서 실행할때는 detect_people로 실행 (__name__ == "__main__" 주석 처리)
 '''
+
+# 프론트엔드에서 전달하는 요청 body의 구조를 정의하는 Pydantic 모델
+class DetectionRequest(BaseModel):
+    cctv_url: str
+    cctv_id: str
+
 # 웹으로 호출되는 함수
 @app.post("/detect") 
 async def detect_people(request: DetectionRequest):
@@ -224,7 +226,8 @@ async def detect_people(request: DetectionRequest):
         tracker = PersonTracker(
             model_path='FootTrafficReport/people-detection/model/yolo11n-pose.pt'
         )
-        result = await tracker.detect_and_track(source=request.cctv_url, cctv_id=request.cctv_id)
+        # result = await tracker.detect_and_track(source=request.cctv_url, cctv_id=request.cctv_id)
+        result = await tracker.detect_and_track(source="../data/videos/02_도로.mp4", cctv_id=request.cctv_id)
         return result
     
     except Exception as e:
