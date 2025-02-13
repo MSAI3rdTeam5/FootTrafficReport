@@ -75,7 +75,8 @@ def convert_html_to_pdf(html_file, pdf_file):
         print(f'PDF 생성 중 오류가 발생했습니다: {e}')
 
 
-#현재는 테스트 중이기에 response.html 하나로만 사용하지만, 다수의 이용자가 동시에 사용했을 때 response도 관리가 필요하면 추후 수정해야함
+#현재는 테스트 중이기에 response.html 하나로만 사용하지만, 다수의 이용자가 동시에 사용했을 때 response도 관리가 필요하면 추후 수정해야함.
+#저장되는 경로도 추후에 수정이 필요
 save_html(response, 'response.html')
 convert_html_to_pdf('response.html', 'output_v3.pdf')
 
