@@ -21,10 +21,10 @@ class DetectionRequest(BaseModel):
 # Azure API 연결 세부 정보 초기화
 class AzureAPI:
     def __init__(self):
-        self.url = "https://ai-services123.cognitiveservices.azure.com/customvision/v3.0/Prediction/e2185b3d-d764-4aeb-a672-5c2480425c05/classify/iterations/Iteration1/image"
+        self.url = "PATH_YOUR_URL"
         self.headers = {
-            "Prediction-Key": "GEbnMihAUjSdLaPRMRkMyioJBnQLV45TnpV66sh1tD0BxUO9Nkl9JQQJ99BAACYeBjFXJ3w3AAAEACOG0gLQ",
-            "Content-Type": "application/octet-stream"
+            "Prediction-Key": "PATH_YOUR_KEY",
+            "Content-Type": "PATH_YOUR_TYPE"
         }
         self.session = None
  
