@@ -3,6 +3,12 @@
 # 1. 베이스 이미지 선택 (Python 3.12-slim)
 FROM python:3.12-slim
 
+# ----- (추가) OpenCV 관련 라이브러리 설치 -----
+RUN apt-get update && apt-get install -y \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+ && rm -rf /var/lib/apt/lists/*
+
 # 2. 컨테이너 내부 작업 디렉토리 설정
 WORKDIR /app
 

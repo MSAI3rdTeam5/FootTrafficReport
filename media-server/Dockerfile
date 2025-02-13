@@ -1,7 +1,7 @@
 # media-server/Dockerfile
 
-# 1) Meetecho 공식 Docker 이미지를 사용
-FROM meetecho/janus-gateway:latest
+# 1) canyan 공식 Docker 이미지를 사용
+FROM canyan/janus-gateway:latest
 
 # 2) Janus 설정 파일 복사
 #    /usr/local/etc/janus/ 가 Janus의 기본 설정 디렉터리입니다.
