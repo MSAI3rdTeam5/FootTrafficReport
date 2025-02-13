@@ -44,25 +44,17 @@ def create_prompt_from_search_result(question, context):
     이 프롬프트는 OpenAI 모델에게 답변을 어떻게 생성해야 하는지 알려줍니다.
     """
     prompt = f"""
-    ## 역할
-
-    당신은 데이터 전문가이며, 정책 분석가입니다.
- 
-    ## 지침
-
-    1. 반드시 RAG 데이터를 기반으로 응답해주세요.
-
-    2. RAG 데이터가 아닌 데이터에 대한 정보는 알려주지 마세요.
- 
+    너는 매우 친절하고 상세하게 설명하는 인공지능 챗봇이다.
+    사용자가 질문을 하면 그에 대한 답을 텍스트 형식으로 자세히 설명해준다.
+    네가 설명하는 방식은 간단한 정보 제공뿐만 아니라 배경 지식과 관련된 세부적인 사항들까지 포함해야 한다.
 
     사용자가 질문한 내용은 다음과 같다:
     질문: "{question}"
 
-    AI Search에서 얻은 정보는 다음과 같다:
+    AI Search 결과는 다음과 같다:
     {context}
 
-    너는 위의 정보만을 사용하여, 추가적인 배경 지식 없이 설명해주기 바란다. 
-    가능한 한 상세하고 친절하게 답변을 작성해줘.
+    너는 위의 내용을 바탕으로 친절하고 자세하게 설명해줘. 가능한 한 많은 배경 정보와 관련된 세부 사항도 추가해야 한다.
     """
     return prompt
 
@@ -78,7 +70,10 @@ def chatbot_response(question):
         try:
             response = openai.ChatCompletion.create(
                 deployment_id=azure_openai_deployment_name,
-                messages=[{"role": "system", "content": prompt}],
+                messages=[
+                    {"role": "system", "content": prompt},
+                    {"role": "user", "content": question}
+                ],
                 max_tokens=1500
             )
             return response.choices[0].message['content'].strip()  # 모델의 응답 반환
@@ -86,7 +81,6 @@ def chatbot_response(question):
             return f"Error occurred while generating response: {str(e)}"
     else:
         return "저는 이 질문에 대한 정보를 찾을 수 없습니다. 다른 질문을 해 주세요!"
-
 
 
 # 챗봇 실행
