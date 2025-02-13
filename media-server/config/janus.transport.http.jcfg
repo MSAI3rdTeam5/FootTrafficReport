@@ -1,35 +1,29 @@
+# janus.transport.http.jcfg
+
 http: {
   admin: {
-    # Enable or disable the HTTP admin API
-    admin_http = true            # if true, admin interface is exposed via plain HTTP
-    admin_http_port = 8088       # the port for HTTP
-    admin_https = true           # if true, admin interface is also exposed via HTTPS
-    admin_https_port = 8089      # the port for HTTPS
+    # Disable plain HTTP/HTTPS admin interface
+    admin_http = false
+    admin_https = false
+    # admin_http_port = 8088
+    # admin_https_port = 8089
 
-    # TLS certificate paths (only used if admin_https=true)
-    # If you don't want HTTPS, you can comment these out or set admin_https=false
-    cert_pem = "/usr/local/etc/janus/certs/cert.pem"
-    cert_key = "/usr/local/etc/janus/certs/key.pem"
+    # cert_pem = "/usr/local/etc/janus/certs/cert.pem"
+    # cert_key = "/usr/local/etc/janus/certs/key.pem"
 
-    # Optionally restrict admin interface with an IP ACL, authentication, etc.
+    # Optionally restrict admin interface with an IP ACL, etc.
   }
 
-  # -------------------------------------------------------------------------
-  # RESTful API for streaming/recording plugin, or event handlers
-  # (If not needed, you can leave it disabled or remove)
-  # -------------------------------------------------------------------------
-  interfaces: [
-    {
-      # "http" or "https"
-      "http": true
-      "http_port": 7088
-      "https": true
-      "https_port": 7089
-
-      cert_pem = "/usr/local/etc/janus/certs/cert.pem"
-      cert_key = "/usr/local/etc/janus/certs/key.pem"
-
-      # Additional configs for REST if needed
-    }
-  ]
+  # If you don't need RESTful for streaming/recording plugins, comment out or remove:
+  # interfaces: [
+  #   {
+  #     "http": false
+  #     "http_port": 7088
+  #     "https": false
+  #     "https_port": 7089
+  #
+  #     cert_pem = "/usr/local/etc/janus/certs/cert.pem"
+  #     cert_key = "/usr/local/etc/janus/certs/key.pem"
+  #   }
+  # ]
 }

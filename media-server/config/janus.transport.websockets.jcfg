@@ -1,21 +1,22 @@
 websockets: {
-  # WebSocket support (janus.transport.websockets)
-  ws = true            # Enable plain WebSocket
-  ws_port = 8188       # Plain WS port
+  # WebSocket support
+  ws = true             # Enable plain WebSocket
+  ws_port = 8188        # Plain WS port
 
-  wss = true           # Enable secure WebSocket (WSS)
-  wss_port = 8989      # TLS port
-
-  # TLS certificates for WSS
-  cert_pem = "/usr/local/etc/janus/certs/cert.pem"
-  cert_key = "/usr/local/etc/janus/certs/key.pem"
+  # Disable secure WebSocket (WSS)
+  wss = false
+  # wss_port = 8989
+  # cert_pem = "/usr/local/etc/janus/certs/cert.pem"
+  # cert_key = "/usr/local/etc/janus/certs/key.pem"
 
   # Optionally set strict subprotocol checking
   # subprotocol = "janus-protocol"
 
   # If behind a reverse proxy or load balancer, you may set these options:
-  # -- no_interface = true
-  # -- the real IP would be forwarded from your proxy
+  # no_interface = false    # (default) Janus listens on all interfaces
+  # The real IP would be forwarded from your proxy (X-Forwarded-For)...
 
   # Additional advanced config, e.g. buffering, ping intervals, etc.
+  # proxy_max_buffer = 1024
+  # ...
 }
