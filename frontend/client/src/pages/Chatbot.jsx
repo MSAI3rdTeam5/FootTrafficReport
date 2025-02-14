@@ -21,42 +21,13 @@ function ChatbotPage() {
   // 목록 표시/숨기기 상태
   const [showList, setShowList] = useState(true);
 
+  // 메뉴 열림 상태 (어떤 대화에 대해 메뉴가 열려 있는지)
+  const [activeMenuId, setActiveMenuId] = useState(null);
+
   // 현재 활성 대화
   const activeConversation = conversations.find(
     (c) => c.id === activeConversationId
   );
-
-  // 초기 기본 대화(제거 가능)
-  //   useEffect(() => {
-  //     if (conversations.length === 0) {
-  //       createInitialConversation();
-  //     }
-  //   }, []);
-
-  //   const createInitialConversation = () => {
-  //     const now = new Date();
-  //     const newId = Date.now();
-  //     const newConv = {
-  //       id: newId,
-  //       title: "새 대화 1",
-  //       date: now.toLocaleString("ko-KR", {
-  //         year: "numeric",
-  //         month: "2-digit",
-  //         day: "2-digit",
-  //         hour: "2-digit",
-  //         minute: "2-digit",
-  //       }),
-  //       messages: [
-  //         {
-  //           id: newId + 1,
-  //           sender: "bot",
-  //           text: "무엇을 도와드릴까요?",
-  //         },
-  //       ],
-  //     };
-  //     setConversations([newConv]);
-  //     setActiveConversationId(newId);
-  //   };
 
   // 새 대화 버튼
   const handleNewConversation = () => {
@@ -127,6 +98,19 @@ function ChatbotPage() {
   // 목록 토글 버튼
   const toggleList = () => {
     setShowList((prev) => !prev);
+  };
+
+  // 점 세개 메뉴 열기/닫기
+  const toggleMenu = (id) => {
+    setActiveMenuId((prev) => (prev === id ? null : id));
+  };
+
+  // 대화 삭제
+  const handleDeleteConversation = (id) => {
+    setConversations((prev) => prev.filter((c) => c.id !== id));
+    if (activeConversationId === id) {
+      setActiveConversationId(null);
+    }
   };
 
   return (
@@ -284,16 +268,40 @@ function ChatbotPage() {
                     >
                       새 대화
                     </button>
-                    {/* 목록 숨기기 (체브론 아이콘) */}
-                    <button
-                      className="ml-2 p-2 text-gray-500 hover:text-gray-700 rounded"
-                      onClick={toggleList}
-                    >
-                      <i className="fas fa-chevron-left"></i>
-                    </button>
+
+                    {/* 목록 숨기기 */}
+                    <div className="relative group ml-2">
+                      <button
+                        className="p-2 text-gray-500 hover:text-gray-700 rounded"
+                        onClick={toggleList}
+                      >
+                        <i className="fas fa-chevron-left"></i>
+                      </button>
+                      {/* 사이드바 닫기 안내 툴팁 */}
+                      <div
+                        className="
+                          absolute
+                          left-1/2
+                          -translate-x-1/2
+                          top-full
+                          mt-2
+                          px-2 py-1
+                          text-xs
+                          text-white
+                          bg-gray-800
+                          rounded
+                          opacity-0
+                          group-hover:opacity-80
+                          pointer-events-none
+                          transition-opacity
+                          whitespace-nowrap
+                        "
+                      >
+                        목록 닫기
+                      </div>
+                    </div>
                   </div>
                 </div>
-
                 {conversations.length === 0 ? (
                   <div className="text-gray-500 text-sm">
                     아직 대화가 없습니다.
@@ -305,12 +313,15 @@ function ChatbotPage() {
                       return (
                         <div
                           key={conv.id}
-                          className={`p-3 rounded-lg cursor-pointer transition-colors ${
+                          className={`relative p-3 rounded-lg cursor-pointer transition-colors ${
                             isActive
-                              ? "bg-custom text-white"
+                              ? "bg-black text-white"
                               : "bg-gray-50 hover:bg-gray-100 text-gray-900"
                           }`}
-                          onClick={() => setActiveConversationId(conv.id)}
+                          onClick={() => {
+                            setActiveConversationId(conv.id);
+                            setActiveMenuId(null);
+                          }}
                         >
                           <div className="text-sm font-medium">
                             {conv.title}
@@ -322,6 +333,43 @@ function ChatbotPage() {
                           >
                             {conv.date}
                           </div>
+
+                          {/* 점 세 개 메뉴 버튼 */}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation(); // 부모 클릭 이벤트 막기
+                              toggleMenu(conv.id);
+                            }}
+                            className="absolute top-2 right-2 p-1 text-gray-500 hover:text-gray-700 rounded focus:outline-none"
+                          >
+                            <i className="fas fa-ellipsis-v"></i>
+                          </button>
+
+                          {/* 점 세 개 눌렀을 때 나오는 드롭다운 메뉴 */}
+                          {activeMenuId === conv.id && (
+                            <div className="absolute top-8 right-2 w-32 bg-white border border-gray-200 rounded shadow-md z-10">
+                              <button
+                                className="w-full text-left px-4 py-2 text-sm text-black hover:bg-gray-100"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleRenameConversation(conv.id);
+                                  toggleMenu(conv.id);
+                                }}
+                              >
+                                이름 바꾸기
+                              </button>
+                              <button
+                                className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 text-red-500"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteConversation(conv.id);
+                                  toggleMenu(conv.id);
+                                }}
+                              >
+                                삭제
+                              </button>
+                            </div>
+                          )}
                         </div>
                       );
                     })}
