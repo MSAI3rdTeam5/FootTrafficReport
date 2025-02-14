@@ -41,10 +41,12 @@ function Monitor() {
     });
 
     // 예: cameraId = deviceName, rtspUrl = "rtsp://IP:Port"
-    // 실제로는 deviceUser/devicePass를 rtsp URL에 포함하거나, 
+    // 실제로는 deviceUser/devicePass를 rtsp URL에 포함하거나,
     // 다른 방식으로 전달할 수도 있음
     const cameraId = deviceName || `cam-${Date.now()}`;
-    const rtspUrl = `rtsp://${deviceIP || "192.168.0.10"}:${devicePort || "554"}`;
+    const rtspUrl = `rtsp://${deviceIP || "192.168.0.10"}:${
+      devicePort || "554"
+    }`;
 
     try {
       const res = await fetch("/api/cameras", {
@@ -185,6 +187,25 @@ function Monitor() {
                   AI 인사이트
                 </Link>
 
+                {/* 챗봇 */}
+                <Link
+                  to="/chatbot"
+                  className={`inline-flex items-center px-1 pt-1 nav-link ${
+                    isAiInsightActive
+                      ? "bg-black text-white font-medium"
+                      : "text-gray-500 hover:text-black"
+                  }`}
+                  style={{
+                    padding: "0.5rem 1rem",
+                    borderRadius: "0.375rem",
+                    transition: "all 0.3s ease",
+                    backgroundColor: isAiInsightActive ? "#000000" : "#f3f4f6",
+                    color: isAiInsightActive ? "#ffffff" : "#000000",
+                  }}
+                >
+                  챗봇
+                </Link>
+
                 {/* 사용 방법 */}
                 <Link
                   to="/guide"
@@ -254,8 +275,7 @@ function Monitor() {
             onClick={() => openDeviceModal("CCTV")} // 새 장치 연결(예시)
             className="rounded-button bg-black text-white px-4 py-2 flex items-center"
           >
-            <i className="fas fa-plus mr-2"></i>
-            새 장치 연결
+            <i className="fas fa-plus mr-2"></i>새 장치 연결
           </button>
         </div>
         <div className="mb-4 text-gray-600">
@@ -300,7 +320,6 @@ function Monitor() {
 
         {/* [수정점] 등록된 카메라 목록 표시 */}
         <ConnectedDevices cameraList={cameraList} />
-
       </div>
 
       <footer className="bg-white border-t border-gray-200 mt-8">
@@ -352,8 +371,8 @@ function Monitor() {
 
             <div className="text-center text-sm text-gray-600 leading-relaxed max-w-sm mx-auto">
               <p>
-                모바일 또는 웹캠 카메라로 해당 QR 코드를 촬영하시면 간편하게 실시간
-                연동이 가능합니다
+                모바일 또는 웹캠 카메라로 해당 QR 코드를 촬영하시면 간편하게
+                실시간 연동이 가능합니다
               </p>
             </div>
 
@@ -385,8 +404,8 @@ function Monitor() {
               {deviceType === "CCTV" ? (
                 <>
                   <p>
-                    IP 카메라 / NVR 등과 연결하기 위해 IP 주소와 포트, 계정 정보를
-                    입력하세요.
+                    IP 카메라 / NVR 등과 연결하기 위해 IP 주소와 포트, 계정
+                    정보를 입력하세요.
                   </p>
                   <p>ONVIF나 RTSP 등 프로토콜을 사용할 수 있습니다.</p>
                   <p className="mt-2 text-xs text-gray-400">
@@ -396,8 +415,8 @@ function Monitor() {
               ) : (
                 <>
                   <p>
-                    블랙박스를 네트워크로 연결하거나, 제조사 클라우드 계정을 통해
-                    실시간 영상을 볼 수 있습니다.
+                    블랙박스를 네트워크로 연결하거나, 제조사 클라우드 계정을
+                    통해 실시간 영상을 볼 수 있습니다.
                   </p>
                   <p className="mt-2 text-xs text-gray-400">
                     (예: cloud.blackbox.com 계정 / IP 직접 연결 등)
@@ -418,7 +437,9 @@ function Monitor() {
                   onChange={(e) => setDeviceName(e.target.value)}
                   className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-custom focus:border-custom"
                   placeholder={
-                    deviceType === "CCTV" ? "예) 정문 CCTV" : "예) 차량 블랙박스"
+                    deviceType === "CCTV"
+                      ? "예) 정문 CCTV"
+                      : "예) 차량 블랙박스"
                   }
                 />
               </div>
@@ -494,7 +515,9 @@ function Monitor() {
       )}
 
       {/* 개인정보법 안내 오버레이 */}
-      {privacyOpen && <PrivacyOverlay open={privacyOpen} onClose={closePrivacy} />}
+      {privacyOpen && (
+        <PrivacyOverlay open={privacyOpen} onClose={closePrivacy} />
+      )}
 
       {/* ====== 실시간 영상 오버레이 ====== */}
       {/* 현재 코드와 동일: videoOverlayData 등 활용 시 */}

@@ -8,6 +8,7 @@ function Dashboard() {
   const isMonitorActive = location.pathname === "/monitor";
   const isDashboardActive = location.pathname === "/dashboard";
   const isAiInsightActive = location.pathname === "/ai-insight";
+  const isChatbotActive = location.pathname === "/chatbot";
   const isGuideActive = location.pathname === "/guide";
 
   // 상단 CCTV 선택 & 기간 선택
@@ -98,6 +99,25 @@ function Dashboard() {
                   AI 인사이트
                 </Link>
 
+                {/* 챗봇 */}
+                <Link
+                  to="/chatbot"
+                  className={`inline-flex items-center px-1 pt-1 nav-link ${
+                    isAiInsightActive
+                      ? "bg-black text-white font-medium"
+                      : "text-gray-500 hover:text-black"
+                  }`}
+                  style={{
+                    padding: "0.5rem 1rem",
+                    borderRadius: "0.375rem",
+                    transition: "all 0.3s ease",
+                    backgroundColor: isAiInsightActive ? "#000000" : "#f3f4f6",
+                    color: isAiInsightActive ? "#ffffff" : "#000000",
+                  }}
+                >
+                  챗봇
+                </Link>
+
                 {/* 사용 방법 */}
                 <Link
                   to="/guide"
@@ -159,10 +179,15 @@ function Dashboard() {
       </nav>
 
       {/* 메인 레이아웃 */}
-      <div className="flex bg-gray-50" style={{ minHeight: "calc(100vh - 4rem)" }}>
+      <div
+        className="flex bg-gray-50"
+        style={{ minHeight: "calc(100vh - 4rem)" }}
+      >
         <main className="flex-1 overflow-y-auto">
           <div className="container mx-auto px-6 py-8">
-            <h1 className="text-2xl font-semibold text-gray-900 mb-6">통계 분석</h1>
+            <h1 className="text-2xl font-semibold text-gray-900 mb-6">
+              통계 분석
+            </h1>
 
             {/* 상단 CCTV 선택 버튼들 */}
             <div className="flex items-center space-x-4 mb-6">
@@ -258,7 +283,9 @@ function Dashboard() {
               <div className="bg-white shadow rounded-lg p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-lg font-semibold text-gray-900">
-                    {currentChart === "time" ? "시간대별 방문자 통계" : "성별 비율"}
+                    {currentChart === "time"
+                      ? "시간대별 방문자 통계"
+                      : "성별 비율"}
                   </h2>
                   {/* 화살표 아이콘 */}
                   <div className="space-x-3">

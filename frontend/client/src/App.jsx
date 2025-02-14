@@ -7,6 +7,7 @@ import Dashboard from "./pages/Dashboard";
 import Guide from "./pages/Guide";
 import AiInsight from "./pages/AiInsight";
 import LiveStreamPlayer from "./pages/LiveStreamPlayer";
+import Chatbot from "./pages/Chatbot";
 
 function App() {
   return (
@@ -20,6 +21,9 @@ function App() {
       {/* "/ai-insight" - AI 인사이트 화면 */}
       <Route path="/ai-insight" element={<AiInsight />} />
 
+      {/* "/chatbot" - 챗봇 화면 */}
+      <Route path="/chatbot" element={<Chatbot />} />
+
       {/* "/dashboard" - 통계 분석 화면 */}
       <Route path="/dashboard" element={<Dashboard />} />
 
@@ -28,7 +32,6 @@ function App() {
 
       {/* 새로 추가한 LiveStreamPlayer 라우트 */}
       <Route path="/live" element={<LiveStreamPlayer />} />
-
     </Routes>
   );
 }
