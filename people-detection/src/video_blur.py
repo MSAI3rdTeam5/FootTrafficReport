@@ -7,6 +7,7 @@ import random
 from datetime import datetime
 import numpy as np
 
+
 class PersonTracker:
     def __init__(self, model_path, result_dir='../outputs/results/', tracker_config="../data/config/botsort.yaml", conf=0.5, device=None,
                  iou=0.5, img_size= (1280, 720), output_dir='../outputs/results_video'):
