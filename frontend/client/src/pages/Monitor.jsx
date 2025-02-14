@@ -90,7 +90,7 @@ function Monitor() {
   const [myPublisherId, setMyPublisherId] = useState(null);
 
   const [localStream, setLocalStream] = useState(null);   // 내 웹캠
-  const [remoteStream, setRemoteStream] = useState(null); // 내가 다시 subscribe할 피드
+  const [remoteStream, setRemoteStream] = useState(null); // 내가 subscribe할 피드
 
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
@@ -176,8 +176,20 @@ function Monitor() {
         pluginHandle.send({
           message: createReq,
           success: (result) => {
-            console.log("[Publisher] create() result:", result);
-            // 실제 처리는 onmessage 콜백에서 처리
+            console.log("[Publisher] create() result [sync]:", result);
+            if (result.error_code === 427) {
+              // 이미 존재하는 방
+              console.warn("[Publisher] Room 9876 already exists -> let's just join!");
+              joinPublisher(localPubHandle, 9876);
+            } else if (result.videoroom === "created") {
+              // 새 방
+              console.log("[Publisher] Room newly created => join it!");
+              const newRoomId = result.room;
+              joinPublisher(localPubHandle, newRoomId);
+            }
+          },
+          error: (err) => {
+            console.error("[Publisher] create() error [sync]:", err);
           },
         });
       },
@@ -186,19 +198,9 @@ function Monitor() {
       },
       onmessage: (msg, jsep) => {
         console.log("[Publisher] onmessage:", msg, jsep);
-        const event = msg.videoroom; // e.g., "event", "joined", "created"
+        const event = msg.videoroom;
 
-        if (event === "created") {
-          // 새 방이 만들어졌을 때
-          const newRoomId = msg.room;
-          joinPublisher(localPubHandle, newRoomId);
-
-        } else if (msg.error_code === 427) {
-          // 이미 존재하는 방 => 바로 join 시도
-          console.warn("[Publisher] Room 9876 already exists -> let's just join!");
-          joinPublisher(localPubHandle, 9876);
-
-        } else if (event === "joined") {
+        if (event === "joined") {
           // join 성공
           const myId = msg.id;
           console.log("[Publisher] joined room, myId =", myId);
@@ -206,11 +208,10 @@ function Monitor() {
           publishOwnFeed(localPubHandle);
 
         } else if (event === "event") {
-          // 그 외 다른 event (예: publishers, leaving 등)
+          // 그 외 다른 event
           console.log("[Publisher] other event:", msg);
         }
 
-        // SDP 처리
         if (jsep) {
           localPubHandle.handleRemoteJsep({ jsep });
         }
@@ -225,7 +226,6 @@ function Monitor() {
         }
       },
       onremotetrack: (track, mid, on) => {
-        // 보통 Publisher handle에는 remote track이 거의 오지 않음
         console.log("[Publisher] onremotetrack:", track, mid, on);
       },
       oncleanup: () => {
@@ -236,32 +236,54 @@ function Monitor() {
   };
 
   const joinPublisher = (pluginHandle, roomId) => {
-    // 2) 방에 Publisher로 join
+    console.log(">>> joinPublisher() called with roomId =", roomId);
+
     const joinReq = {
       request: "join",
       room: roomId,
       ptype: "publisher",
       display: "MyPrivateWebcam",
     };
-    pluginHandle.send({ message: joinReq });
+    pluginHandle.send({
+      message: joinReq,
+      success: (resp) => {
+        console.log(">>> joinPublisher success (sync ack):", resp);
+      },
+      error: (err) => {
+        console.error(">>> joinPublisher error (sync ack):", err);
+      },
+    });
   };
 
+  // **★ tracks + data: false 로 데이터 채널 비활성 ★**
   const publishOwnFeed = (pluginHandle) => {
-    // 3) 내 로컬 웹캠을 publish
-    pluginHandle.createOffer({
-      media: {
-        audio: true,
-        video: true,
+    // audio + video track, no data track
+    const audioTrack = {
+      type: "audio",
+      capture: true,
+      recv: true,
+    };
+    const videoTrack = {
+      type: "video",
+      capture: {
+        deviceId: { exact: selectedDeviceId },
       },
+      recv: true,
+    };
+
+    pluginHandle.createOffer({
+      tracks: [ audioTrack, videoTrack ],
+      data: false,  // 데이터 채널 비활성
       success: (jsep) => {
         console.log("[Publisher] createOffer success, jsep=", jsep);
         const publishReq = {
           request: "publish",
           audio: true,
           video: true,
+          data: false,   // 데이터 채널 쓰지 않음
         };
         pluginHandle.send({ message: publishReq, jsep });
-        // 발행 완료 후 -> Subscriber 붙이기
+        // 발행 완료 후 -> Subscriber
         attachSubscriberHandle(janus);
       },
       error: (err) => {
@@ -270,7 +292,7 @@ function Monitor() {
     });
   };
 
-  // (F) VideoRoom Subscriber (self-subscribe)
+  // (F) VideoRoom Subscriber
   const attachSubscriberHandle = (janusInstance) => {
     let localSubHandle = null;
     janusInstance.attach({
@@ -288,10 +310,10 @@ function Monitor() {
         const event = msg.videoroom;
 
         if (event === "attached") {
-          // feed를 정상적으로 attach한 상태 -> createAnswer
+          // feed attach -> createAnswer
           pluginHandle.createAnswer({
             jsep,
-            media: { audio: true, video: true, data: true },
+            media: { audio: true, video: true, data: false },
             success: (ansJsep) => {
               console.log("[Subscriber] createAnswer success!", ansJsep);
               const body = { request: "start", room: 9876 };
@@ -307,10 +329,7 @@ function Monitor() {
       },
       onremotetrack: (track, mid, on) => {
         console.log("[Subscriber] onremotetrack:", track, on);
-        if (!on) {
-          // track ended
-          return;
-        }
+        if (!on) return;
         const stream = new MediaStream([track]);
         setRemoteStream(stream);
         if (remoteVideoRef.current) {
@@ -323,8 +342,6 @@ function Monitor() {
       },
     });
 
-    // 실제로 subscribe하려면 "join (ptype=subscriber, feed=...)" 요청 필요
-    // myPublisherId가 있어야 한다.
     setTimeout(() => {
       if (!myPublisherId) {
         console.warn("[Subscriber] No publisher ID known yet?");
