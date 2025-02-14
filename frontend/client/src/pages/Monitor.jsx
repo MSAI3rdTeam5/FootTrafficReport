@@ -60,6 +60,7 @@ function Monitor() {
     setDeviceUser("");
     setDevicePass("");
   };
+
   const handleSubmitDevice = async (e) => {
     e.preventDefault();
     const cameraId = deviceName || `cam-${Date.now()}`;
@@ -82,29 +83,31 @@ function Monitor() {
     closeDeviceModal();
   };
 
-  // ================= WebRTC (Janus) & EchoTest =================
+  // ============ WebRTC (Janus) & VideoRoom ============
   const [janus, setJanus] = useState(null);
-  const [webcamHandle, setWebcamHandle] = useState(null);
-  const [localStream, setLocalStream] = useState(null);
-  const [remoteStream, setRemoteStream] = useState(null);
+  const [publisherHandle, setPublisherHandle] = useState(null);
+  const [subscriberHandle, setSubscriberHandle] = useState(null);
+  const [myPublisherId, setMyPublisherId] = useState(null);
+
+  const [localStream, setLocalStream] = useState(null);   // 내 웹캠
+  const [remoteStream, setRemoteStream] = useState(null); // 내가 다시 subscribe할 피드
 
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
 
   // (A) “웹캠 선택” 모달 상태
   const [webcamModalOpen, setWebcamModalOpen] = useState(false);
-  const [videoDevices, setVideoDevices] = useState([]); 
-  const [selectedDeviceId, setSelectedDeviceId] = useState(""); 
+  const [videoDevices, setVideoDevices] = useState([]);
+  const [selectedDeviceId, setSelectedDeviceId] = useState("");
 
   // (B) “웹캠 연결” 버튼 클릭 시: 장치 목록 나열 후 모달 표시
   const handleOpenWebcamSelect = async () => {
     try {
       const devices = await navigator.mediaDevices.enumerateDevices();
-      // 비디오 입력만 추출
       const videoInputs = devices.filter((d) => d.kind === "videoinput");
       setVideoDevices(videoInputs);
       if (videoInputs.length > 0) {
-        setSelectedDeviceId(videoInputs[0].deviceId); // 기본 선택
+        setSelectedDeviceId(videoInputs[0].deviceId);
       } else {
         alert("사용 가능한 웹캠(비디오 장치)이 없습니다.");
       }
@@ -121,12 +124,11 @@ function Monitor() {
       alert("카메라를 선택하세요!");
       return;
     }
-    // 모달 닫고, 실제 WebRTC 연결 시도
     setWebcamModalOpen(false);
     handleWebcamConnect(selectedDeviceId);
   };
 
-  // (D) Janus init + attach
+  // (D) Janus init + attach (VideoRoom)
   const handleWebcamConnect = (deviceId) => {
     if (!window.Janus) {
       alert("Janus.js not loaded");
@@ -137,13 +139,14 @@ function Monitor() {
       callback: () => createJanusSession(deviceId),
     });
   };
+
   const createJanusSession = (deviceId) => {
     const serverUrl = "wss://msteam5iseeu.ddns.net/janus-ws/";
     const j = new window.Janus({
       server: serverUrl,
       success: () => {
         setJanus(j);
-        attachEchoTestPlugin(j, deviceId);
+        attachPublisherHandle(j, deviceId);
       },
       error: (err) => {
         console.error("[Janus] init error:", err);
@@ -151,57 +154,69 @@ function Monitor() {
     });
   };
 
-  // (E) EchoTest attach with deviceId
-  const attachEchoTestPlugin = (janusInstance, deviceId) => {
+  // (E) VideoRoom Publisher
+  const attachPublisherHandle = (janusInstance, deviceId) => {
+    let localPubHandle = null;
+
     janusInstance.attach({
-      plugin: "janus.plugin.echotest",
+      plugin: "janus.plugin.videoroom",
       success: (pluginHandle) => {
-        console.log("[Janus] attach success:", pluginHandle);
-        setWebcamHandle(pluginHandle);
+        localPubHandle = pluginHandle;
+        setPublisherHandle(pluginHandle);
+        console.log("[Publisher] handle created:", pluginHandle.getId());
 
-        // 먼저 audio/video 설정 전송
-        const body = { audio: true, video: true };
-        pluginHandle.send({ message: body });
-
-        // createOffer, deviceId를 capture에 반영
-        pluginHandle.createOffer({
-          tracks: [
-            { type: "audio", capture: true, recv: true },
-            {
-              type: "video",
-              capture: { deviceId: { exact: deviceId } }, // 선택된 카메라
-              recv: true,
-            },
-            { type: "data" },
-          ],
-          success: (jsep) => {
-            console.log("[Janus] createOffer success! local JSEP:", jsep);
-            pluginHandle.send({ message: body, jsep });
-          },
-          error: (error) => {
-            console.error("[Janus] createOffer error:", error);
+        // 1) "create" 요청 (room=9876)
+        const createReq = {
+          request: "create",
+          room: 9876,
+          publishers: 1,
+          videocodec: "vp8",
+          bitrate: 512000,
+        };
+        pluginHandle.send({
+          message: createReq,
+          success: (result) => {
+            console.log("[Publisher] create() result:", result);
+            // 실제 처리는 onmessage 콜백에서 처리
           },
         });
       },
       error: (err) => {
-        console.error("[Janus] plugin attach error:", err);
+        console.error("[Publisher] attach error:", err);
       },
       onmessage: (msg, jsep) => {
-        console.log("[Janus] onmessage:", msg, jsep);
+        console.log("[Publisher] onmessage:", msg, jsep);
+        const event = msg.videoroom; // e.g., "event", "joined", "created"
+
+        if (event === "created") {
+          // 새 방이 만들어졌을 때
+          const newRoomId = msg.room;
+          joinPublisher(localPubHandle, newRoomId);
+
+        } else if (msg.error_code === 427) {
+          // 이미 존재하는 방 => 바로 join 시도
+          console.warn("[Publisher] Room 9876 already exists -> let's just join!");
+          joinPublisher(localPubHandle, 9876);
+
+        } else if (event === "joined") {
+          // join 성공
+          const myId = msg.id;
+          console.log("[Publisher] joined room, myId =", myId);
+          setMyPublisherId(myId);
+          publishOwnFeed(localPubHandle);
+
+        } else if (event === "event") {
+          // 그 외 다른 event (예: publishers, leaving 등)
+          console.log("[Publisher] other event:", msg);
+        }
+
+        // SDP 처리
         if (jsep) {
-          // 약간의 딜레이 후 handleRemoteJsep
-          setTimeout(() => {
-            try {
-              console.log("[Janus] handleRemoteJsep after delay:", jsep);
-              webcamHandle.handleRemoteJsep({ jsep });
-            } catch (e) {
-              console.error("handleRemoteJsep error:", e);
-            }
-          }, 500);
+          localPubHandle.handleRemoteJsep({ jsep });
         }
       },
       onlocaltrack: (track, on) => {
-        console.log("[Janus] onlocaltrack:", track, on);
+        console.log("[Publisher] onlocaltrack:", track, on);
         if (!on) return;
         const stream = new MediaStream([track]);
         setLocalStream(stream);
@@ -210,8 +225,92 @@ function Monitor() {
         }
       },
       onremotetrack: (track, mid, on) => {
-        console.log("[Janus] onremotetrack:", track, mid, on);
-        if (!on) return;
+        // 보통 Publisher handle에는 remote track이 거의 오지 않음
+        console.log("[Publisher] onremotetrack:", track, mid, on);
+      },
+      oncleanup: () => {
+        console.log("[Publisher] oncleanup");
+        setLocalStream(null);
+      },
+    });
+  };
+
+  const joinPublisher = (pluginHandle, roomId) => {
+    // 2) 방에 Publisher로 join
+    const joinReq = {
+      request: "join",
+      room: roomId,
+      ptype: "publisher",
+      display: "MyPrivateWebcam",
+    };
+    pluginHandle.send({ message: joinReq });
+  };
+
+  const publishOwnFeed = (pluginHandle) => {
+    // 3) 내 로컬 웹캠을 publish
+    pluginHandle.createOffer({
+      media: {
+        audio: true,
+        video: true,
+      },
+      success: (jsep) => {
+        console.log("[Publisher] createOffer success, jsep=", jsep);
+        const publishReq = {
+          request: "publish",
+          audio: true,
+          video: true,
+        };
+        pluginHandle.send({ message: publishReq, jsep });
+        // 발행 완료 후 -> Subscriber 붙이기
+        attachSubscriberHandle(janus);
+      },
+      error: (err) => {
+        console.error("[Publisher] createOffer error:", err);
+      },
+    });
+  };
+
+  // (F) VideoRoom Subscriber (self-subscribe)
+  const attachSubscriberHandle = (janusInstance) => {
+    let localSubHandle = null;
+    janusInstance.attach({
+      plugin: "janus.plugin.videoroom",
+      success: (pluginHandle) => {
+        localSubHandle = pluginHandle;
+        setSubscriberHandle(pluginHandle);
+        console.log("[Subscriber] handle created:", pluginHandle.getId());
+      },
+      error: (err) => {
+        console.error("[Subscriber] attach error:", err);
+      },
+      onmessage: (msg, jsep) => {
+        console.log("[Subscriber] onmessage:", msg, jsep);
+        const event = msg.videoroom;
+
+        if (event === "attached") {
+          // feed를 정상적으로 attach한 상태 -> createAnswer
+          pluginHandle.createAnswer({
+            jsep,
+            media: { audio: true, video: true, data: true },
+            success: (ansJsep) => {
+              console.log("[Subscriber] createAnswer success!", ansJsep);
+              const body = { request: "start", room: 9876 };
+              pluginHandle.send({ message: body, jsep: ansJsep });
+            },
+            error: (error) => {
+              console.error("[Subscriber] createAnswer error:", error);
+            },
+          });
+        } else if (jsep) {
+          pluginHandle.handleRemoteJsep({ jsep });
+        }
+      },
+      onremotetrack: (track, mid, on) => {
+        console.log("[Subscriber] onremotetrack:", track, on);
+        if (!on) {
+          // track ended
+          return;
+        }
         const stream = new MediaStream([track]);
         setRemoteStream(stream);
         if (remoteVideoRef.current) {
@@ -219,24 +318,47 @@ function Monitor() {
         }
       },
       oncleanup: () => {
-        console.log("[Janus] oncleanup");
-        setLocalStream(null);
+        console.log("[Subscriber] oncleanup");
         setRemoteStream(null);
       },
     });
+
+    // 실제로 subscribe하려면 "join (ptype=subscriber, feed=...)" 요청 필요
+    // myPublisherId가 있어야 한다.
+    setTimeout(() => {
+      if (!myPublisherId) {
+        console.warn("[Subscriber] No publisher ID known yet?");
+        return;
+      }
+      console.log("[Subscriber] Subscribing to feed ID=", myPublisherId);
+      localSubHandle.send({
+        message: {
+          request: "join",
+          room: 9876,
+          ptype: "subscriber",
+          feed: myPublisherId,
+        },
+      });
+    }, 1000);
   };
 
   // 연결 해제
   const handleWebcamDisconnect = () => {
-    if (webcamHandle) {
-      webcamHandle.hangup();
-      webcamHandle.detach();
-      setWebcamHandle(null);
+    if (subscriberHandle) {
+      subscriberHandle.hangup();
+      subscriberHandle.detach();
+      setSubscriberHandle(null);
+    }
+    if (publisherHandle) {
+      publisherHandle.hangup();
+      publisherHandle.detach();
+      setPublisherHandle(null);
     }
     if (janus) {
       janus.destroy();
       setJanus(null);
     }
+    setMyPublisherId(null);
     setLocalStream(null);
     setRemoteStream(null);
   };
@@ -398,7 +520,7 @@ function Monitor() {
           {/* 웹캠 연결 (선택 모달) */}
           <div
             className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 flex flex-col items-center justify-center min-h-[200px] cursor-pointer hover:border-custom"
-            onClick={handleOpenWebcamSelect} // ← 장치 목록 모달 열기
+            onClick={handleOpenWebcamSelect}
           >
             <i className="fas fa-webcam text-4xl text-custom mb-4"></i>
             <span className="text-gray-700">웹캠 연결</span>
@@ -461,7 +583,11 @@ function Monitor() {
       {/* QR 모달 */}
       {qrVisible && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          {/* QR 오버레이 (생략) */}
+          <div className="bg-white p-6 rounded">
+            <h3 className="text-lg font-semibold mb-2">스마트폰 연결</h3>
+            <p>이 QR 코드를 스캔하세요</p>
+            <button onClick={closeQRModal}>닫기</button>
+          </div>
         </div>
       )}
 
@@ -479,14 +605,58 @@ function Monitor() {
             <h2 className="text-xl font-bold mb-4">
               {deviceType === "CCTV" ? "CCTV 연결 정보" : "블랙박스 연결 정보"}
             </h2>
-            {/* ... 폼 */}
             <form onSubmit={handleSubmitDevice}>
               {/* 폼 필드들 */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700">
+                  장치 이름
+                </label>
+                <input
+                  type="text"
+                  value={deviceName}
+                  onChange={(e) => setDeviceName(e.target.value)}
+                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+                  placeholder="예: 복도1 카메라"
+                />
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700">
+                  IP
+                </label>
+                <input
+                  type="text"
+                  value={deviceIP}
+                  onChange={(e) => setDeviceIP(e.target.value)}
+                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+                  placeholder="예: 192.168.0.10"
+                />
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700">
+                  Port
+                </label>
+                <input
+                  type="text"
+                  value={devicePort}
+                  onChange={(e) => setDevicePort(e.target.value)}
+                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+                  placeholder="예: 554"
+                />
+              </div>
+
+              {/* etc. 계정, 비번 등 */}
+
               <div className="flex justify-end space-x-2 mt-6">
-                <button type="button" onClick={closeDeviceModal} className="...">
+                <button
+                  type="button"
+                  onClick={closeDeviceModal}
+                  className="border border-gray-300 px-4 py-2 rounded"
+                >
                   취소
                 </button>
-                <button type="submit" className="...">
+                <button type="submit" className="bg-black text-white px-4 py-2 rounded">
                   등록
                 </button>
               </div>

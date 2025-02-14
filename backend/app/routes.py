@@ -260,22 +260,37 @@ def create_person_count(data: PersonCountCreate, db: Session = Depends(get_db)):
     db.refresh(new_count)
     return {"message": "person_count created", "id": new_count.id}
 
-@router.get("/person_count/{count_id}", response_model=dict)
-def get_person_count(count_id: int, db: Session = Depends(get_db)):
-    pc = db.query(PersonCount).filter(PersonCount.id == count_id).first()
-    if not pc:
-        raise HTTPException(status_code=404, detail="Record not found")
-    return {
-        "id": pc.id,
-        "cctv_id": pc.cctv_id,
-        "timestamp": pc.timestamp,
-        "male_young_adult": pc.male_young_adult,
-        "female_young_adult": pc.female_young_adult,
-        "male_middle_aged": pc.male_middle_aged,
-        "female_middle_aged": pc.female_middle_aged,
-        "male_minor": pc.male_minor,
-        "female_minor": pc.female_minor
-    }
+
+@router.get("/person_count/{cctv_id}", response_model=List[dict])
+def get_person_count_by_cctv_id(cctv_id: int, db: Session = Depends(get_db)):
+    """
+    cctv_id로 person_count 테이블을 조회,
+    cctv_id가 일치하는 모든 레코드 반환.
+    """
+
+    records = db.query(PersonCount).filter(PersonCount.cctv_id == cctv_id).all()
+
+    if not records:
+        # CCTV ID가 존재하지 않거나, 아직 데이터가 없을 수 있음
+        # 필요 시 에러 대신 빈 리스트 반환 가능
+        raise HTTPException(status_code=404, detail="No records found for this cctv_id")
+
+    # 여러 행을 각각 dict 형태로 변환
+    results = []
+    for pc in records:
+        results.append({
+            "id": pc.id,
+            "cctv_id": pc.cctv_id,
+            "timestamp": pc.timestamp,
+            "male_young_adult": pc.male_young_adult,
+            "female_young_adult": pc.female_young_adult,
+            "male_middle_aged": pc.male_middle_aged,
+            "female_middle_aged": pc.female_middle_aged,
+            "male_minor": pc.male_minor,
+            "female_minor": pc.female_minor
+        })
+
+    return results
 
 # -----------------------------------------------------------
 # 5) auth 테이블 (OAuth 정보)
