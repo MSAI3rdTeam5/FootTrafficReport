@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { chatbot_recall } from "../services/chatbotService";
 
 function ChatbotPage() {
   const location = useLocation();
@@ -16,6 +17,7 @@ function ChatbotPage() {
   const [activeConversationId, setActiveConversationId] = useState(null);
 
   // 메시지 입력
+  const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState("");
 
   // 목록 표시/숨기기 상태
@@ -94,6 +96,31 @@ function ChatbotPage() {
       );
     }, 1000);
   };
+  // 메시지 전송 함수: 사용자가 메시지를 전송하면 챗봇 서비스 함수를 호출합니다.
+  // const handleSendMessage = async () => {
+  //   if (!inputMessage.trim()) return;
+
+  //   // 1. 사용자 메시지를 상태에 추가
+  //   setMessages((prev) => [...prev, { sender: "user", text: inputMessage }]);
+
+  //   // 사용자 질문을 저장 후 입력창 초기화
+  //   const userQuestion = inputMessage;
+  //   setInputMessage("");
+
+  //   try {
+  //     // 2. 챗봇 서비스 함수 호출 (비동기 처리)
+  //     const chatbotResponse = await 챗봇최종함수(userQuestion);
+
+  //     // 3. 챗봇 응답을 상태에 추가
+  //     setMessages((prev) => [
+  //       ...prev,
+  //       { sender: "bot", text: chatbotResponse },
+  //     ]);
+  //   } catch (error) {
+  //     console.error("챗봇 응답 호출 에러:", error);
+  //     // 에러 처리 로직 추가 가능
+  //   }
+  // };
 
   // 목록 토글 버튼
   const toggleList = () => {
