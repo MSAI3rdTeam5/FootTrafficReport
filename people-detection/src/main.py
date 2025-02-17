@@ -10,6 +10,7 @@ import random
 import pandas as pd
 import aiohttp
 import asyncio
+import numpy as np
  
 app = FastAPI()
  
@@ -21,10 +22,10 @@ class DetectionRequest(BaseModel):
 # Azure API 연결 세부 정보 초기화
 class AzureAPI:
     def __init__(self):
-        self.url = "PATH_YOUR_URL"
+        self.url = "https://ai-services123.cognitiveservices.azure.com/customvision/v3.0/Prediction/e2185b3d-d764-4aeb-a672-5c2480425c05/classify/iterations/Iteration1/image"
         self.headers = {
-            "Prediction-Key": "PATH_YOUR_KEY",
-            "Content-Type": "PATH_YOUR_TYPE"
+            "Prediction-Key": "GEbnMihAUjSdLaPRMRkMyioJBnQLV45TnpV66sh1tD0BxUO9Nkl9JQQJ99BAACYeBjFXJ3w3AAAEACOG0gLQ",
+            "Content-Type": "application/octet-stream"
         }
         self.session = None
  
@@ -100,6 +101,43 @@ class PersonTracker:
         if obj_id not in self.color_map:
             self.color_map[obj_id] = [random.randint(0, 255) for _ in range(3)]
         return self.color_map[obj_id]
+    
+    # 얼굴 블러처리를 위한 계산
+    def estimate_face_area(self, keypoints, box):
+        face_keypoints_indices = [0, 1, 2, 3, 4]
+        face_keypoints = keypoints[face_keypoints_indices]
+
+        if face_keypoints.shape[1] == 2:
+            valid_points = face_keypoints
+        elif face_keypoints.shape[1] == 3:
+            valid_points = face_keypoints[face_keypoints[:, 2] > 0.3][:, :2]
+        else:
+            return None
+
+        if len(valid_points) >= 4:
+            x_min, y_min = np.maximum(np.min(valid_points, axis=0).astype(int), [box[0], box[1]])
+            x_max, y_max = np.minimum(np.max(valid_points, axis=0).astype(int), [box[2], box[3]])
+
+            width = (x_max - x_min) * 20
+            height = (y_max - y_min) * 10
+            x_min = max(box[0], x_min - int(width * 0.1))
+            y_min = max(box[1], y_min - int(height * 0.1))
+            x_max = min(box[2], x_max + int(width * 0.1))
+            y_max = min(box[3], y_max + int(height * 0.1))
+
+            return x_min, y_min, x_max, y_max
+
+        return None
+    # 얼굴 블러
+    def apply_face_blur(self, frame, face_area):
+        if face_area is not None:
+            x_min, y_min, x_max, y_max = face_area
+
+            if x_max > x_min and y_max > y_min:
+                face_roi = frame[y_min:y_max, x_min:x_max]
+                blurred_roi = cv2.GaussianBlur(face_roi, (25, 25), 0)
+                frame[y_min:y_max, x_min:x_max] = blurred_roi
+        return frame
  
     # Detect and track people in the video stream
     # 비디오 스트림에서 사람을 감지하고 추적
@@ -108,45 +146,50 @@ class PersonTracker:
             source, show=False, stream=True, tracker=self.tracker_config, conf=self.conf,
             device=self.device, iou=self.iou, stream_buffer=True, classes=[0], imgsz=self.img_size
         )
- 
-        await self.azure_api.start()
- 
-        for result in results:
-            frame = result.orig_img.copy()  
-            display_frame = frame.copy()    
-            boxes = result.boxes
- 
-            self.frames.append(frame)
-            self.boxes.append(boxes)
- 
-            tasks = []
-            new_object_detected = False # 새로운 객체 감지 플래그
 
-            for box in boxes:
+        await self.azure_api.start()
+
+        for result in results:
+            original_frame = result.orig_img.copy()  # 원본 프레임 저장
+            display_frame = original_frame.copy()    # 디스플레이용 프레임
+            boxes = result.boxes
+            keypoints_data = result.keypoints.data.cpu().numpy()
+
+            self.frames.append(display_frame)
+            self.boxes.append(boxes)
+
+            tasks = []
+            new_object_detected = False
+
+            for box, kpts in zip(boxes, keypoints_data):
                 x1, y1, x2, y2 = map(int, box.xyxy[0].tolist())
                 if box.id is not None:
                     obj_id = int(box.id)
                 else:
-                    continue  # box.id가 없으면 건너뜀
- 
+                    continue
+
                 color = self.generate_color(obj_id)
- 
+
                 if obj_id not in self.detected_ids:
                     self.detected_ids.add(obj_id)
-                    cropped_path = self.save_cropped_person(frame, x1, y1, x2, y2, obj_id)
+                    cropped_path = self.save_cropped_person(original_frame, x1, y1, x2, y2, obj_id)  # 원본 프레임에서 크롭
                     tasks.append(self.process_person(obj_id, cropped_path, cctv_id))
-                    new_object_detected = True # 새로운 객체 감지 표시
- 
+                    new_object_detected = True
+
+                face_area = self.estimate_face_area(kpts, [x1, y1, x2, y2])
+                if face_area:
+                    display_frame = self.apply_face_blur(display_frame, face_area)
+
                 cv2.rectangle(display_frame, (x1, y1), (x2, y2), color, 2)
                 cv2.putText(display_frame, f"ID: {obj_id}", (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
 
             await asyncio.gather(*tasks)
 
             if new_object_detected:
-                self.save_full_frame(frame, obj_id)  # 새로운 객체가 감지되었을 때만 전체 프레임 저장
+                self.save_full_frame(original_frame, obj_id)  # 원본 프레임 저장
 
             cv2.imshow("Person Tracking", display_frame)
- 
+
             key = cv2.waitKey(1) & 0xFF
             if key == ord('q'):
                 break
@@ -154,7 +197,7 @@ class PersonTracker:
                 while True:
                     if cv2.waitKey(1) & 0xFF == ord('s'):
                         break
- 
+
         cv2.destroyAllWindows()
         await self.azure_api.close()
         self.save_blurred_video_prompt()
@@ -237,26 +280,26 @@ class PersonTracker:
 Test code 할때는 __name__ == "__main__"으로 실행 (detect_people 함수는 주석 처리)
 웹으로 호출해서 실제 cctv에서 실행할때는 detect_people로 실행 (__name__ == "__main__" 주석 처리)
 '''
-# 웹으로 호출되는 함수
-@app.post("/detect") 
-async def detect_people(request: DetectionRequest):
-    try:
-        tracker = PersonTracker(
-            model_path='FootTrafficReport/people-detection/model/yolo11n-pose.pt'
-        )
-        result = await tracker.detect_and_track(source=request.cctv_url, cctv_id=request.cctv_id)
-        return result
+# # 웹으로 호출되는 함수
+# @app.post("/detect") 
+# async def detect_people(request: DetectionRequest):
+#     try:
+#         tracker = PersonTracker(
+#             model_path='FootTrafficReport/people-detection/model/yolo11n-pose.pt'
+#         )
+#         result = await tracker.detect_and_track(source=request.cctv_url, cctv_id=request.cctv_id)
+#         return result
     
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=str(e))
 
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8500)
+# if __name__ == "__main__":
+#     import uvicorn
+#     uvicorn.run(app, host="0.0.0.0", port=8500)
 
 
-# #Test할때 하는 작업 (cctv_id는 임의로 설정)
-# if __name__ == '__main__':
-#     source = "../data/videos/07_cam.mp4"
-#     tracker = PersonTracker(model_path='../model/yolo11n-pose.pt')
-#     asyncio.run(tracker.detect_and_track(source=source, cctv_id=1))
+#Test할때 하는 작업 (cctv_id는 임의로 설정)
+if __name__ == '__main__':
+    source = "../data/videos/05_seoul.mp4"
+    tracker = PersonTracker(model_path='../model/yolo11n-pose.pt')
+    asyncio.run(tracker.detect_and_track(source=source, cctv_id=1))
