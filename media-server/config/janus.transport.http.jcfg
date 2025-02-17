@@ -1,0 +1,13 @@
+http: {
+  admin: {
+    admin_http = true
+    admin_http_port = 8088
+  }
+  
+  interfaces: [
+    {
+      http = true
+      http_port = 8088
+    }
+  ]
+}

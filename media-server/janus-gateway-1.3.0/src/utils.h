@@ -1,0 +1,507 @@
+/*! \file    utils.h
+ * \author   Lorenzo Miniero <lorenzo@meetecho.com>
+ * \copyright GNU General Public License v3
+ * \brief    Utilities and helpers (headers)
+ * \details  Implementations of a few methods that may be of use here
+ * and there in the code.
+ *
+ * \ingroup core
+ * \ref core
+ */
+
+#ifndef JANUS_UTILS_H
+#define JANUS_UTILS_H
+
+#include <stdint.h>
+#include <glib.h>
+#include <jansson.h>
+
+#define JANUS_JSON_STRING			JSON_STRING
+#define JANUS_JSON_INTEGER			JSON_INTEGER
+#define JANUS_JSON_OBJECT			JSON_OBJECT
+#define JANUS_JSON_ARRAY			JSON_ARRAY
+/* Use JANUS_JSON_BOOL instead of the non-existing JSON_BOOLEAN */
+#define JANUS_JSON_BOOL				JSON_TRUE
+#define JANUS_JSON_PARAM_REQUIRED	1
+#define JANUS_JSON_PARAM_POSITIVE	2
+#define JANUS_JSON_PARAM_NONEMPTY	4
+
+struct janus_json_parameter {
+	const gchar *name;
+	json_type jtype;
+	unsigned int flags;
+};
+
+#ifndef htonll
+#define htonll(x) ((1==htonl(1)) ? (x) : ((guint64)htonl((x) & 0xFFFFFFFF) << 32) | htonl((x) >> 32))
+#endif
+#ifndef ntohll
+#define ntohll(x) ((1==ntohl(1)) ? (x) : ((guint64)ntohl((x) & 0xFFFFFFFF) << 32) | ntohl((x) >> 32))
+#endif
+
+
+/*! Helper method used by the core to mark when Janus started */
+void janus_mark_started(void);
+
+/*! \brief Helper to retrieve the system monotonic time, as Glib's
+ * g_get_monotonic_time may not be available (only since 2.28)
+ * @returns The system monotonic time */
+gint64 janus_get_monotonic_time_internal(void);
+
+/*! \brief Helper to retrieve the system monotonic time, as Glib's
+ * g_get_monotonic_time may not be available (only since 2.28)
+ * @note The monotonic time will be normalized from the Janus start time
+ * @returns The system monotonic time */
+gint64 janus_get_monotonic_time(void);
+
+/*! \brief Helper to retrieve the system real time, as Glib's
+ * g_get_real_time may not be available (only since 2.28)
+ * @returns The system real time */
+gint64 janus_get_real_time(void);
+
+/*! \brief Helper to replace strings
+ * @param message The string that contains the text to replace, which may be
+ * freed if it is too short
+ * @param old_string The old text to replace
+ * @param new_string The new text
+ * @returns A pointer to the updated text string (re-allocated or just updated) */
+char *janus_string_replace(char *message, const char *old_string, const char *new_string) G_GNUC_WARN_UNUSED_RESULT;
+
+/*! \brief Helper method to concatenate strings and log an error if truncation occurred
+ * @param[in] dest Destination buffer, already containing one nul-terminated string
+ * @param[in] src Source buffer
+ * @param[in] dest_size Length of dest buffer in bytes (not length of existing string inside dest)
+ * @returns Size of attempted result, if retval >= dest_size, truncation occurred (and an error will be logged). */
+size_t janus_strlcat(char *dest, const char *src, size_t dest_size);
+
+/*! \brief Alternative helper method to concatenate strings and log an error if truncation occurred,
+ * which uses memccpy instead of g_strlcat and so is supposed to be faster
+ * @note The offset attribute is input/output, and updated any time the method is called
+ * @param[in] dest Destination buffer, already containing one nul-terminated string
+ * @param[in] src Source buffer
+ * @param[in] dest_size Length of dest buffer in bytes (not length of existing string inside dest)
+ * @param[in] offset Offset of where to start appending, in the destination buffer
+ * @returns 0 in case of success, a negative integer otherwise */
+int janus_strlcat_fast(char *dest, const char *src, size_t dest_size, size_t *offset);
+
+/*! \brief Helper to parse yes/no|true/false configuration values
+ * @param value The configuration value to parse
+ * @returns true if the value contains a "yes", "YES", "true", TRUE", "1", false otherwise */
+gboolean janus_is_true(const char *value);
+
+/*! \brief Helper to compare strings in constant time
+ * @param str1 The first string to compare
+ * @param str2 The second string to compare
+ * @returns true if the strings are the same, false otherwise */
+gboolean janus_strcmp_const_time(const void *str1, const void *str2);
+
+/*! \brief Helper to generate random 32-bit unsigned integers (useful for SSRCs, etc.)
+ * @note Warning: this will fall back to a non-cryptographically safe PRNG in case
+ * the crypto library RAND_bytes() call fails.
+ * @returns A (mostly crypto-safe) random 32-bit unsigned integer */
+guint32 janus_random_uint32(void);
+
+/*! \brief Helper to generate random 64-bit unsigned integers
+ * @note Unlike janus_random_uint64(), which actually only generates 52 bits, this
+ * generates the full 64 bits. See the janus_random_uint64() docstring for details.
+ * Warning: this will fall back to a non-cryptographically safe PRNG in case
+ * the crypto library RAND_bytes() call fails.
+ * @returns A (mostly crypto-safe) random 52-bit unsigned integer */
+guint64 janus_random_uint64_full(void);
+
+/*! \brief Helper to generate random 52 bit unsigned integers
+ * @note The reason for 52 instead of 64 bits: Javascript does not have real integers,
+ * its builtin "number" type is a float64. Thus, only integer values up to
+ * <code>Number.MAX_SAFE_INTEGER == 2^53 - 1 == 9007199254740991</code>
+ * can be safely represented in Javascript. This method returns such numbers.
+ * Use this method instead of janus_random_uint64_full() whenever you generate numbers which
+ * might end up in Javascript (via JSON API).
+ * This method is called janus_random_uint64() instead of janus_random_uint52() (or similar)
+ * for backwards compatibility.
+ * Warning: this will fall back to a non-cryptographically safe PRNG in case
+ * the crypto library RAND_bytes() call fails.
+ * @returns A (mostly crypto-safe) random 64-bit unsigned integer */
+guint64 janus_random_uint64(void);
+
+/*! \brief Helper to generate random UUIDs (needed by some plugins)
+ * Warning: this will fall back to a non-cryptographically safe PRNG in case
+ * the crypto library RAND_bytes() call fails.
+ * @returns A (mostly crypto-safe) random UUID string, which must be deallocated with \c g_free */
+char *janus_random_uuid(void);
+
+/*! \brief Helper to generate an allocated copy of a guint64 number
+ * @note While apparently silly, this is needed in order to make sure guint64 values
+ * used as keys in GHashTable operations are not lost: using temporary guint64 numbers
+ * in a g_hash_table_insert, for instance, will cause the key to contain garbage as
+ * soon as the temporary variable is lost, and all opererations on the key to fail
+ * @param num The guint64 number to duplicate
+ * @returns A pointer to a guint64 number, if successful, NULL otherwise */
+guint64 *janus_uint64_dup(guint64 num);
+
+/*! \brief Helper to hash a guint64 number to another guint64 number
+ * @note We currently only use for event handlers
+ * @param num The guint64 number to hash
+ * @returns The hashed number */
+guint64 janus_uint64_hash(guint64 num);
+
+/*! \brief Helper method to convert a string to a uint8_t
+ * @note The value of \c num should be ignored, if the method returned an error
+ * @param[in] str The string to convert
+ * @param[out] num Pointer to the converted number
+ * @returns 0 if successful, or a negative integer otherwise (e.g., \c -ERANGE if the value is out of range) */
+int janus_string_to_uint8(const char *str, uint8_t *num);
+
+/*! \brief Helper method to convert a string to a uint16_t
+ * @note The value of \c num should be ignored, if the method returned an error
+ * @param[in] str The string to convert
+ * @param[out] num Pointer to the converted number
+ * @returns 0 if successful, or a negative integer otherwise (e.g., \c -ERANGE if the value is out of range) */
+int janus_string_to_uint16(const char *str, uint16_t *num);
+
+/*! \brief Helper method to convert a string to a uint32_t
+ * @note The value of \c num should be ignored, if the method returned an error
+ * @param[in] str The string to convert
+ * @param[out] num Pointer to the converted number
+ * @returns 0 if successful, or a negative integer otherwise (e.g., \c -ERANGE if the value is out of range) */
+int janus_string_to_uint32(const char *str, uint32_t *num);
+
+/** @name Flags helper methods
+ */
+///@{
+/*! \brief Janus flags container */
+typedef gsize janus_flags;
+
+/*! \brief Janus flags reset method
+ * \param[in] flags The janus_flags instance to reset */
+void janus_flags_reset(janus_flags *flags);
+
+/*! \brief Janus flags set method
+ * \param[in] flags The janus_flags instance to update
+ * \param[in] flag The flag to set */
+void janus_flags_set(janus_flags *flags, gsize flag);
+
+/*! \brief Janus flags clear method
+ * \param[in] flags The janus_flags instance to update
+ * \param[in] flag The flag to clear */
+void janus_flags_clear(janus_flags *flags, gsize flag);
+
+/*! \brief Janus flags check method
+ * \param[in] flags The janus_flags instance to check
+ * \param[in] flag The flag to check
+ * \returns true if the flag is set, false otherwise */
+gboolean janus_flags_is_set(janus_flags *flags, gsize flag);
+///@}
+
+/*! \brief Helper to create a new directory, and recursively create parent directories if needed
+ * @param dir Path to the new folder to create
+ * @param mode File permissions for the new directory file
+ * @returns An integer like the regular mkdir does
+ * @note A failure may indicate that creating any of the subdirectories failed: some may still have been created */
+int janus_mkdir(const char *dir, mode_t mode);
+
+/*! \brief Helper to convert \c path relative to \c base_dir to absolute path.
+ *  If \c path already represents absolute path then just g_strdup it.
+ * @param[in] base_dir Path which will be prepended to \c path if it's relative
+ * @param[in] path Some relative or absolute path
+ * @returns g_strdup'ed absolute path. Should be freed with g_free() when no longer needed */
+gchar *janus_make_absolute_path(const gchar *base_dir, const gchar *path);
+
+/*! \brief Ugly and dirty helper to quickly get the payload type associated with a codec in an SDP
+ * @param sdp The SDP to parse
+ * @param codec The codec to look for
+ * @returns The payload type, if found, -1 otherwise */
+int janus_get_codec_pt(const char *sdp, const char *codec);
+
+/*! \brief Ugly and dirty helper to quickly get the codec associated with a payload type in an SDP
+ * @param sdp The SDP to parse
+ * @param pt The payload type to look for
+ * @returns The codec name, if found, NULL otherwise */
+const char *janus_get_codec_from_pt(const char *sdp, int pt);
+
+/*! \brief Create and lock a PID file
+ * @param file Path to the PID file to use
+ * @returns 0 if successful, a negative integer otherwise */
+int janus_pidfile_create(const char *file);
+
+/*! \brief Unlock and remove a previously created PID file
+ * @returns 0 if successful, a negative integer otherwise */
+int janus_pidfile_remove(void);
+
+/*! \brief Add a folder to the protected list (meaning we won't create
+ * files there, like recordings or pcap dumps)
+ * @param folder Folder to protect */
+void janus_protected_folder_add(const char *folder);
+
+/*! \brief Check if the path points to a protected folder
+ * @param path Path we need to check
+ * @returns TRUE if the folder is protected, and FALSE otherwise */
+gboolean janus_is_folder_protected(const char *path);
+
+/*! \brief Cleanup the list of protected folder */
+void janus_protected_folders_clear(void);
+
+/*! \brief Creates a string describing the JSON type and constraint
+ * @param jtype The JSON type, e.g., JSON_STRING
+ * @param flags Indicates constraints for the described type
+ * @param[out] type_name The type description, e.g., "a positive integer"; required size is 19 characters */
+void janus_get_json_type_name(int jtype, unsigned int flags, char *type_name);
+
+/*! \brief Checks whether the JSON value matches the type and constraint
+ * @param val The JSON value to be checked
+ * @param jtype The JSON type, e.g., JSON_STRING
+ * @param flags Indicates constraints for the described type
+ * @returns TRUE if the value is valid */
+gboolean janus_json_is_valid(json_t *val, json_type jtype, unsigned int flags);
+
+/*! \brief Validates the JSON object against the description of its parameters
+ * @param missing_format printf format to indicate a missing required parameter; needs one %s for the parameter name
+ * @param invalid_format printf format to indicate an invalid parameter; needs two %s for parameter name and type description from janus_get_json_type_name
+ * @param obj The JSON object to be validated
+ * @param params Array of struct janus_json_parameter to describe the parameters; the array has to be a global or stack variable to make sizeof work
+ * @param[out] error_code int to return error code
+ * @param[out] error_cause Array of char or NULL to return the error descriptions; the array has to be a global or stack variable to make sizeof work; the required size is the length of the format string plus the length of the longest parameter name plus 19 for the type description
+ * @param log_error If TRUE, log any error with JANUS_LOG(LOG_ERR)
+ * @param missing_code The code to be returned in error_code if a parameter is missing
+ * @param invalid_code The code to be returned in error_code if a parameter is invalid */
+#define JANUS_VALIDATE_JSON_OBJECT_FORMAT(missing_format, invalid_format, obj, params, error_code, error_cause, log_error, missing_code, invalid_code) \
+	do { \
+		error_code = 0; \
+		unsigned int i; \
+		for(i = 0; i < sizeof(params) / sizeof(struct janus_json_parameter); i++) { \
+			json_t *val = json_object_get(obj, params[i].name); \
+			if(!val) { \
+				if((params[i].flags & JANUS_JSON_PARAM_REQUIRED) != 0) {	\
+					error_code = (missing_code); \
+					if(log_error) \
+						JANUS_LOG(LOG_ERR, missing_format "\n", params[i].name); \
+					if(error_cause != NULL) \
+						g_snprintf(error_cause, sizeof(error_cause), missing_format, params[i].name); \
+					break; \
+				} \
+				continue; \
+			} \
+			if(!janus_json_is_valid(val, params[i].jtype, params[i].flags)) { \
+				error_code = (invalid_code); \
+				char type_name[20]; \
+				janus_get_json_type_name(params[i].jtype, params[i].flags, type_name); \
+				if(log_error) \
+					JANUS_LOG(LOG_ERR, invalid_format "\n", params[i].name, type_name); \
+				if(error_cause != NULL) \
+					g_snprintf(error_cause, sizeof(error_cause), invalid_format, params[i].name, type_name); \
+				break; \
+			} \
+		} \
+	} while(0)
+
+/*! \brief Validates the JSON object against the description of its parameters
+ * @param obj The JSON object to be validated
+ * @param params Array of struct janus_json_parameter to describe the parameters; the array has to be a global or stack variable to make sizeof work
+ * @param[out] error_code int to return error code
+ * @param[out] error_cause Array of char or NULL to return the error descriptions; the array has to be a global or stack variable to make sizeof work; the required size is the length of the longest parameter name plus 54 for the format string and type description
+ * @param log_error If TRUE, log any error with JANUS_LOG(LOG_ERR)
+ * @param missing_code The code to be returned in error_code if a parameter is missing
+ * @param invalid_code The code to be returned in error_code if a parameter is invalid */
+#define JANUS_VALIDATE_JSON_OBJECT(obj, params, error_code, error_cause, log_error, missing_code, invalid_code) \
+	JANUS_VALIDATE_JSON_OBJECT_FORMAT("Missing mandatory element (%s)", "Invalid element type (%s should be %s)", obj, params, error_code, error_cause, log_error, missing_code, invalid_code)
+
+/*! \brief If the secret isn't NULL, check the secret after validating the specified member of the JSON object
+ * @param secret The secret to be checked; no check if the secret is NULL
+ * @param obj The JSON object to be validated
+ * @param member The JSON member with the secret, usually "secret" or "pin"
+ * @param[out] error_code int to return error code
+ * @param[out] error_cause Array of char or NULL to return the error descriptions; the array has to be a global or stack variable to make sizeof work; the required size is 60
+ * @param missing_code The code to be returned in error_code if a parameter is missing
+ * @param invalid_code The code to be returned in error_code if a parameter is invalid
+ * @param unauthorized_code The code to be returned in error_code if the secret doesn't match */
+#define JANUS_CHECK_SECRET(secret, obj, member, error_code, error_cause, missing_code, invalid_code, unauthorized_code) \
+	do { \
+		if (secret) { \
+			static struct janus_json_parameter secret_parameters[] = { \
+				{member, JSON_STRING, JANUS_JSON_PARAM_REQUIRED} \
+			}; \
+			JANUS_VALIDATE_JSON_OBJECT(obj, secret_parameters, error_code, error_cause, TRUE, missing_code, invalid_code); \
+			if(error_code == 0 && !janus_strcmp_const_time((secret), json_string_value(json_object_get(obj, member)))) { \
+				error_code = (unauthorized_code); \
+				JANUS_LOG(LOG_ERR, "Unauthorized (wrong %s)\n", member); \
+				if(error_cause != NULL) \
+					g_snprintf(error_cause, sizeof(error_cause), "Unauthorized (wrong %s)", member); \
+			} \
+		} \
+	} while(0)
+
+/*! \brief Helper method to check if a VP8 frame is a keyframe or not
+ * @param[in] buffer The RTP payload to process
+ * @param[in] len The length of the RTP payload
+ * @returns TRUE if it's a keyframe, FALSE otherwise */
+gboolean janus_vp8_is_keyframe(const char *buffer, int len);
+
+/*! \brief Helper method to check if a VP9 frame is a keyframe or not
+ * @param[in] buffer The RTP payload to process
+ * @param[in] len The length of the RTP payload
+ * @returns TRUE if it's a keyframe, FALSE otherwise */
+gboolean janus_vp9_is_keyframe(const char *buffer, int len);
+
+/*! \brief Helper method to check if an H.264 frame is a keyframe or not
+ * @note This checks the presence of an SPS NAL (7), nor an I-Frame (5),
+ * since SPS/PPS are what's needed for a browser to actually be able to
+ * decode a stream. If for some reason you want to check for I-Frames
+ * instead, use the janus_h264_is_i_frame() function
+ * @param[in] buffer The RTP payload to process
+ * @param[in] len The length of the RTP payload
+ * @returns TRUE if it's a keyframe, FALSE otherwise */
+gboolean janus_h264_is_keyframe(const char *buffer, int len);
+
+/*! \brief Helper method to check if an H.264 frame contains an I-Frame or not
+ * @param[in] buffer The RTP payload to process
+ * @param[in] len The length of the RTP payload
+ * @returns TRUE if it's an I-Frame, FALSE otherwise */
+gboolean janus_h264_is_i_frame(const char *buffer, int len);
+
+/*! \brief Helper method to check if an H.264 frame contains a B-Frame or not
+ * @param[in] buffer The RTP payload to process
+ * @param[in] len The length of the RTP payload
+ * @returns TRUE if it's a B-Frame, FALSE otherwise */
+gboolean janus_h264_is_b_frame(const char *buffer, int len);
+
+/*! \brief Helper method to check if an AV1 frame is a keyframe or not
+ * @param[in] buffer The RTP payload to process
+ * @param[in] len The length of the RTP payload
+ * @returns TRUE if it's a keyframe, FALSE otherwise */
+gboolean janus_av1_is_keyframe(const char *buffer, int len);
+
+/*! \brief Helper method to check if an H.265 frame is a keyframe or not
+ * @param[in] buffer The RTP payload to process
+ * @param[in] len The length of the RTP payload
+ * @returns TRUE if it's a keyframe, FALSE otherwise */
+gboolean janus_h265_is_keyframe(const char *buffer, int len);
+
+/*! \brief VP8 simulcasting context, in order to make sure SSRC changes result in coherent picid/temporal level increases */
+typedef struct janus_vp8_simulcast_context {
+	uint16_t last_picid, base_picid, base_picid_prev;
+	uint8_t last_tlzi, base_tlzi, base_tlzi_prev;
+} janus_vp8_simulcast_context;
+
+/*! \brief Set (or reset) the context fields to their default values
+ * @param[in] context The context to (re)set */
+void janus_vp8_simulcast_context_reset(janus_vp8_simulcast_context *context);
+
+/*! \brief Helper method to parse a VP8 payload descriptor for useful info (e.g., when simulcasting)
+ * @param[in] buffer The RTP payload to process
+ * @param[in] len The length of the RTP payload
+ * @param[out] m Whether the Picture ID is 15 bit or 7 bit
+ * @param[out] picid The Picture ID
+ * @param[out] tl0picidx Temporal level zero index
+ * @param[out] tid Temporal-layer index
+ * @param[out] y Layer sync bit
+ * @param[out] keyidx Temporal key frame index
+ * @returns 0 in case of success, a negative integer otherwise */
+int janus_vp8_parse_descriptor(char *buffer, int len,
+		gboolean *m, uint16_t *picid, uint8_t *tl0picidx, uint8_t *tid, uint8_t *y, uint8_t *keyidx);
+
+/*! \brief Use the context info to update the RTP header of a packet, if needed
+ * @param[in] buffer The RTP payload to process
+ * @param[in] len The length of the RTP payload
+ * @param[in] context The context to use as a reference
+ * @param[in] switched Whether there has been a source switch or not (important to compute offsets) */
+void janus_vp8_simulcast_descriptor_update(char *buffer, int len, janus_vp8_simulcast_context *context, gboolean switched);
+
+/*! \brief VP9 SVC info, as parsed from a payload descriptor */
+typedef struct janus_vp9_svc_info {
+	int spatial_layer, temporal_layer;
+	uint8_t fbit, pbit, dbit, ubit, bbit, ebit;
+} janus_vp9_svc_info;
+
+/*! \brief Helper method to parse a VP9 payload descriptor for SVC-related info (e.g., when SVC is enabled)
+ * @param[in] buffer The RTP payload to process
+ * @param[in] len The length of the RTP payload
+ * @param[out] found Whether any SVC related info has been found or not
+ * @param[out] info Pointer to a janus_vp9_svc_info structure for passing the parsed info back
+ * @returns 0 in case of success, a negative integer otherwise */
+int janus_vp9_parse_svc(char *buffer, int len, gboolean *found, janus_vp9_svc_info *info);
+
+/*! \brief Helper struct to address a specific RED block */
+typedef struct janus_red_block {
+	uint8_t pt;
+	uint32_t ts_offset;
+	uint8_t *data;
+	uint16_t length;
+} janus_red_block;
+/*! \brief Helper method to parse an RTP payload to return a list of RED blocks
+ * \note The returned list is owned by the caller, and must be freed
+ * @param[in] buffer The RTP payload to process
+ * @param[in] len The length of the RTP payload
+ * @returns An allocated GList of janus_red_block, if successful, NULL otherwise */
+GList *janus_red_parse_blocks(char *buffer, int len);
+/*! \brief Helper method to pack multiple buffers in a RED payload
+ * @param[in] buffer The RTP payload to write to
+ * @param[in] len The size of the RTP payload buffer
+ * @param[in] blocks Linked list of janus_red_block instances to add to the payload
+ * @returns The size of the RED payload in case of success, a negative integer otherwise */
+int janus_red_pack_blocks(char *buffer, int len, GList *blocks);
+/*! \brief Helper method to overwrite all RTP payload types in RED blocks
+ * @param[in] buffer The RED block payload to update
+ * @param[in] len The size of the payload buffer
+ * @param[in] pt The RTP payload type to set in all blocks
+ * @returns 0 in case of success, a negative integer otherwise */
+int janus_red_replace_block_pt(char *buffer, int len, int pt);
+
+/*! \brief Helper method to push individual bits at the end of a word
+ * @param[in] word Initial value of word
+ * @param[in] num Number of bits to push
+ * @param[in] val Value of bits to push
+ * @returns 0  New word value*/
+guint32 janus_push_bits(guint32 word, size_t num, guint32 val);
+
+/*! \brief Helper method to set one byte at a memory position
+ * @param[in] data memory data pointer
+ * @param[in] i position in memory to change
+ * @param[in] val value to write
+ */
+void janus_set1(guint8 *data, size_t i, guint8 val);
+
+/*! \brief Helper method to set two bytes at a memory position
+ * @param[in] data memory data pointer
+ * @param[in] i position in memory to change
+ * @param[in] val value to write
+ */
+void janus_set2(guint8 *data, size_t i, guint32 val);
+
+/*! \brief Helper method to set three bytes at a memory position
+ * @param[in] data memory data pointer
+ * @param[in] i position in memory to change
+ * @param[in] val value to write
+ */
+void janus_set3(guint8 *data, size_t i, guint32 val);
+
+/*! \brief Helper method to set four bytes at a memory position
+ * @param[in] data memory data pointer
+ * @param[in] i position in memory to change
+ * @param[in] val value to write
+ */
+void janus_set4(guint8 *data, size_t i, guint32 val);
+
+/*! \brief Helpers to read a bit from a bitstream
+ * @param[in] base Pointer to the start of the bitstream
+ * @param[in] offset Offset in bits from the start
+ * @returns The value of the bit */
+uint8_t janus_bitstream_getbit(uint8_t *base, uint32_t offset);
+/*! \brief Helpers to read agroup of bits from a bitstream
+ * @param[in] base Pointer to the start of the bitstream
+ * @param[in] num The number of bits to read
+ * @param[in] offset Offset in bits from the start
+ * @returns The value of the bits */
+uint32_t janus_bitstream_getbits(uint8_t *base, uint8_t num, uint32_t *offset);
+
+/*! \brief Helper method to compress a string to gzip (using zlib)
+ * \note It's up to you to provide a buffer large enough for the compressed
+ * data: in case the buffer isn't large enough, the request will fail
+ * @param[in] compression Compression factor (1=fastest, 9=best compression)
+ * @param[in] text Pointer to the string to compress
+ * @param[in] tlen Length of the string to compress
+ * @param[in] compressed Pointer to the buffer where to compress the string to
+ * @param[in] zlen Size of the output buffer
+ * @returns The size of the compressed data, if successful, or 0 otherwise
+ */
+size_t janus_gzip_compress(int compression, char *text, size_t tlen, char *compressed, size_t zlen);
+
+#endif

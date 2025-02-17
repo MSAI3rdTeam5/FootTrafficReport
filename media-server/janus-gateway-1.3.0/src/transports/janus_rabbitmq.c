@@ -1,0 +1,1090 @@
+/*! \file   janus_rabbitmq.c
+ * \author Lorenzo Miniero <lorenzo@meetecho.com>
+ * \copyright GNU General Public License v3
+ * \brief  Janus RabbitMQ transport plugin
+ * \details  This is an implementation of a RabbitMQ transport for the
+ * Janus API, using the rabbitmq-c library (https://github.com/alanxz/rabbitmq-c).
+ * This means that this module adds support for RabbitMQ based messaging as
+ * an alternative "transport" for API requests, responses and notifications.
+ * This is only useful when you're wrapping Janus requests in your server
+ * application, and handling the communication with clients your own way.
+ * At the moment, only a single "application" can be handled at the same
+ * time, meaning that Janus won't implement multiple queues to handle
+ * multiple concurrent "application servers" taking advantage of its
+ * features. Support for this is planned, though (e.g., through some kind
+ * of negotiation to create queues on the fly). Right now, you can only
+ * configure the address of the RabbitMQ server to use, and the queues to
+ * make use of to receive (to-janus) and send (from-janus) messages
+ * from/to an external application. As with WebSockets, considering that
+ * requests wouldn't include a path to address some mandatory information,
+ * these requests addressed to Janus should include as part of their payload,
+ * when needed, additional pieces of information like \c session_id and
+ * \c handle_id. That is, where you'd send a Janus request related to a
+ * specific session to the \c /janus/\<session> path, with RabbitMQ
+ * you'd have to send the same request with an additional \c session_id
+ * field in the JSON payload.
+ * \note When you create a session using RabbitMQ, a subscription to the
+ * events related to it is done automatically through the outgoing queue,
+ * so no need for an explicit request as the GET in the plain HTTP API.
+ *
+ * \ingroup transports
+ * \ref transports
+ */
+
+#include "transport.h"
+
+/* Latest RabbitMQ-C library changes the library paths from 0.12.0.0 onwards */
+#ifdef HAVE_RABBITMQ_C_AMQP_H
+#include <rabbitmq-c/amqp.h>
+#include <rabbitmq-c/framing.h>
+#include <rabbitmq-c/tcp_socket.h>
+#include <rabbitmq-c/ssl_socket.h>
+#else
+#include <amqp.h>
+#include <amqp_framing.h>
+#include <amqp_tcp_socket.h>
+#include <amqp_ssl_socket.h>
+#endif
+
+#include "../debug.h"
+#include "../apierror.h"
+#include "../config.h"
+#include "../mutex.h"
+#include "../utils.h"
+
+
+/* Transport plugin information */
+#define JANUS_RABBITMQ_VERSION			1
+#define JANUS_RABBITMQ_VERSION_STRING	"0.0.1"
+#define JANUS_RABBITMQ_DESCRIPTION		"This transport plugin adds RabbitMQ support to the Janus API via rabbitmq-c."
+#define JANUS_RABBITMQ_NAME				"JANUS RabbitMQ transport plugin"
+#define JANUS_RABBITMQ_AUTHOR			"Meetecho s.r.l."
+#define JANUS_RABBITMQ_PACKAGE			"janus.transport.rabbitmq"
+
+/* Transport methods */
+janus_transport *create(void);
+int janus_rabbitmq_init(janus_transport_callbacks *callback, const char *config_path);
+void janus_rabbitmq_destroy(void);
+int janus_rabbitmq_get_api_compatibility(void);
+int janus_rabbitmq_get_version(void);
+const char *janus_rabbitmq_get_version_string(void);
+const char *janus_rabbitmq_get_description(void);
+const char *janus_rabbitmq_get_name(void);
+const char *janus_rabbitmq_get_author(void);
+const char *janus_rabbitmq_get_package(void);
+gboolean janus_rabbitmq_is_janus_api_enabled(void);
+gboolean janus_rabbitmq_is_admin_api_enabled(void);
+int janus_rabbitmq_send_message(janus_transport_session *transport, void *request_id, gboolean admin, json_t *message);
+void janus_rabbitmq_session_created(janus_transport_session *transport, guint64 session_id);
+void janus_rabbitmq_session_over(janus_transport_session *transport, guint64 session_id, gboolean timeout, gboolean claimed);
+void janus_rabbitmq_session_claimed(janus_transport_session *transport, guint64 session_id);
+json_t *janus_rabbitmq_query_transport(json_t *request);
+
+/* Internal methods */
+static int janus_rabbitmq_connect(void);
+
+/* Transport setup */
+static janus_transport janus_rabbitmq_transport =
+	JANUS_TRANSPORT_INIT (
+		.init = janus_rabbitmq_init,
+		.destroy = janus_rabbitmq_destroy,
+
+		.get_api_compatibility = janus_rabbitmq_get_api_compatibility,
+		.get_version = janus_rabbitmq_get_version,
+		.get_version_string = janus_rabbitmq_get_version_string,
+		.get_description = janus_rabbitmq_get_description,
+		.get_name = janus_rabbitmq_get_name,
+		.get_author = janus_rabbitmq_get_author,
+		.get_package = janus_rabbitmq_get_package,
+
+		.is_janus_api_enabled = janus_rabbitmq_is_janus_api_enabled,
+		.is_admin_api_enabled = janus_rabbitmq_is_admin_api_enabled,
+
+		.send_message = janus_rabbitmq_send_message,
+		.session_created = janus_rabbitmq_session_created,
+		.session_over = janus_rabbitmq_session_over,
+		.session_claimed = janus_rabbitmq_session_claimed,
+
+		.query_transport = janus_rabbitmq_query_transport,
+	);
+
+/* Transport creator */
+janus_transport *create(void) {
+	JANUS_LOG(LOG_VERB, "%s created!\n", JANUS_RABBITMQ_NAME);
+	return &janus_rabbitmq_transport;
+}
+
+
+/* Useful stuff */
+static gint initialized = 0, stopping = 0;
+static janus_transport_callbacks *gateway = NULL;
+static gboolean rmq_janus_api_enabled = FALSE;
+static gboolean rmq_admin_api_enabled = FALSE;
+static gboolean notify_events = TRUE;
+static guint rmq_reconnect_backoff_initial = 100000; /* 100ms */
+static guint rmq_reconnect_backoff_max = 5000000; /* 5s */
+static gfloat rmq_reconnect_backoff_multiplier = 1.5;
+
+#define JANUS_RABBITMQ_EXCHANGE_TYPE "fanout"
+
+/* JSON serialization options */
+static size_t json_format = JSON_INDENT(3) | JSON_PRESERVE_ORDER;
+
+/* Parameter validation (for tweaking and queries via Admin API) */
+static struct janus_json_parameter request_parameters[] = {
+	{"request", JSON_STRING, JANUS_JSON_PARAM_REQUIRED}
+};
+static struct janus_json_parameter configure_parameters[] = {
+	{"events", JANUS_JSON_BOOL, 0},
+	{"json", JSON_STRING, 0},
+};
+/* Error codes (for the tweaking and queries via Admin API) */
+#define JANUS_RABBITMQ_ERROR_INVALID_REQUEST		411
+#define JANUS_RABBITMQ_ERROR_MISSING_ELEMENT		412
+#define JANUS_RABBITMQ_ERROR_INVALID_ELEMENT		413
+#define JANUS_RABBITMQ_ERROR_UNKNOWN_ERROR			499
+
+
+/* RabbitMQ client session: we only create a single one as of now */
+typedef struct janus_rabbitmq_client {
+	amqp_connection_state_t rmq_conn;		/* AMQP connection state */
+	amqp_channel_t rmq_channel;				/* AMQP channel */
+	gboolean janus_api_enabled;				/* Whether the Janus API via RabbitMQ is enabled */
+	amqp_bytes_t janus_exchange;			/* AMQP exchange for outgoing messages */
+	amqp_bytes_t to_janus_queue;			/* AMQP outgoing messages queue (Janus API) */
+	gboolean admin_api_enabled;				/* Whether the Janus API via RabbitMQ is enabled */
+	amqp_bytes_t to_janus_admin_queue;		/* AMQP outgoing messages queue (Admin API) */
+	GThread *in_thread, *out_thread;		/* Threads to handle incoming and outgoing queues */
+	GAsyncQueue *messages;					/* Queue of outgoing messages to push */
+	janus_mutex mutex;						/* Mutex to lock/unlock this session */
+	gboolean session_timeout;				/* Whether a Janus session timeout occurred in the core */
+	gboolean destroy;						/* Flag to trigger a lazy session destruction */
+	gboolean connected;						/* Flag to specify whether or not RabbitMQ connection is deemed to be up */
+} janus_rabbitmq_client;
+
+/* RabbitMQ response */
+typedef struct janus_rabbitmq_response {
+	gboolean admin;			/* Whether this is a Janus or Admin API response */
+	char *correlation_id;	/* Correlation ID, if any */
+	char *payload;			/* Payload to send to the client */
+} janus_rabbitmq_response;
+static janus_rabbitmq_response exit_message;
+
+/* Threads */
+void *janus_rmq_in_thread(void *data);
+void *janus_rmq_out_thread(void *data);
+
+
+/* We only handle a single client per time, as the queues are fixed */
+static janus_rabbitmq_client *rmq_client = NULL;
+static janus_transport_session *rmq_session = NULL;
+
+/* Global properties */
+static char *rmqhost = NULL, *vhost = NULL, *username = NULL, *password = NULL,
+	*ssl_cacert_file = NULL, *ssl_cert_file = NULL, *ssl_key_file = NULL,
+	*to_janus = NULL, *from_janus = NULL, *to_janus_admin = NULL, *from_janus_admin = NULL, *janus_exchange = NULL, *janus_exchange_type = NULL,
+	*queue_name = NULL, *queue_name_admin = NULL;
+static uint16_t rmqport = AMQP_PROTOCOL_PORT;
+static gboolean ssl_enabled = FALSE, ssl_verify_peer = FALSE, ssl_verify_hostname = FALSE;
+static gboolean declare_outgoing_queue = FALSE, declare_outgoing_queue_admin = FALSE;
+amqp_boolean_t queue_durable = 0, queue_exclusive = 0, queue_autodelete = 0,
+	queue_durable_admin = 0, queue_exclusive_admin = 0, queue_autodelete_admin = 0;
+static uint16_t heartbeat = 0;
+
+/* Transport implementation */
+int janus_rabbitmq_init(janus_transport_callbacks *callback, const char *config_path) {
+	if(g_atomic_int_get(&stopping)) {
+		/* Still stopping from before */
+		return -1;
+	}
+	if(callback == NULL || config_path == NULL) {
+		/* Invalid arguments */
+		return -1;
+	}
+
+	/* This is the callback we'll need to invoke to contact the Janus core */
+	gateway = callback;
+
+	/* Read configuration */
+	char filename[255];
+	g_snprintf(filename, 255, "%s/%s.jcfg", config_path, JANUS_RABBITMQ_PACKAGE);
+	JANUS_LOG(LOG_VERB, "Configuration file: %s\n", filename);
+	janus_config *config = janus_config_parse(filename);
+	if(config == NULL) {
+		JANUS_LOG(LOG_WARN, "Couldn't find .jcfg configuration file (%s), trying .cfg\n", JANUS_RABBITMQ_PACKAGE);
+		g_snprintf(filename, 255, "%s/%s.cfg", config_path, JANUS_RABBITMQ_PACKAGE);
+		JANUS_LOG(LOG_VERB, "Configuration file: %s\n", filename);
+		config = janus_config_parse(filename);
+	}
+	if(config != NULL)
+		janus_config_print(config);
+	janus_config_category *config_general = janus_config_get_create(config, NULL, janus_config_type_category, "general");
+	janus_config_category *config_admin = janus_config_get_create(config, NULL, janus_config_type_category, "admin");
+
+	janus_config_item *item = janus_config_get(config, config_general, janus_config_type_item, "json");
+	if(item && item->value) {
+		/* Check how we need to format/serialize the JSON output */
+		if(!strcasecmp(item->value, "indented")) {
+			/* Default: indented, we use three spaces for that */
+			json_format = JSON_INDENT(3) | JSON_PRESERVE_ORDER;
+		} else if(!strcasecmp(item->value, "plain")) {
+			/* Not indented and no new lines, but still readable */
+			json_format = JSON_INDENT(0) | JSON_PRESERVE_ORDER;
+		} else if(!strcasecmp(item->value, "compact")) {
+			/* Compact, so no spaces between separators */
+			json_format = JSON_COMPACT | JSON_PRESERVE_ORDER;
+		} else {
+			JANUS_LOG(LOG_WARN, "Unsupported JSON format option '%s', using default (indented)\n", item->value);
+			json_format = JSON_INDENT(3) | JSON_PRESERVE_ORDER;
+		}
+	}
+
+	/* Check if we need to send events to handlers */
+	janus_config_item *events = janus_config_get(config, config_general, janus_config_type_item, "events");
+	if(events != NULL && events->value != NULL)
+		notify_events = janus_is_true(events->value);
+	if(!notify_events && callback->events_is_enabled()) {
+		JANUS_LOG(LOG_WARN, "Notification of events to handlers disabled for %s\n", JANUS_RABBITMQ_NAME);
+	}
+
+	/* Handle configuration, starting from the server details */
+	item = janus_config_get(config, config_general, janus_config_type_item, "host");
+	if(item && item->value)
+		rmqhost = g_strdup(item->value);
+	else
+		rmqhost = g_strdup("localhost");
+	item = janus_config_get(config, config_general, janus_config_type_item, "port");
+	if(item && item->value && janus_string_to_uint16(item->value, &rmqport) < 0) {
+		JANUS_LOG(LOG_ERR, "Invalid port (%s), falling back to default\n", item->value);
+		rmqport = AMQP_PROTOCOL_PORT;
+	}
+
+	/* Credentials and Virtual Host */
+	item = janus_config_get(config, config_general, janus_config_type_item, "vhost");
+	if(item && item->value)
+		vhost = g_strdup(item->value);
+	else
+		vhost = g_strdup("/");
+	item = janus_config_get(config, config_general, janus_config_type_item, "username");
+	if(item && item->value)
+		username = g_strdup(item->value);
+	else
+		username = g_strdup("guest");
+	item = janus_config_get(config, config_general, janus_config_type_item, "password");
+	if(item && item->value)
+		password = g_strdup(item->value);
+	else
+		password = g_strdup("guest");
+
+	item = janus_config_get(config, config_general, janus_config_type_item, "ssl_enabled");
+	if(item == NULL) {
+		/* Try legacy property */
+		item = janus_config_get(config, config_general, janus_config_type_item, "ssl_enable");
+		if (item && item->value) {
+			JANUS_LOG(LOG_WARN, "Found deprecated 'ssl_enable' property, please update it to 'ssl_enabled' instead\n");
+		}
+	}
+	if(!item || !item->value || !janus_is_true(item->value)) {
+		JANUS_LOG(LOG_INFO, "RabbitMQ SSL support disabled\n");
+	} else {
+		ssl_enabled = TRUE;
+		item = janus_config_get(config, config_general, janus_config_type_item, "ssl_cacert");
+		if(item && item->value)
+			ssl_cacert_file = g_strdup(item->value);
+		item = janus_config_get(config, config_general, janus_config_type_item, "ssl_cert");
+		if(item && item->value)
+			ssl_cert_file = g_strdup(item->value);
+		item = janus_config_get(config, config_general, janus_config_type_item, "ssl_key");
+		if(item && item->value)
+			ssl_key_file = g_strdup(item->value);
+		item = janus_config_get(config, config_general, janus_config_type_item, "ssl_verify_peer");
+		if(item && item->value && janus_is_true(item->value))
+			ssl_verify_peer = TRUE;
+		item = janus_config_get(config, config_general, janus_config_type_item, "ssl_verify_hostname");
+		if(item && item->value && janus_is_true(item->value))
+			ssl_verify_hostname = TRUE;
+	}
+
+	/* Heartbeat config */
+	item = janus_config_get(config, config_general, janus_config_type_item, "heartbeat");
+	if(item && item->value && janus_string_to_uint16(item->value, &heartbeat) < 0) {
+		JANUS_LOG(LOG_ERR, "Invalid heartbeat timeout (%s), falling back to default (0, disabling heartbeat)\n", item->value);
+		heartbeat = 0;
+	}
+
+	/* Now check if the Janus API must be supported */
+	item = janus_config_get(config, config_general, janus_config_type_item, "enabled");
+	if(item == NULL) {
+		/* Try legacy property */
+		item = janus_config_get(config, config_general, janus_config_type_item, "enable");
+		if (item && item->value) {
+			JANUS_LOG(LOG_WARN, "Found deprecated 'enable' property, please update it to 'enabled' instead\n");
+		}
+	}
+	if(!item || !item->value || !janus_is_true(item->value)) {
+		JANUS_LOG(LOG_VERB, "RabbitMQ support disabled (Janus API)\n");
+	} else {
+
+		/* Get exchange name config, or set to default exchange */
+		item = janus_config_get(config, config_general, janus_config_type_item, "janus_exchange");
+		if(!item || !item->value) {
+			JANUS_LOG(LOG_INFO, "Missing name of outgoing exchange for RabbitMQ integration, using default\n");
+		} else {
+			janus_exchange = g_strdup(item->value);
+		}
+
+		/* Get exchange type config, or set to default */
+		item = janus_config_get(config, config_general, janus_config_type_item, "janus_exchange_type");
+		if(!item || !item->value) {
+			janus_exchange_type = g_strdup((char *)JANUS_RABBITMQ_EXCHANGE_TYPE);
+		} else {
+			janus_exchange_type = g_strdup(item->value);
+		}
+
+		item = janus_config_get(config, config_general, janus_config_type_item, "queue_name");
+		if(item && item->value) {
+			queue_name = g_strdup(item->value);
+		}
+
+		item = janus_config_get(config, config_general, janus_config_type_item, "to_janus");
+		if(!item || !item->value) {
+			JANUS_LOG(LOG_FATAL, "Missing name of incoming queue/topic for RabbitMQ integration...\n");
+			goto error;
+		}
+		to_janus = g_strdup(item->value);
+
+		item = janus_config_get(config, config_general, janus_config_type_item, "from_janus");
+		if(!item || !item->value) {
+			JANUS_LOG(LOG_FATAL, "Missing name of outgoing routing key for RabbitMQ integration...\n");
+			goto error;
+		}
+		from_janus = g_strdup(item->value);
+
+		/* Set queue options */
+		item = janus_config_get(config, config_general, janus_config_type_item, "queue_durable");
+		if(item && item->value && janus_is_true(item->value)) {
+			queue_durable = 1;
+		}
+
+		item = janus_config_get(config, config_general, janus_config_type_item, "queue_exclusive");
+		if(item && item->value && janus_is_true(item->value)) {
+			queue_exclusive = 1;
+		}
+
+		item = janus_config_get(config, config_general, janus_config_type_item, "queue_autodelete");
+		if(item && item->value && janus_is_true(item->value)) {
+			queue_autodelete = 1;
+		}
+
+		/* By default, declare the outgoing queue */
+		item = janus_config_get(config, config_general, janus_config_type_item, "declare_outgoing_queue");
+		if(!item || !item->value || janus_is_true(item->value)) {
+			declare_outgoing_queue = TRUE;
+		}
+
+		if(janus_exchange == NULL) {
+			JANUS_LOG(LOG_INFO, "RabbitMQ support for Janus API enabled, %s:%d (%s/%s)  exchange_type:%s \n", rmqhost, rmqport, to_janus, from_janus, janus_exchange_type);
+		} else {
+			JANUS_LOG(LOG_INFO, "RabbitMQ support for Janus API enabled, %s:%d (%s/%s) exch: (%s) exchange_type:%s \n", rmqhost, rmqport, to_janus, from_janus, janus_exchange, janus_exchange_type);
+		}
+		rmq_janus_api_enabled = TRUE;
+	}
+	/* Do the same for the admin API */
+	item = janus_config_get(config, config_admin, janus_config_type_item, "admin_enabled");
+	if(item == NULL) {
+		/* Try legacy property */
+		item = janus_config_get(config, config_general, janus_config_type_item, "admin_enable");
+		if (item && item->value) {
+			JANUS_LOG(LOG_WARN, "Found deprecated 'admin_enable' property, please update it to 'admin_enabled' instead\n");
+		}
+	}
+	if(!item || !item->value || !janus_is_true(item->value)) {
+		JANUS_LOG(LOG_VERB, "RabbitMQ support disabled (Admin API)\n");
+	} else {
+		/* Parse configuration */
+		item = janus_config_get(config, config_admin, janus_config_type_item, "queue_name_admin");
+		if(item && item->value) {
+			queue_name_admin = g_strdup(item->value);
+		}
+
+		item = janus_config_get(config, config_admin, janus_config_type_item, "to_janus_admin");
+		if(!item || !item->value) {
+			JANUS_LOG(LOG_FATAL, "Missing name of incoming queue for RabbitMQ integration...\n");
+			goto error;
+		}
+		to_janus_admin = g_strdup(item->value);
+
+		item = janus_config_get(config, config_admin, janus_config_type_item, "from_janus_admin");
+		if(!item || !item->value) {
+			JANUS_LOG(LOG_FATAL, "Missing name of outgoing routing key for RabbitMQ integration...\n");
+			goto error;
+		}
+
+		from_janus_admin = g_strdup(item->value);
+
+		/* Set queue options */
+		item = janus_config_get(config, config_admin, janus_config_type_item, "queue_durable_admin");
+		if(item && item->value && janus_is_true(item->value)) {
+			queue_durable_admin = 1;
+		}
+
+		item = janus_config_get(config, config_admin, janus_config_type_item, "queue_exclusive_admin");
+		if(item && item->value && janus_is_true(item->value)) {
+			queue_exclusive_admin = 1;
+		}
+
+		item = janus_config_get(config, config_admin, janus_config_type_item, "queue_autodelete_admin");
+		if(item && item->value && janus_is_true(item->value)) {
+			queue_autodelete_admin = 1;
+		}
+
+		/* By default, declare the outgoing queue */
+		item = janus_config_get(config, config_admin, janus_config_type_item, "declare_outgoing_queue_admin");
+		if(!item || !item->value || janus_is_true(item->value)) {
+			declare_outgoing_queue_admin = TRUE;
+		}
+
+		JANUS_LOG(LOG_INFO, "RabbitMQ support for Admin API enabled, %s:%d (%s/%s)\n", rmqhost, rmqport, to_janus_admin, from_janus_admin);
+		rmq_admin_api_enabled = TRUE;
+	}
+	if(!rmq_janus_api_enabled && !rmq_admin_api_enabled) {
+		JANUS_LOG(LOG_WARN, "RabbitMQ support disabled for both Janus and Admin API, giving up\n");
+		goto error;
+	} else {
+		/* FIXME We currently support a single application, create a new janus_rabbitmq_client instance */
+		rmq_client = g_malloc0(sizeof(janus_rabbitmq_client));
+
+		/* Connect */
+		int result = janus_rabbitmq_connect();
+		if(result < 0) {
+			goto error;
+		}
+
+		rmq_client->messages = g_async_queue_new();
+		rmq_client->destroy = FALSE;
+		/* Prepare the transport session (again, just one) */
+		rmq_session = janus_transport_session_create(rmq_client, NULL);
+		/* Start the threads */
+		GError *error = NULL;
+		rmq_client->in_thread = g_thread_try_new("rmq_in_thread", &janus_rmq_in_thread, rmq_client, &error);
+		if(error != NULL) {
+			/* Something went wrong... */
+			JANUS_LOG(LOG_FATAL, "Got error %d (%s) trying to launch the RabbitMQ incoming thread...\n",
+				error->code, error->message ? error->message : "??");
+			g_error_free(error);
+			janus_transport_session_destroy(rmq_session);
+			g_free(rmq_client);
+			janus_config_destroy(config);
+			return -1;
+		}
+		rmq_client->out_thread = g_thread_try_new("rmq_out_thread", &janus_rmq_out_thread, rmq_client, &error);
+		if(error != NULL) {
+			/* Something went wrong... */
+			JANUS_LOG(LOG_FATAL, "Got error %d (%s) trying to launch the RabbitMQ outgoing thread...\n",
+				error->code, error->message ? error->message : "??");
+			g_error_free(error);
+			janus_transport_session_destroy(rmq_session);
+			g_free(rmq_client);
+			janus_config_destroy(config);
+			return -1;
+		}
+
+		janus_mutex_init(&rmq_client->mutex);
+		/* Done */
+		JANUS_LOG(LOG_INFO, "Setup of RabbitMQ integration completed\n");
+		/* Notify handlers about this new transport */
+		if(notify_events && gateway->events_is_enabled()) {
+			json_t *info = json_object();
+			json_object_set_new(info, "event", json_string("connected"));
+			gateway->notify_event(&janus_rabbitmq_transport, rmq_session, info);
+		}
+	}
+	janus_config_destroy(config);
+	config = NULL;
+
+	/* Done */
+	g_atomic_int_set(&initialized, 1);
+	JANUS_LOG(LOG_INFO, "%s initialized!\n", JANUS_RABBITMQ_NAME);
+	return 0;
+
+error:
+	/* If we got here, something went wrong */
+	g_free(rmq_client);
+	g_free(rmqhost);
+	g_free(vhost);
+	g_free(username);
+	g_free(password);
+	g_free(janus_exchange);
+	g_free(janus_exchange_type);
+	g_free(queue_name);
+	g_free(queue_name_admin);
+	g_free(to_janus);
+	g_free(from_janus);
+	g_free(to_janus_admin);
+	g_free(from_janus_admin);
+	g_free(ssl_cacert_file);
+	g_free(ssl_cert_file);
+	g_free(ssl_key_file);
+	if(config)
+		janus_config_destroy(config);
+	return -1;
+}
+
+int janus_rabbitmq_connect(void) {
+	rmq_client->connected = FALSE;
+	/* Connect */
+	rmq_client->rmq_conn = amqp_new_connection();
+	amqp_socket_t *socket = NULL;
+	amqp_queue_declare_ok_t *declare = NULL;
+	int status;
+	JANUS_LOG(LOG_VERB, "Creating RabbitMQ socket...\n");
+	if(ssl_enabled) {
+		socket = amqp_ssl_socket_new(rmq_client->rmq_conn);
+		if(socket == NULL) {
+			JANUS_LOG(LOG_FATAL, "Can't connect to RabbitMQ server: error creating socket...\n");
+			return -1;
+		}
+		amqp_ssl_socket_set_verify_peer(socket, ssl_verify_peer);
+		amqp_ssl_socket_set_verify_hostname(socket, ssl_verify_hostname);
+
+		if(ssl_cacert_file) {
+			status = amqp_ssl_socket_set_cacert(socket, ssl_cacert_file);
+			if(status != AMQP_STATUS_OK) {
+				JANUS_LOG(LOG_FATAL, "Can't connect to RabbitMQ server: error setting CA certificate... (%s)\n", amqp_error_string2(status));
+				return -1;
+			}
+		}
+		if(ssl_cert_file && ssl_key_file) {
+			status = amqp_ssl_socket_set_key(socket, ssl_cert_file, ssl_key_file);
+			if(status != AMQP_STATUS_OK) {
+				JANUS_LOG(LOG_FATAL, "Can't connect to RabbitMQ server: error setting key... (%s)\n", amqp_error_string2(status));
+				return -1;
+			}
+		}
+	} else {
+		socket = amqp_tcp_socket_new(rmq_client->rmq_conn);
+		if(socket == NULL) {
+			JANUS_LOG(LOG_FATAL, "Can't connect to RabbitMQ server: error creating socket...\n");
+			return -1;
+		}
+	}
+	JANUS_LOG(LOG_VERB, "Connecting to RabbitMQ server...\n");
+	status = amqp_socket_open(socket, rmqhost, rmqport);
+	if(status != AMQP_STATUS_OK) {
+		JANUS_LOG(LOG_FATAL, "Can't connect to RabbitMQ server: error opening socket... (%s)\n", amqp_error_string2(status));
+		return -1;
+	}
+	JANUS_LOG(LOG_VERB, "Logging in...\n");
+	amqp_rpc_reply_t result = amqp_login(rmq_client->rmq_conn, vhost, 0, 131072, heartbeat, AMQP_SASL_METHOD_PLAIN, username, password);
+	if(result.reply_type != AMQP_RESPONSE_NORMAL) {
+		JANUS_LOG(LOG_FATAL, "Can't connect to RabbitMQ server: error logging in... %s, %s\n", amqp_error_string2(result.library_error), amqp_method_name(result.reply.id));
+		return -1;
+	}
+	rmq_client->rmq_channel = 1;
+	JANUS_LOG(LOG_VERB, "Opening channel...\n");
+	amqp_channel_open(rmq_client->rmq_conn, rmq_client->rmq_channel);
+	result = amqp_get_rpc_reply(rmq_client->rmq_conn);
+	if(result.reply_type != AMQP_RESPONSE_NORMAL) {
+		JANUS_LOG(LOG_FATAL, "Can't connect to RabbitMQ server: error opening channel... %s, %s\n", amqp_error_string2(result.library_error), amqp_method_name(result.reply.id));
+		return -1;
+	}
+	rmq_client->janus_exchange = amqp_empty_bytes;
+	if(janus_exchange != NULL) {
+		JANUS_LOG(LOG_VERB, "Declaring exchange...\n");
+		rmq_client->janus_exchange = amqp_cstring_bytes(janus_exchange);
+		amqp_exchange_declare(rmq_client->rmq_conn, rmq_client->rmq_channel, rmq_client->janus_exchange, amqp_cstring_bytes(janus_exchange_type), 0, 0, 0, 0, amqp_empty_table);
+		result = amqp_get_rpc_reply(rmq_client->rmq_conn);
+		if(result.reply_type != AMQP_RESPONSE_NORMAL) {
+			JANUS_LOG(LOG_FATAL, "Can't connect to RabbitMQ server: error declaring exchange... %s, %s\n", amqp_error_string2(result.library_error), amqp_method_name(result.reply.id));
+			return -1;
+		}
+	}
+	rmq_client->janus_api_enabled = FALSE;
+	if(rmq_janus_api_enabled) {
+		rmq_client->janus_api_enabled = TRUE;
+
+		/* Case when we have a queue_name, and to_janus is the name of the topic to bind on (if exchange_type is topic) */
+		if(queue_name != NULL) {
+			JANUS_LOG(LOG_VERB, "Declaring incoming queue (using queue_name)... (%s)\n", queue_name);
+			declare = amqp_queue_declare(rmq_client->rmq_conn, rmq_client->rmq_channel, amqp_cstring_bytes(queue_name), 0, queue_durable, queue_exclusive, queue_autodelete, amqp_empty_table);
+			rmq_client->to_janus_queue = declare->queue;
+			JANUS_LOG(LOG_VERB, "Incoming queue declared: (%s)\n", (char *) rmq_client->to_janus_queue.bytes);
+			result = amqp_get_rpc_reply(rmq_client->rmq_conn);
+			if(result.reply_type != AMQP_RESPONSE_NORMAL) {
+				JANUS_LOG(LOG_FATAL, "Can't connect to RabbitMQ server: error declaring queue... %s, %s\n", amqp_error_string2(result.library_error), amqp_method_name(result.reply.id));
+				return -1;
+			}
+
+			if(strcmp(janus_exchange_type, "topic") == 0 || strcmp(janus_exchange_type, "direct") == 0) {
+				JANUS_LOG(LOG_VERB, "Binding queue (%s) to routing key (%s)\n", queue_name, to_janus);
+				amqp_queue_bind(rmq_client->rmq_conn, rmq_client->rmq_channel, rmq_client->to_janus_queue, rmq_client->janus_exchange, amqp_cstring_bytes(to_janus), amqp_empty_table);
+				result = amqp_get_rpc_reply(rmq_client->rmq_conn);
+				if(result.reply_type != AMQP_RESPONSE_NORMAL) {
+					JANUS_LOG(LOG_FATAL, "Can't connect to RabbitMQ server: error binding queue... %s, %s\n", amqp_error_string2(result.library_error), amqp_method_name(result.reply.id));
+					return -1;
+				}
+			}
+
+		/* Case when to_janus is the name of the queue (and there's no binding) */
+		} else {
+			JANUS_LOG(LOG_VERB, "Declaring incoming queue (using to_janus)... (%s)\n", to_janus);
+			declare = amqp_queue_declare(rmq_client->rmq_conn, rmq_client->rmq_channel, amqp_cstring_bytes(to_janus), 0, queue_durable, queue_exclusive, queue_autodelete, amqp_empty_table);
+			rmq_client->to_janus_queue = declare->queue;
+			JANUS_LOG(LOG_VERB, "Incoming queue declared: (%s)\n", (char *)rmq_client->to_janus_queue.bytes);
+			result = amqp_get_rpc_reply(rmq_client->rmq_conn);
+			if(result.reply_type != AMQP_RESPONSE_NORMAL) {
+				JANUS_LOG(LOG_FATAL, "Can't connect to RabbitMQ server: error declaring queue... %s, %s\n", amqp_error_string2(result.library_error), amqp_method_name(result.reply.id));
+				return -1;
+			}
+		}
+
+		if (declare_outgoing_queue) {
+			JANUS_LOG(LOG_VERB, "Declaring outgoing queue... (%s)\n", from_janus);
+			amqp_queue_declare(rmq_client->rmq_conn, rmq_client->rmq_channel, amqp_cstring_bytes(from_janus), 0, 0, 0, 0, amqp_empty_table);
+			result = amqp_get_rpc_reply(rmq_client->rmq_conn);
+			if(result.reply_type != AMQP_RESPONSE_NORMAL) {
+				JANUS_LOG(LOG_FATAL, "Can't connect to RabbitMQ server: error declaring queue... %s, %s\n", amqp_error_string2(result.library_error), amqp_method_name(result.reply.id));
+				return -1;
+			}
+		}
+
+		amqp_basic_consume(rmq_client->rmq_conn, rmq_client->rmq_channel, rmq_client->to_janus_queue, amqp_empty_bytes, 0, 1, 0, amqp_empty_table);
+		result = amqp_get_rpc_reply(rmq_client->rmq_conn);
+		if(result.reply_type != AMQP_RESPONSE_NORMAL) {
+			JANUS_LOG(LOG_FATAL, "Can't connect to RabbitMQ server: error consuming... %s, %s\n", amqp_error_string2(result.library_error), amqp_method_name(result.reply.id));
+			return -1;
+		}
+	}
+	rmq_client->admin_api_enabled = FALSE;
+	if(rmq_admin_api_enabled) {
+		rmq_client->admin_api_enabled = TRUE;
+
+		/* Case when we have a queue_name_admin, and to_janus_admin is the name of the routing key to bind on (if exchange_type is topic or direct) */
+		if(queue_name_admin != NULL) {
+			JANUS_LOG(LOG_VERB, "Declaring incoming admin queue (using queue_name_admin)... (%s)\n", queue_name_admin);
+			declare = amqp_queue_declare(rmq_client->rmq_conn, rmq_client->rmq_channel, amqp_cstring_bytes(queue_name_admin), 0, queue_durable_admin, queue_exclusive_admin, queue_autodelete_admin, amqp_empty_table);
+			rmq_client->to_janus_admin_queue = declare->queue;
+			JANUS_LOG(LOG_VERB, "Incoming admin queue declared: (%s)\n", (char *) rmq_client->to_janus_queue.bytes);
+			result = amqp_get_rpc_reply(rmq_client->rmq_conn);
+			if(result.reply_type != AMQP_RESPONSE_NORMAL) {
+				JANUS_LOG(LOG_FATAL, "Can't connect to RabbitMQ server: error declaring queue... %s, %s\n", amqp_error_string2(result.library_error), amqp_method_name(result.reply.id));
+				return -1;
+			}
+
+			if(strcmp(janus_exchange_type, "topic") == 0 || strcmp(janus_exchange_type, "direct") == 0) {
+				JANUS_LOG(LOG_VERB, "Binding queue (%s) to routing key (%s)\n", queue_name_admin, to_janus_admin);
+				amqp_queue_bind(rmq_client->rmq_conn, rmq_client->rmq_channel, rmq_client->to_janus_admin_queue, rmq_client->janus_exchange, amqp_cstring_bytes(to_janus_admin), amqp_empty_table);
+				result = amqp_get_rpc_reply(rmq_client->rmq_conn);
+				if(result.reply_type != AMQP_RESPONSE_NORMAL) {
+					JANUS_LOG(LOG_FATAL, "Can't connect to RabbitMQ server: error binding queue... %s, %s\n", amqp_error_string2(result.library_error), amqp_method_name(result.reply.id));
+					return -1;
+				}
+			}
+
+		/* Case when to_janus_admin is the name of the queue (and there's no binding */
+		} else {
+			JANUS_LOG(LOG_VERB, "Declaring incoming admin queue (using to_janus_admin)... (%s)\n", to_janus_admin);
+			rmq_client->to_janus_admin_queue = amqp_cstring_bytes(to_janus_admin);
+			declare = amqp_queue_declare(rmq_client->rmq_conn, rmq_client->rmq_channel, rmq_client->to_janus_admin_queue, 0, queue_durable_admin, queue_exclusive_admin, queue_autodelete_admin, amqp_empty_table);
+			rmq_client->to_janus_admin_queue = declare->queue;
+			JANUS_LOG(LOG_VERB, "Incoming admin queue declared: (%s)\n", (char *) rmq_client->to_janus_queue.bytes);
+			result = amqp_get_rpc_reply(rmq_client->rmq_conn);
+			if(result.reply_type != AMQP_RESPONSE_NORMAL) {
+				JANUS_LOG(LOG_FATAL, "Can't connect to RabbitMQ server: error declaring queue... %s, %s\n", amqp_error_string2(result.library_error), amqp_method_name(result.reply.id));
+				return -1;
+			}
+		}
+
+		if (declare_outgoing_queue_admin){
+			JANUS_LOG(LOG_VERB, "Declaring outgoing queue... (%s)\n", from_janus_admin);
+			amqp_queue_declare(rmq_client->rmq_conn, rmq_client->rmq_channel, amqp_cstring_bytes(from_janus_admin), 0, 0, 0, 0, amqp_empty_table);
+			result = amqp_get_rpc_reply(rmq_client->rmq_conn);
+			if(result.reply_type != AMQP_RESPONSE_NORMAL) {
+				JANUS_LOG(LOG_FATAL, "Can't connect to RabbitMQ server: error declaring queue... %s, %s\n", amqp_error_string2(result.library_error), amqp_method_name(result.reply.id));
+				return -1;
+			}
+		}
+
+		amqp_basic_consume(rmq_client->rmq_conn, rmq_client->rmq_channel, rmq_client->to_janus_admin_queue, amqp_empty_bytes, 0, 1, 0, amqp_empty_table);
+		result = amqp_get_rpc_reply(rmq_client->rmq_conn);
+		if(result.reply_type != AMQP_RESPONSE_NORMAL) {
+			JANUS_LOG(LOG_FATAL, "Can't connect to RabbitMQ server: error consuming... %s, %s\n", amqp_error_string2(result.library_error), amqp_method_name(result.reply.id));
+			return -1;
+		}
+	}
+
+	rmq_client->connected = TRUE;
+
+	JANUS_LOG(LOG_INFO, "RabbitMQ Connected successfully");
+
+	return 0;
+}
+
+void janus_rabbitmq_destroy(void) {
+	if(!g_atomic_int_get(&initialized))
+		return;
+	g_atomic_int_set(&stopping, 1);
+
+	if(rmq_client) {
+		rmq_client->destroy = TRUE;
+		g_async_queue_push(rmq_client->messages, &exit_message);
+		if(rmq_client->in_thread)
+			g_thread_join(rmq_client->in_thread);
+		if(rmq_client->out_thread)
+			g_thread_join(rmq_client->out_thread);
+		if(rmq_client->rmq_conn) {
+			amqp_destroy_connection(rmq_client->rmq_conn);
+		}
+	}
+	g_free(rmq_client);
+	janus_transport_session_destroy(rmq_session);
+
+	g_free(rmqhost);
+	g_free(vhost);
+	g_free(username);
+	g_free(password);
+	g_free(janus_exchange);
+	g_free(janus_exchange_type);
+	g_free(queue_name);
+	g_free(queue_name_admin);
+	g_free(to_janus);
+	g_free(from_janus);
+	g_free(to_janus_admin);
+	g_free(from_janus_admin);
+	g_free(ssl_cacert_file);
+	g_free(ssl_cert_file);
+	g_free(ssl_key_file);
+
+	g_atomic_int_set(&initialized, 0);
+	g_atomic_int_set(&stopping, 0);
+	JANUS_LOG(LOG_INFO, "%s destroyed!\n", JANUS_RABBITMQ_NAME);
+}
+
+int janus_rabbitmq_get_api_compatibility(void) {
+	/* Important! This is what your plugin MUST always return: don't lie here or bad things will happen */
+	return JANUS_TRANSPORT_API_VERSION;
+}
+
+int janus_rabbitmq_get_version(void) {
+	return JANUS_RABBITMQ_VERSION;
+}
+
+const char *janus_rabbitmq_get_version_string(void) {
+	return JANUS_RABBITMQ_VERSION_STRING;
+}
+
+const char *janus_rabbitmq_get_description(void) {
+	return JANUS_RABBITMQ_DESCRIPTION;
+}
+
+const char *janus_rabbitmq_get_name(void) {
+	return JANUS_RABBITMQ_NAME;
+}
+
+const char *janus_rabbitmq_get_author(void) {
+	return JANUS_RABBITMQ_AUTHOR;
+}
+
+const char *janus_rabbitmq_get_package(void) {
+	return JANUS_RABBITMQ_PACKAGE;
+}
+
+gboolean janus_rabbitmq_is_janus_api_enabled(void) {
+	return rmq_janus_api_enabled;
+}
+
+gboolean janus_rabbitmq_is_admin_api_enabled(void) {
+	return rmq_admin_api_enabled;
+}
+
+int janus_rabbitmq_send_message(janus_transport_session *transport, void *request_id, gboolean admin, json_t *message) {
+	if(rmq_client == NULL)
+		return -1;
+	if(message == NULL)
+		return -1;
+	if(transport == NULL || transport->transport_p == NULL || g_atomic_int_get(&transport->destroyed)) {
+		json_decref(message);
+		return -1;
+	}
+	JANUS_LOG(LOG_HUGE, "Sending %s API %s via RabbitMQ\n", admin ? "admin" : "Janus", request_id ? "response" : "event");
+	/* FIXME Add to the queue of outgoing messages */
+	janus_rabbitmq_response *response = g_malloc(sizeof(janus_rabbitmq_response));
+	response->admin = admin;
+	response->payload = json_dumps(message, json_format);
+	json_decref(message);
+	if(response->payload == NULL) {
+		JANUS_LOG(LOG_ERR, "Failed to stringify message...\n");
+		g_free(response);
+		return -1;
+	}
+	response->correlation_id = (char *)request_id;
+	g_async_queue_push(rmq_client->messages, response);
+	return 0;
+}
+
+void janus_rabbitmq_session_created(janus_transport_session *transport, guint64 session_id) {
+	/* We don't care */
+}
+
+void janus_rabbitmq_session_over(janus_transport_session *transport, guint64 session_id, gboolean timeout, gboolean claimed) {
+	/* We don't care, not even if it's a timeout (should we?), our client is always up */
+}
+
+void janus_rabbitmq_session_claimed(janus_transport_session *transport, guint64 session_id) {
+	/* We don't care about this. We should start receiving messages from the core about this session: no action necessary */
+	/* FIXME Is the above statement accurate? Should we care? Unlike the HTTP transport, there is no hashtable to update */
+}
+
+json_t *janus_rabbitmq_query_transport(json_t *request) {
+	if(g_atomic_int_get(&stopping) || !g_atomic_int_get(&initialized)) {
+		return NULL;
+	}
+	/* We can use this request to dynamically change the behaviour of
+	 * the transport plugin, and/or query for some specific information */
+	json_t *response = json_object();
+	int error_code = 0;
+	char error_cause[512];
+	JANUS_VALIDATE_JSON_OBJECT(request, request_parameters,
+		error_code, error_cause, TRUE,
+		JANUS_RABBITMQ_ERROR_MISSING_ELEMENT, JANUS_RABBITMQ_ERROR_INVALID_ELEMENT);
+	if(error_code != 0)
+		goto plugin_response;
+	/* Get the request */
+	const char *request_text = json_string_value(json_object_get(request, "request"));
+	if(!strcasecmp(request_text, "configure")) {
+		/* We only allow for the configuration of some basic properties:
+		 * changing more complex things (e.g., port to bind to, etc.)
+		 * would likely require restarting backends, so just too much */
+		JANUS_VALIDATE_JSON_OBJECT(request, configure_parameters,
+			error_code, error_cause, TRUE,
+			JANUS_RABBITMQ_ERROR_MISSING_ELEMENT, JANUS_RABBITMQ_ERROR_INVALID_ELEMENT);
+		/* Check if we now need to send events to handlers */
+		json_object_set_new(response, "result", json_integer(200));
+		json_t *notes = NULL;
+		gboolean events = json_is_true(json_object_get(request, "events"));
+		if(events && !gateway->events_is_enabled()) {
+			/* Notify that this will be ignored */
+			notes = json_array();
+			json_array_append_new(notes, json_string("Event handlers disabled at the core level"));
+			json_object_set_new(response, "notes", notes);
+		}
+		if(events != notify_events) {
+			notify_events = events;
+			if(!notify_events && gateway->events_is_enabled()) {
+				JANUS_LOG(LOG_WARN, "Notification of events to handlers disabled for %s\n", JANUS_RABBITMQ_NAME);
+			}
+		}
+		const char *indentation = json_string_value(json_object_get(request, "json"));
+		if(indentation != NULL) {
+			if(!strcasecmp(indentation, "indented")) {
+				/* Default: indented, we use three spaces for that */
+				json_format = JSON_INDENT(3) | JSON_PRESERVE_ORDER;
+			} else if(!strcasecmp(indentation, "plain")) {
+				/* Not indented and no new lines, but still readable */
+				json_format = JSON_INDENT(0) | JSON_PRESERVE_ORDER;
+			} else if(!strcasecmp(indentation, "compact")) {
+				/* Compact, so no spaces between separators */
+				json_format = JSON_COMPACT | JSON_PRESERVE_ORDER;
+			} else {
+				JANUS_LOG(LOG_WARN, "Unsupported JSON format option '%s', ignoring tweak\n", indentation);
+				/* Notify that this will be ignored */
+				if(notes == NULL) {
+					notes = json_array();
+					json_object_set_new(response, "notes", notes);
+				}
+				json_array_append_new(notes, json_string("Ignored unsupported indentation format"));
+			}
+		}
+	} else {
+		JANUS_LOG(LOG_VERB, "Unknown request '%s'\n", request_text);
+		error_code = JANUS_RABBITMQ_ERROR_INVALID_REQUEST;
+		g_snprintf(error_cause, 512, "Unknown request '%s'", request_text);
+	}
+
+plugin_response:
+		{
+			if(error_code != 0) {
+				/* Prepare JSON error event */
+				json_object_set_new(response, "error_code", json_integer(error_code));
+				json_object_set_new(response, "error", json_string(error_cause));
+			}
+			return response;
+		}
+}
+
+
+/* Threads */
+void *janus_rmq_in_thread(void *data) {
+	if(rmq_client == NULL) {
+		JANUS_LOG(LOG_ERR, "No RabbitMQ connection??\n");
+		return NULL;
+	}
+	JANUS_LOG(LOG_VERB, "Joining RabbitMQ in thread\n");
+
+	struct timeval timeout;
+	timeout.tv_sec = 0;
+	timeout.tv_usec = 20000;
+	amqp_frame_t frame;
+	guint rmq_reconnect_backoff = rmq_reconnect_backoff_initial;
+
+	while(!rmq_client->destroy && !g_atomic_int_get(&stopping)) {
+		amqp_maybe_release_buffers(rmq_client->rmq_conn);
+		/* Wait for a frame */
+		int res = amqp_simple_wait_frame_noblock(rmq_client->rmq_conn, &frame, &timeout);
+		if(res != AMQP_STATUS_OK) {
+			/* No data */
+			if(res == AMQP_STATUS_TIMEOUT || res == AMQP_STATUS_SSL_ERROR)
+				continue;
+			JANUS_LOG(LOG_VERB, "Error on amqp_simple_wait_frame_noblock: %d (%s)\n", res, amqp_error_string2(res));
+
+			rmq_client->connected = FALSE;
+
+			/* Try and reconnect */
+			if(rmq_client->rmq_conn) {
+				amqp_destroy_connection(rmq_client->rmq_conn);
+			}
+
+			if(!g_atomic_int_get(&stopping)) {
+				JANUS_LOG(LOG_VERB, "Trying to reconnect with RabbitMQ Server\n");
+				int result = janus_rabbitmq_connect();
+				if(result < 0) {
+					JANUS_LOG(LOG_WARN, "Failed to reconnect to RabbitMQ Server. Retrying in %fs...\n", (gfloat)rmq_reconnect_backoff/1000000);
+					g_usleep(rmq_reconnect_backoff);
+					rmq_reconnect_backoff *= rmq_reconnect_backoff_multiplier;
+					if(rmq_reconnect_backoff >= rmq_reconnect_backoff_max)
+						rmq_reconnect_backoff = rmq_reconnect_backoff_max;
+				} else {
+					rmq_reconnect_backoff = rmq_reconnect_backoff_initial;
+				}
+
+				continue;
+			}
+		}
+
+		/* We expect method first */
+		JANUS_LOG(LOG_VERB, "Frame type %d, channel %d\n", frame.frame_type, frame.channel);
+		if(frame.frame_type != AMQP_FRAME_METHOD)
+			continue;
+		JANUS_LOG(LOG_VERB, "Method %s\n", amqp_method_name(frame.payload.method.id));
+		gboolean admin = FALSE;
+		if(frame.payload.method.id == AMQP_BASIC_DELIVER_METHOD) {
+			amqp_basic_deliver_t *d = (amqp_basic_deliver_t *)frame.payload.method.decoded;
+			JANUS_LOG(LOG_VERB, "Delivery #%u, %.*s\n", (unsigned) d->delivery_tag, (int) d->routing_key.len, (char *) d->routing_key.bytes);
+			/* Check if this is a Janus or Admin API request */
+			if(rmq_client->admin_api_enabled) {
+				char incoming_topic[d->routing_key.len + 2];
+				/* Convert the amqp_bytes_t back to char* */
+				g_strlcpy(incoming_topic, (char *)d->routing_key.bytes, d->routing_key.len + 1);
+				if(strcmp(incoming_topic, to_janus_admin) == 0) {
+					admin = TRUE;
+				}
+			}
+			JANUS_LOG(LOG_VERB, "  -- This is %s API request\n", admin ? "an admin" : "a Janus");
+		}
+		/* Then the header */
+		amqp_simple_wait_frame(rmq_client->rmq_conn, &frame);
+		JANUS_LOG(LOG_VERB, "Frame type %d, channel %d\n", frame.frame_type, frame.channel);
+		if(frame.frame_type != AMQP_FRAME_HEADER)
+			continue;
+		amqp_basic_properties_t *p = (amqp_basic_properties_t *)frame.payload.properties.decoded;
+		if(p->_flags & AMQP_BASIC_REPLY_TO_FLAG) {
+			JANUS_LOG(LOG_VERB, "  -- Reply-to: %.*s\n", (int) p->reply_to.len, (char *) p->reply_to.bytes);
+		}
+		char *correlation = NULL;
+		if(p->_flags & AMQP_BASIC_CORRELATION_ID_FLAG) {
+			correlation = g_malloc0(p->correlation_id.len+1);
+			sprintf(correlation, "%.*s", (int) p->correlation_id.len, (char *) p->correlation_id.bytes);
+			JANUS_LOG(LOG_VERB, "  -- Correlation-id: %s\n", correlation);
+		}
+		if(p->_flags & AMQP_BASIC_CONTENT_TYPE_FLAG) {
+			JANUS_LOG(LOG_VERB, "  -- Content-type: %.*s\n", (int) p->content_type.len, (char *) p->content_type.bytes);
+		}
+		/* And the body */
+		uint64_t total = frame.payload.properties.body_size, received = 0;
+		char *payload = g_malloc0(total+1), *index = payload;
+		while(received < total) {
+			amqp_simple_wait_frame(rmq_client->rmq_conn, &frame);
+			JANUS_LOG(LOG_VERB, "Frame type %d, channel %d\n", frame.frame_type, frame.channel);
+			if(frame.frame_type != AMQP_FRAME_BODY)
+				break;
+			sprintf(index, "%.*s", (int) frame.payload.body_fragment.len, (char *) frame.payload.body_fragment.bytes);
+			received += frame.payload.body_fragment.len;
+			index = payload+received;
+		}
+		JANUS_LOG(LOG_VERB, "Got %"SCNu64"/%"SCNu64" bytes from the %s queue (%"SCNu64")\n",
+			received, total, admin ? "admin API" : "Janus API", frame.payload.body_fragment.len);
+		JANUS_LOG(LOG_VERB, "%s\n", payload);
+		/* Parse the JSON payload */
+		json_error_t error;
+		json_t *root = json_loadb(payload, frame.payload.body_fragment.len, 0, &error);
+		g_free(payload);
+		/* Notify the core, passing both the object and, since it may be needed, the error
+		 * We also specify the correlation ID as an opaque request identifier: we'll need it later */
+		gateway->incoming_request(&janus_rabbitmq_transport, rmq_session, correlation, admin, root, &error);
+	}
+	JANUS_LOG(LOG_INFO, "Leaving RabbitMQ in thread\n");
+	return NULL;
+}
+
+void *janus_rmq_out_thread(void *data) {
+	if(rmq_client == NULL) {
+		JANUS_LOG(LOG_ERR, "No RabbitMQ connection??\n");
+		return NULL;
+	}
+	JANUS_LOG(LOG_VERB, "Joining RabbitMQ out thread\n");
+	guint rmq_reconnect_backoff = rmq_reconnect_backoff_initial;
+	while(!rmq_client->destroy && !g_atomic_int_get(&stopping)) {
+
+		if(!rmq_client->connected) {
+			g_usleep(rmq_reconnect_backoff);
+			rmq_reconnect_backoff *= rmq_reconnect_backoff_multiplier;
+			if (rmq_reconnect_backoff >= rmq_reconnect_backoff_max)
+				rmq_reconnect_backoff = rmq_reconnect_backoff_max;
+
+			continue;
+		}
+
+		rmq_reconnect_backoff = rmq_reconnect_backoff_initial;
+
+		/* We send messages from here as well, not only notifications */
+		janus_rabbitmq_response *response = g_async_queue_pop(rmq_client->messages);
+		if(response == &exit_message)
+			break;
+		if(!rmq_client->destroy && !g_atomic_int_get(&stopping) && response->payload) {
+			janus_mutex_lock(&rmq_client->mutex);
+			/* Gotcha! Convert json_t to string */
+			char *payload_text = response->payload;
+			JANUS_LOG(LOG_VERB, "Sending %s API message to RabbitMQ (%zu bytes) on exchange %s with routing key %s...\n", response->admin ? "Admin" : "Janus", strlen(payload_text), janus_exchange, response->admin ? from_janus_admin : from_janus);
+			JANUS_LOG(LOG_VERB, "%s\n", payload_text);
+			amqp_basic_properties_t props;
+			props._flags = 0;
+			props._flags |= AMQP_BASIC_REPLY_TO_FLAG;
+			props.reply_to = amqp_cstring_bytes("Janus");
+			if(response->correlation_id) {
+				props._flags |= AMQP_BASIC_CORRELATION_ID_FLAG;
+				props.correlation_id = amqp_cstring_bytes(response->correlation_id);
+			}
+			props._flags |= AMQP_BASIC_CONTENT_TYPE_FLAG;
+			props.content_type = amqp_cstring_bytes("application/json");
+			amqp_bytes_t message = amqp_cstring_bytes(payload_text);
+			int status = amqp_basic_publish(rmq_client->rmq_conn, rmq_client->rmq_channel, rmq_client->janus_exchange,
+				response->admin ? amqp_cstring_bytes(from_janus_admin) : amqp_cstring_bytes(from_janus),
+				0, 0, &props, message);
+			if(status != AMQP_STATUS_OK) {
+				JANUS_LOG(LOG_ERR, "Error publishing... %d, %s\n", status, amqp_error_string2(status));
+			}
+			janus_mutex_unlock(&rmq_client->mutex);
+		}
+		/* Free the message */
+		g_free(response->correlation_id);
+		response->correlation_id = NULL;
+		if(response->payload != NULL)
+			free(response->payload);
+		response->payload = NULL;
+		g_free(response);
+		response = NULL;
+	}
+	g_async_queue_unref(rmq_client->messages);
+	JANUS_LOG(LOG_INFO, "Leaving RabbitMQ out thread\n");
+	return NULL;
+}
