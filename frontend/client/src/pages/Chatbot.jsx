@@ -1,9 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { chatbot_recall } from "../services/chatbotService";
+import LogoutButton from "../components/LogoutButton"; // 경로 확인 필수
 
 function ChatbotPage() {
   const location = useLocation();
+  const [isOpen, setIsOpen] = useState(false);
+
+  // 로그인 상태 (실제 프로젝트에서는 인증 Context 또는 전역 상태로 관리)
+  const [isAuthenticated, setIsAuthenticated] = useState(true);
 
   // 상단 탭 활성 로직
   const isMonitorActive = location.pathname === "/monitor";
@@ -59,9 +64,9 @@ function ChatbotPage() {
   };
 
   // 메시지 전송 로직
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (!inputMessage.trim()) return;
-    if (!activeConversationId) return; // 혹시 활성 대화가 없으면 리턴
+    if (!activeConversationId) return; // 활성 대화가 없으면 리턴
 
     // 사용자 메시지
     const userMsg = {
@@ -78,49 +83,74 @@ function ChatbotPage() {
       )
     );
 
+    // 사용자의 입력값을 임시 변수에 저장한 후 입력창 초기화
+    const currentQuestion = inputMessage;
     setInputMessage("");
 
-    // 1초 뒤 봇 응답
-    setTimeout(() => {
-      const botMsg = {
-        id: Date.now(),
-        sender: "bot",
-        text: "챗봇 응답 예시입니다!",
-      };
+    // 로딩(타이핑) 상태 메시지 추가 (옵션)
+    const typingMsgId = Date.now() + 1;
+    const typingMsg = {
+      id: typingMsgId,
+      sender: "bot",
+      text: "챗봇이 응답을 준비 중입니다...",
+    };
+
+    setConversations((prev) =>
+      prev.map((conv) =>
+        conv.id === activeConversationId
+          ? { ...conv, messages: [...conv.messages, typingMsg] }
+          : conv
+      )
+    );
+
+    try {
+      // 실제 백엔드 API 호출
+      const answer = await chatbot_recall(currentQuestion);
+
+      // 타이핑 메시지 제거 후 실제 응답 메시지 추가
       setConversations((prev) =>
-        prev.map((conv) =>
-          conv.id === activeConversationId
-            ? { ...conv, messages: [...conv.messages, botMsg] }
-            : conv
-        )
+        prev.map((conv) => {
+          if (conv.id === activeConversationId) {
+            return {
+              ...conv,
+              messages: conv.messages
+                .filter((msg) => msg.id !== typingMsgId)
+                .concat({
+                  id: Date.now(),
+                  sender: "bot",
+                  text: answer,
+                }),
+            };
+          }
+          return conv;
+        })
       );
-    }, 1000);
+    } catch (error) {
+      console.error("챗봇 응답 에러:", error);
+      setConversations((prev) =>
+        prev.map((conv) => {
+          if (conv.id === activeConversationId) {
+            return {
+              ...conv,
+              messages: conv.messages
+                .filter((msg) => msg.id !== typingMsgId)
+                .concat({
+                  id: Date.now(),
+                  sender: "bot",
+                  text: "오류가 발생했습니다. 잠시 후 다시 시도해 주세요.",
+                }),
+            };
+          }
+          return conv;
+        })
+      );
+    }
   };
-  // 메시지 전송 함수: 사용자가 메시지를 전송하면 챗봇 서비스 함수를 호출합니다.
-  // const handleSendMessage = async () => {
-  //   if (!inputMessage.trim()) return;
 
-  //   // 1. 사용자 메시지를 상태에 추가
-  //   setMessages((prev) => [...prev, { sender: "user", text: inputMessage }]);
-
-  //   // 사용자 질문을 저장 후 입력창 초기화
-  //   const userQuestion = inputMessage;
-  //   setInputMessage("");
-
-  //   try {
-  //     // 2. 챗봇 서비스 함수 호출 (비동기 처리)
-  //     const chatbotResponse = await 챗봇최종함수(userQuestion);
-
-  //     // 3. 챗봇 응답을 상태에 추가
-  //     setMessages((prev) => [
-  //       ...prev,
-  //       { sender: "bot", text: chatbotResponse },
-  //     ]);
-  //   } catch (error) {
-  //     console.error("챗봇 응답 호출 에러:", error);
-  //     // 에러 처리 로직 추가 가능
-  //   }
-  // };
+  // 대화 이름 바꾸기 (임시 구현)
+  const handleRenameConversation = (id) => {
+    alert("대화 이름 바꾸기는 아직 구현되지 않았습니다.");
+  };
 
   // 목록 토글 버튼
   const toggleList = () => {
@@ -252,7 +282,7 @@ function ChatbotPage() {
             </div>
 
             {/* 오른쪽: 알림/설정/사용자 */}
-            <div className="flex items-center">
+            <div className="flex items-center relative">
               <button className="p-2 rounded-full hover:bg-gray-100 relative">
                 <i className="fas fa-bell text-gray-600"></i>
                 <span className="absolute top-1 right-1 bg-red-500 rounded-full w-2 h-2" />
@@ -260,16 +290,41 @@ function ChatbotPage() {
               <button className="ml-3 p-2 rounded-full hover:bg-gray-100">
                 <i className="fas fa-cog text-gray-600"></i>
               </button>
-              <div className="ml-4 flex items-center">
-                <img
-                  className="h-8 w-8 rounded-full"
-                  src="/기본프로필.png"
-                  alt="사용자 프로필"
-                />
-                <span className="ml-2 text-sm font-medium text-gray-700">
-                  김관리자
-                </span>
-              </div>
+
+              {/* 프로필 & 로그아웃 드롭다운 */}
+              {!isAuthenticated ? (
+                <div className="ml-4">
+                  <Link
+                    to="/login"
+                    className="inline-flex items-center px-4 py-2 rounded bg-blue-500 text-white hover:bg-blue-600"
+                  >
+                    로그인
+                  </Link>
+                </div>
+              ) : (
+                <div className="ml-4 flex items-center relative">
+                  <button
+                    className="flex items-center p-2 rounded-full hover:bg-gray-100"
+                    onClick={() => setIsOpen(!isOpen)}
+                  >
+                    <img
+                      className="h-8 w-8 rounded-full"
+                      src="/기본프로필.png"
+                      alt="사용자 프로필"
+                    />
+                    <span className="ml-2 text-sm font-medium text-gray-700">
+                      김관리자
+                    </span>
+                  </button>
+
+                  {/* 드롭다운 메뉴 */}
+                  {isOpen && (
+                    <div className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-lg p-2 z-50">
+                      <LogoutButton />
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>
