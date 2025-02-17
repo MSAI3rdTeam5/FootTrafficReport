@@ -53,8 +53,8 @@ class AzureAPI:
     # Normalize prediction results
     # 예측 결과 정규화
     def normalize_predictions(self, predictions):
-        gender_preds = {p['tagName']: p['probability'] * 100 for p in predictions if p['tagName'] in ['male', 'female']}
-        age_preds = {p['tagName']: p['probability'] * 100 for p in predictions if p['tagName'] in ['adult', 'old', 'young']}
+        gender_preds = {p['tagName']: p['probability'] * 100 for p in predictions if p['tagName'] in ['Male', 'Female']}
+        age_preds = {p['tagName']: p['probability'] * 100 for p in predictions if p['tagName'] in ['Age18to60', 'AgeOver60', 'AgeLess18']}
        
         def normalize_group(group_preds):
             total = sum(group_preds.values())
@@ -205,9 +205,22 @@ class PersonTracker:
     # Process detected person using Azure API
     # Azure API를 사용하여 감지된 사람 처리
     async def process_person(self, obj_id, cropped_path, cctv_id):
+        threshold = 0.3  # 30% 기준
         predictions = await self.azure_api.analyze_image(cropped_path)
-        gender = max([k for k in predictions if k in ['male', 'female']], key=predictions.get, default="Unknown")
-        age = max([k for k in predictions if k in ['adult', 'old', 'young']], key=predictions.get, default="Unknown")
+        
+        # 라벨 변환 매핑
+        age_mapping = {'AgeLess18': 'young', 'Age18to60': 'adult', 'AgeOver60': 'old'}
+        gender_mapping = {'Male': 'male', 'Female': 'female'}
+
+        # 성별 예측
+        gender_key = max([k for k in predictions if k in gender_mapping and predictions[k] >= threshold], 
+                        key=predictions.get, default="Unknown")
+        gender = gender_mapping.get(gender_key, "Unknown")
+
+        # 연령대 예측
+        age_key = max([k for k in predictions if k in age_mapping and predictions[k] >= threshold], 
+                    key=predictions.get, default="Unknown")
+        age = age_mapping.get(age_key, "Unknown")
        
         await self.send_data_to_server(obj_id, gender, age, cctv_id)
  
