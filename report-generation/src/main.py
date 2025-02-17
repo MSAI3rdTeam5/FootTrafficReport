@@ -1,4 +1,5 @@
 import pandas as pd
+from gpt_response import gpt_response
 import os
 import markdown
 import pdfkit
