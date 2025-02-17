@@ -1,16 +1,20 @@
 import pandas as pd
 
+from gpt_response import gpt_response
+
 import os
 import markdown
 import pdfkit
 import re
 from IPython.display import HTML
+
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from gpt_response import gpt_response
 
 # 데이터 경로 호출(당장은 실행되나 데이터 경로는 합치는 과정에서 수정과정 필요)
 data_file = "./FootTrafficReport/report-generation/yearly_data/decrease_trend_year_data.csv" 
+
 data = pd.read_csv(data_file)
 
 # 현재는 임의로 날짜를 기입했으나 여긴 프론트에서 바로 Input이 가능한 부분이 있는지 확인
@@ -75,8 +79,9 @@ def convert_html_to_pdf(html_file, pdf_file):
         print(f'PDF 생성 중 오류가 발생했습니다: {e}')
 
 
-#현재는 테스트 중이기에 response.html 하나로만 사용하지만, 다수의 이용자가 동시에 사용했을 때 response도 관리가 필요하면 추후 수정해야함.
-#저장되는 경로도 추후에 수정이 필요
+
+#현재는 테스트 중이기에 response.html 하나로만 사용하지만, 다수의 이용자가 동시에 사용했을 때 response도 관리가 필요하면 추후 수정해야함
+
 save_html(response, 'response.html')
 convert_html_to_pdf('response.html', 'output_v3.pdf')
 
