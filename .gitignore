@@ -54,3 +54,4 @@ dist-ssr
 
 # Server 관련 (frontend/server 폴더에 있는 .env)
 server/.env
+
