@@ -23,6 +23,16 @@ def set_korean_font():
     plt.rcParams["font.family"] = "Malgun Gothic"
     plt.rcParams["axes.unicode_minus"] = False
 
+# 폴더 내 모든 파일을 삭제
+def clear_folder(folder):
+    
+    if os.path.exists(folder):
+        for file in os.listdir(folder):
+            file_path = os.path.join(folder, file)
+            if os.path.isfile(file_path):
+                os.remove(file_path)
+                
+
 # 데이터 시각화 과정
 def create_visualizations(data, start_date=None, end_date=None):
     
@@ -33,7 +43,12 @@ def create_visualizations(data, start_date=None, end_date=None):
     set_korean_font()
     
     graph_paths = []
-    data_folder = "data_graph" #현재 로컬에선 data_graph경로로 설정해 활용중이지만 추후 경로수정 필요
+
+    data_folder = "./FootTrafficReport/report-generation/data_graph" #현재 로컬에선 data_graph경로로 설정해 활용중이지만 추후 경로수정 필요
+
+    clear_folder(data_folder)
+    
+
 
     if start_date and end_date:
         data = filter_data_by_date(data, start_date, end_date)
