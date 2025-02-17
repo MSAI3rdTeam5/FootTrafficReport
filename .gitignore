@@ -1,4 +1,3 @@
-
 # Report-generation 관련 민감정보
 report-generation/.env
 
@@ -55,3 +54,4 @@ dist-ssr
 
 # Server 관련 (frontend/server 폴더에 있는 .env)
 server/.env
+
