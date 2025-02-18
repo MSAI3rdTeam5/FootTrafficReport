@@ -1,12 +1,18 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from .database import SessionLocal
 from .models import CctvData, PersonCount
+import pytz
+
+import logging
+logger = logging.getLogger(__name__)
 
 def aggregate_person_data():
+    logger.info("Starting aggregation task")
     db: Session = SessionLocal()
-    now = datetime.now(timezone.utc)
+    kst = pytz.timezone('Asia/Seoul')
+    now = datetime.now(kst)
     one_hour_ago = now - timedelta(hours=1)
 
     try:
@@ -69,6 +75,7 @@ def aggregate_person_data():
             db.add(pc)
 
         db.commit()
+        logger.info(f"Aggregation complete. Aggregated data for {len(data_map)} CCTV(s) at {now}")
         return f"Aggregated {len(data_map)} cctv(s) at {now}"
 
     finally:

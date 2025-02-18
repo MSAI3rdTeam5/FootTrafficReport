@@ -11,24 +11,24 @@ import { Device } from "mediasoup-client";
 function Monitor() {
   const location = useLocation();
 
-  // ====== QR 모달 ======
+  // === QR 모달 ===
   const [qrVisible, setQrVisible] = useState(false);
   const openQRModal = () => setQrVisible(true);
   const closeQRModal = () => setQrVisible(false);
 
-  // ====== 장치 등록 모달 ======
+  // === 장치 등록 모달 ===
   const [deviceModalOpen, setDeviceModalOpen] = useState(false);
   const [deviceType, setDeviceType] = useState(null);
   const [deviceName, setDeviceName] = useState("");
   const [deviceIP, setDeviceIP] = useState("");
   const [devicePort, setDevicePort] = useState("");
 
-  // ====== 개인정보 오버레이 ======
+  // === 개인정보 오버레이 ===
   const [privacyOpen, setPrivacyOpen] = useState(false);
   const openPrivacy = () => setPrivacyOpen(true);
   const closePrivacy = () => setPrivacyOpen(false);
 
-  // ====== 로그인된 유저 표시 이름 ======
+  // === 로그인된 유저 표시 이름 ===
   const [displayName, setDisplayName] = useState("김관리자");
   useEffect(() => {
     console.log("[DBG] useEffect -> fetch /api/user (테스트용)");
@@ -41,23 +41,21 @@ function Monitor() {
         return res.json();
       })
       .then((data) => {
-        if (data && data.displayName) {
-          setDisplayName(data.displayName);
-        }
+        if (data && data.displayName) setDisplayName(data.displayName);
       })
       .catch((err) => console.error(err));
   }, []);
 
-  // ====== 등록된 카메라 목록 ======
+  // === 등록된 카메라 목록 ===
   const [cameraList, setCameraList] = useState([]);
 
-  // 페이지 탭 강조 로직
+  // === 페이지 탭 강조 로직 ===
   const isMonitorActive = location.pathname === "/monitor";
   const isDashboardActive = location.pathname === "/dashboard";
   const isAiInsightActive = location.pathname === "/ai-insight";
   const isGuideActive = location.pathname === "/guide";
 
-  // 장치등록 모달
+  // === 장치등록 모달 ===
   const openDeviceModal = (type) => {
     setDeviceType(type);
     setDeviceModalOpen(true);
@@ -93,20 +91,20 @@ function Monitor() {
     closeDeviceModal();
   };
 
-  // ================================
-  // SFU & mediasoup 로직 (Ref 사용)
-  // ================================
+  // -----------------------------------------------------
+  // SFU & mediasoup 관련: socket/device를 useRef로 관리
+  // -----------------------------------------------------
   const socketRef = useRef(null);
   const deviceRef = useRef(null);
   const [sendTransport, setSendTransport] = useState(null);
 
   const [localStream, setLocalStream] = useState(null);
-  const [remoteStream, setRemoteStream] = useState(null); // consume하려면 추가 로직 필요
+  const [remoteStream, setRemoteStream] = useState(null); // 추후 consume 시 사용할 수 있음
 
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
 
-  // 웹캠 선택 모달
+  // === 웹캠 선택 모달 ===
   const [webcamModalOpen, setWebcamModalOpen] = useState(false);
   const [videoDevices, setVideoDevices] = useState([]);
   const [selectedDeviceId, setSelectedDeviceId] = useState("");
@@ -132,33 +130,37 @@ function Monitor() {
     }
   };
 
-  // (B) 웹캠 선택 후 "확인" => produce
+  // (B) 웹캠 선택 후 "확인"
   const handleConfirmWebcamSelection = async () => {
     console.log("[DBG] handleConfirmWebcamSelection. selectedDeviceId=", selectedDeviceId);
+
     if (!selectedDeviceId) {
       alert("카메라를 선택하세요!");
       return;
     }
     setWebcamModalOpen(false);
 
-    // 만약 아직 SFU 연결 안 됐다면, 연결부터
+    // SFU + produce 로직 (단일 함수)
+    // 이미 연결되어 있는지 여부에 따라 분기
     if (!socketRef.current || !deviceRef.current) {
       console.log("[DBG] SFU not connected or device not loaded => calling handleConnectSFU...");
       await handleConnectSFUAndProduce(selectedDeviceId);
     } else {
       console.log("[DBG] SFU already connected => proceed to produce webcam...");
+      // 바로 produce
+      console.log("[DBG] => got s, dev => now produce webcam...");
       await handleStartWebcamWithDevice(selectedDeviceId);
     }
   };
 
-  // (C) SFU 연결 + produce를 한 번에
+  // (C) SFU 연결 + device 로드 + produce를 한 번에
   async function handleConnectSFUAndProduce(deviceId) {
     console.log("[DBG] handleConnectSFU start...");
 
     // 1) socket 연결
     const s = io("https://msteam5iseeu.ddns.net", {
-      path: "/socket.io",
-      transports: ["websocket", "polling"]
+      path: "/socket.io", // nginx location /socket.io/ 사용 시
+      transports: ["websocket", "polling"],
     });
     socketRef.current = s;
 
@@ -186,7 +188,7 @@ function Monitor() {
     console.log("Mediasoup Device loaded. canProduceVideo =", dev.canProduce("video"));
     console.log("[DBG] handleConnectSFU done!");
 
-    // 4) 연결 성공 후 곧바로 produce
+    // 4) 연결 후 곧바로 webcam produce 시도
     console.log("[DBG] => got s, dev => now produce webcam...");
     await handleStartWebcamWithDevice(deviceId);
   }
@@ -207,7 +209,6 @@ function Monitor() {
   async function handleStartWebcamWithDevice(deviceId) {
     console.log("[DBG] handleStartWebcamWithDevice. deviceId=", deviceId);
 
-    // 참조
     const dev = deviceRef.current;
     const sock = socketRef.current;
     console.log("[DBG] mediasoupDevice=", dev, "socket=", sock);
@@ -227,9 +228,9 @@ function Monitor() {
         deviceId: { exact: deviceId },
         width: { ideal: 640 },
         height: { ideal: 480 },
-        frameRate: { ideal: 30 }
+        frameRate: { ideal: 30 },
       },
-      audio: false
+      audio: false,
     };
 
     console.log("[DBG] getUserMedia constraints=", constraints);
@@ -243,16 +244,21 @@ function Monitor() {
       return;
     }
 
-    // 로컬에 표시
+    // 2) 로컬 미리보기
     if (localStream) {
       localStream.getTracks().forEach((t) => t.stop());
     }
     setLocalStream(stream);
+
+    // video 태그에 srcObject 할당 + play() 시도
     if (localVideoRef.current) {
       localVideoRef.current.srcObject = stream;
+      localVideoRef.current
+        .play()
+        .catch((err) => console.warn("localVideo play() error:", err));
     }
 
-    // 2) createSendTransport
+    // 3) createSendTransport
     const transportParams = await createTransport(sock, "send");
     const transport = dev.createSendTransport(transportParams);
 
@@ -276,7 +282,7 @@ function Monitor() {
         {
           transportId: transport.id,
           kind: produceParams.kind,
-          rtpParameters: produceParams.rtpParameters
+          rtpParameters: produceParams.rtpParameters,
         },
         (res) => {
           if (!res.success) {
@@ -291,7 +297,7 @@ function Monitor() {
     setSendTransport(transport);
     console.log("SendTransport created, id=", transport.id);
 
-    // 3) produce
+    // (E) produce track
     const videoTrack = stream.getVideoTracks()[0];
     try {
       const producer = await transport.produce({ track: videoTrack });
@@ -313,7 +319,7 @@ function Monitor() {
     });
   }
 
-  // (E) 연결 해제
+  // (F) 연결 해제
   const handleWebcamDisconnect = () => {
     console.log("[DBG] handleWebcamDisconnect: stopping local stream & closing transports");
     if (localStream) {
@@ -329,11 +335,13 @@ function Monitor() {
       remoteVideoRef.current.srcObject = null;
     }
 
+    // sendTransport close
     if (sendTransport) {
       sendTransport.close();
       setSendTransport(null);
     }
 
+    // 소켓 disconnect
     if (socketRef.current) {
       socketRef.current.disconnect();
       socketRef.current = null;
@@ -525,15 +533,18 @@ function Monitor() {
           <div className="bg-white p-4 rounded-lg border mb-6">
             <h2 className="text-lg font-semibold mb-2">웹캠 실시간 미리보기</h2>
             <div className="flex space-x-4">
+              {/* localVideo는 muted + playsInline + autoPlay */}
               <video
                 ref={localVideoRef}
                 autoPlay
+                playsInline
                 muted
                 style={{ width: "320px", background: "#000" }}
               />
               <video
                 ref={remoteVideoRef}
                 autoPlay
+                playsInline
                 style={{ width: "320px", background: "#333" }}
               />
             </div>
@@ -622,6 +633,8 @@ function Monitor() {
                   placeholder="예: 554"
                 />
               </div>
+
+              {/* ID/PW 등 필요시 추가 */}
 
               <div className="flex justify-end space-x-2 mt-6">
                 <button

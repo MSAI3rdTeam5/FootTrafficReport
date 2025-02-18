@@ -11,3 +11,5 @@ celery_app.conf.update(
     timezone="Asia/Seoul",
     enable_utc=False,
 )
+
+from . import tasks

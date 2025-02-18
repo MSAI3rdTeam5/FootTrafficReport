@@ -7,7 +7,7 @@ from app.aggregate import aggregate_person_data
 def setup_periodic_tasks(sender, **kwargs):
     # 1) 매 정각(매 1시간) cctv_data 집계
     sender.add_periodic_task(
-        crontab(minute=0),  # hour='*' => 모든 시간대 0분(정시)
+        crontab(minute=30),  # hour='*' => 모든 시간대 0분(정시)
         aggregate_person_task.s(),
         name='aggregate every hour'
     )
