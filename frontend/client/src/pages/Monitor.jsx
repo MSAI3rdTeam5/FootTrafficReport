@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import PrivacyOverlay from "./PrivacyOverlay";
+import CCTVMonitoring from "./CCTVMonitoring";
 
 // API 호출 헬퍼 함수 (예: 사람 감지용)
 // import { callPeopleDetection } from "../utils/api"; // 필요 시 사용
@@ -27,6 +28,36 @@ function Monitor() {
   const [devicePort, setDevicePort] = useState("");
   const [deviceUser, setDeviceUser] = useState("");
   const [devicePass, setDevicePass] = useState("");
+
+  // 등록된 카메라 목록 관리
+  const [cameraList, setCameraList] = useState([
+    {
+      cameraId: "cam1",
+      name: "카메라 #1 - 명동 중앙거리",
+      videoSrc: "../../public/videos/05_seoul.mp4",
+    },
+    {
+      cameraId: "cam2",
+      name: "카메라 #2 - 에스컬레이터",
+      videoSrc: "../../public/videos/01_에스컬레이터.mp4",
+    },
+  ]);
+
+  // 선택된 카메라와 오버레이 상태 관리
+  const [selectedCamera, setSelectedCamera] = useState(null); // 선택된 카메라 정보
+  const [overlayVisible, setOverlayVisible] = useState(false); // 오버레이 상태
+
+  // 장치 클릭 시 동작
+  const handleDeviceClick = (camera) => {
+    setSelectedCamera(camera); // 선택된 카메라 설정
+    setOverlayVisible(true); // 오버레이 열기
+  };
+
+  // 오버레이 닫기
+  const closeOverlay = () => {
+    setSelectedCamera(null); // 선택된 카메라 초기화
+    setOverlayVisible(false); // 오버레이 닫기
+  };
 
   // [수정점] 실제 등록 함수
   const handleSubmitDevice = async (e) => {
@@ -99,11 +130,11 @@ function Monitor() {
       });
   }, []);
 
-  // [수정점] 등록된 카메라 목록 관리
-  const [cameraList, setCameraList] = useState([
-    // 예시로 몇 개 넣을 수도 있음
-    // { cameraId: "cam1", hlsUrl: "/hls/cam1/playlist.m3u8" }
-  ]);
+  // // [수정점] 등록된 카메라 목록 관리
+  // const [cameraList, setCameraList] = useState([
+  //   // 예시로 몇 개 넣을 수도 있음
+  //   // { cameraId: "cam1", hlsUrl: "/hls/cam1/playlist.m3u8" }
+  // ]);
 
   // [수정점] 장치 연결 모달 열기/닫기
   const openDeviceModal = (type) => {
@@ -272,7 +303,7 @@ function Monitor() {
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-2xl font-bold text-gray-900">CCTV 모니터링</h1>
           <button
-            onClick={() => openDeviceModal("CCTV")} // 새 장치 연결(예시)
+            onClick={() => openDeviceModal("CCTV")}
             className="rounded-button bg-black text-white px-4 py-2 flex items-center"
           >
             <i className="fas fa-plus mr-2"></i>새 장치 연결
@@ -318,9 +349,20 @@ function Monitor() {
           </div>
         </div>
 
-        {/* [수정점] 등록된 카메라 목록 표시 */}
-        <ConnectedDevices cameraList={cameraList} />
+        {/* 등록된 카메라 목록 표시 */}
+        <ConnectedDevices
+          cameraList={cameraList}
+          onDeviceClick={handleDeviceClick}
+        />
       </div>
+
+      {/* CCTVMonitoring 컴포넌트를 조건부로 렌더링 */}
+      {overlayVisible && selectedCamera && (
+        <CCTVMonitoring
+          selectedCamera={selectedCamera}
+          onClose={closeOverlay}
+        />
+      )}
 
       <footer className="bg-white border-t border-gray-200 mt-8">
         <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
@@ -525,8 +567,8 @@ function Monitor() {
   );
 }
 
-// [수정점] 간단히 등록된 카메라 목록을 나타내는 컴포넌트
-function ConnectedDevices({ cameraList }) {
+// ConnectedDevices 컴포넌트
+function ConnectedDevices({ cameraList, onDeviceClick }) {
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden mb-6">
       <div className="p-6">
@@ -536,14 +578,14 @@ function ConnectedDevices({ cameraList }) {
         ) : (
           <ul className="space-y-3">
             {cameraList.map((cam) => (
-              <li key={cam.cameraId} className="p-2 bg-gray-50 rounded">
-                <div className="flex justify-between items-center">
-                  <span className="font-medium text-gray-700">
-                    {cam.cameraId}
-                  </span>
-                  {/* 예: HLS URL 표시 or 복사 */}
-                  <span className="text-xs text-gray-400">{cam.hlsUrl}</span>
-                </div>
+              <li
+                key={cam.cameraId}
+                className="p-4 bg-gray-50 rounded cursor-pointer hover:bg-gray-100"
+                onClick={() => onDeviceClick(cam)} // 클릭 시 상위로 전달
+              >
+                <span className="font-medium text-gray-700">
+                  {cam.cameraId}
+                </span>
               </li>
             ))}
           </ul>
