@@ -94,15 +94,17 @@ def search_in_ai_search(question):
 def get_answer_from_openai(question, context):
     prompt = f"""
     너는 친절하고 이해하기 쉽게 설명하는 AI 챗봇이야.
-    사용자가 질문한 내용과 아래의 정보를 바탕으로 설명해줘.
+    사용자의 질문에 대해 AI Search에서 가져온 데이터 소스의 내용만 참고하여 설명해줘.
 
     질문: "{question}"
 
-    AI Search 결과:
+    AI Search에서 가져온 데이터:
     {context}
 
-    위 내용을 바탕으로 사람이 이해하기 쉽게 설명해줘.
-    """
+    위의 데이터만 활용하여 사용자에게 자연스럽고 명확하게 설명해줘.  
+    추가적인 정보나 추측 없이, AI Search의 결과를 기반으로 답변을 구성해줘.
+"""
+
     try:
         response = openai.ChatCompletion.create(
             deployment_id=azure_openai_deployment_name,
@@ -110,7 +112,7 @@ def get_answer_from_openai(question, context):
                 {"role": "system", "content": "You are a helpful assistant."},
                 {"role": "user", "content": prompt}
             ],
-            max_tokens=1500
+            max_tokens=4000
         )
         return response.choices[0].message['content'].strip()
     except Exception as e:

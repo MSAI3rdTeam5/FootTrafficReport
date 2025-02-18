@@ -39,7 +39,7 @@ def parse_policy_document(pages_text):
     return {"pages": pages_text}
 
 # PDF 파일 경로
-pdf_path = "chatbot/file/1-9.pdf"  # 실제 PDF 경로로 변경
+pdf_path = "chatbot/file/4-88.pdf"  # 실제 PDF 경로로 변경
 
 # PDF에서 텍스트 추출
 document_text = extract_text_from_pdf(pdf_path)
@@ -49,7 +49,7 @@ if document_text:
     parsed_data = parse_policy_document(document_text)  # 변환 함수 호출
 
     # 결과 저장
-    output_path = "1-9.json"
+    output_path = "4-88-1.json"
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(parsed_data, f, ensure_ascii=False, indent=4)
     
