@@ -68,7 +68,7 @@ def report_generation(record_id: int):
     data = response.json()
     return data
 # HTML파일을 PDF로 변환. 이떄 import하는 과정땜에 실행하려면 설치해야하는 라이브러리 필요(설치만 했을 때 안되는 경우 환경변수 설정 필요) 
-def convert_html_to_pdf(html_file, pdf_file, member_id, cctv_id, report_title,persona, start_date, end_date):
+def convert_html_to_pdf(pdf_file, member_id, cctv_id, report_title,persona, start_date, end_date):
     try:
         
         # data_file = "./FootTrafficReport/report-generation/yearly_data/decrease_trend_year_data.csv"
@@ -77,7 +77,7 @@ def convert_html_to_pdf(html_file, pdf_file, member_id, cctv_id, report_title,pe
         data = report_generation(cctv_id)
         response = gpt_response(persona, f"{start_date}~{end_date}간의 데이터를 기반으로 보고서 작성해주세요", data, start_date = start_date, end_date = end_date)
         
-        save_html(response, html_file)
+        save_html(response, 'response.html')
         config = pdfkit.configuration(wkhtmltopdf=r"C:/Program Files/wkhtmltopdf/bin/wkhtmltopdf.exe")
 
         options = {
@@ -91,7 +91,7 @@ def convert_html_to_pdf(html_file, pdf_file, member_id, cctv_id, report_title,pe
             'log-level': 'info'
         }
 
-        pdfkit.from_file(html_file, pdf_file, options=options, configuration=config)
+        pdfkit.from_file('response.html', pdf_file, options=options, configuration=config)
 
         # PDF 파일이 정상적으로 생성되었는지 확인
         with open(pdf_file, "rb") as f:
@@ -115,7 +115,7 @@ def convert_html_to_pdf(html_file, pdf_file, member_id, cctv_id, report_title,pe
 #현재는 테스트 중이기에 response.html 하나로만 사용하지만, 다수의 이용자가 동시에 사용했을 때 response도 관리가 필요하면 추후 수정해야함.
 #저장되는 경로도 추후에 수정이 필요
 # save_html(response, 'response.html')
-convert_html_to_pdf('response.html', "aaa.pdf",2,1,"aaa",persona,start_date, end_date)
+convert_html_to_pdf("aaa.pdf",2,1,"aaa",persona,start_date, end_date)
 
 
     
