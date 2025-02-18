@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { chatbot_recall } from "../services/chatbotService";
-import LogoutButton from "../components/LogoutButton"; // 경로 확인 필수
 
 function ChatbotPage() {
   const location = useLocation();
@@ -319,8 +318,39 @@ function ChatbotPage() {
 
                   {/* 드롭다운 메뉴 */}
                   {isOpen && (
-                    <div className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-lg p-2 z-50">
-                      <LogoutButton />
+                    <div
+                      className="absolute right-0 top-full mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5"
+                      role="menu"
+                    >
+                      <a
+                        href="#"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        role="menuitem"
+                      >
+                        프로필 설정
+                      </a>
+                      <a
+                        href="#"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        role="menuitem"
+                      >
+                        계정 관리
+                      </a>
+                      <a
+                        href="#"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        role="menuitem"
+                      >
+                        알림 설정
+                      </a>
+                      <div className="border-t border-gray-100 my-1"></div>
+                      <a
+                        href="#"
+                        className="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                        role="menuitem"
+                      >
+                        로그아웃
+                      </a>
                     </div>
                   )}
                 </div>
