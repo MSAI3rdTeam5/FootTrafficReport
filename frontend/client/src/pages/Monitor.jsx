@@ -109,15 +109,25 @@ function Monitor() {
   const [videoDevices, setVideoDevices] = useState([]);
   const [selectedDeviceId, setSelectedDeviceId] = useState("");
 
-  // (A) 웹캠 선택 모달 열기
+  // (A) “웹캠 연결” 버튼 클릭 시 - 사전에 getUserMedia({video:true})로 권한 팝업 띄우기
   const handleOpenWebcamSelect = async () => {
     console.log("[DBG] handleOpenWebcamSelect start");
+
     try {
+      // 1) 먼저 권한 팝업을 띄우기 위해, 최소 constraints로 getUserMedia 호출
+      //    (success 시 카메라를 잠깐 사용했다가 곧바로 정지)
+      let tempStream = await navigator.mediaDevices.getUserMedia({ video: true });
+      console.log("[DBG] got tempStream => tracks:", tempStream.getTracks());
+      // track stop
+      tempStream.getTracks().forEach((t) => t.stop());
+
+      // 2) 그 후 enumerateDevices
       const devices = await navigator.mediaDevices.enumerateDevices();
       const videoInputs = devices.filter((d) => d.kind === "videoinput");
       console.log("[DBG] Found video inputs =>", videoInputs);
 
       setVideoDevices(videoInputs);
+
       if (videoInputs.length > 0) {
         setSelectedDeviceId(videoInputs[0].deviceId);
       } else {
@@ -125,8 +135,8 @@ function Monitor() {
       }
       setWebcamModalOpen(true);
     } catch (err) {
-      console.error("enumerateDevices() error:", err);
-      alert("장치 목록을 가져오지 못했습니다.");
+      console.error("[ERR] handleOpenWebcamSelect => getUserMedia simple call error:", err);
+      alert("카메라 권한이 거부되었거나, 접근할 수 없습니다.\n브라우저/OS 설정에서 카메라를 허용해 주세요.");
     }
   };
 
@@ -505,7 +515,7 @@ function Monitor() {
 
           <div
             className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 flex flex-col items-center justify-center min-h-[200px] cursor-pointer hover:border-custom"
-            onClick={handleOpenWebcamSelect}
+            onClick={handleOpenWebcamSelect} // 사전 getUserMedia 호출이 포함된 함수
           >
             <i className="fas fa-webcam text-4xl text-custom mb-4"></i>
             <span className="text-gray-700">웹캠 연결</span>
