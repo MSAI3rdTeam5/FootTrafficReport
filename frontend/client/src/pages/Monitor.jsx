@@ -1,16 +1,20 @@
+// /home/azureuser/FootTrafficReport/frontend/client/src/pages/Monitor.jsx
+
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
 import PrivacyOverlay from "./PrivacyOverlay";
+
+// Socket.io + mediasoup-client
+import { io } from "socket.io-client";
+import { Device } from "mediasoup-client";
 
 function Monitor() {
   const location = useLocation();
 
   // ====== QR 모달 ======
   const [qrVisible, setQrVisible] = useState(false);
-  const [qrTimestamp, setQrTimestamp] = useState(Date.now());
   const openQRModal = () => setQrVisible(true);
   const closeQRModal = () => setQrVisible(false);
-  const refreshQR = () => setQrTimestamp(Date.now());
 
   // ====== 장치 등록 모달 ======
   const [deviceModalOpen, setDeviceModalOpen] = useState(false);
@@ -18,35 +22,42 @@ function Monitor() {
   const [deviceName, setDeviceName] = useState("");
   const [deviceIP, setDeviceIP] = useState("");
   const [devicePort, setDevicePort] = useState("");
-  const [deviceUser, setDeviceUser] = useState("");
-  const [devicePass, setDevicePass] = useState("");
 
-  // ====== 개인정보법 안내 오버레이 ======
+  // ====== 개인정보 오버레이 ======
   const [privacyOpen, setPrivacyOpen] = useState(false);
   const openPrivacy = () => setPrivacyOpen(true);
   const closePrivacy = () => setPrivacyOpen(false);
 
-  // ====== 로그인된 유저 displayName ======
+  // ====== 로그인된 유저 표시 이름 ======
   const [displayName, setDisplayName] = useState("김관리자");
   useEffect(() => {
+    console.log("[DBG] useEffect -> fetch /api/user (테스트용)");
     fetch("/api/user", { credentials: "include" })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (data && data.displayName) setDisplayName(data.displayName);
+      .then((res) => {
+        if (!res.ok) {
+          console.log("[DBG] /api/user 404 or error. status =", res.status);
+          return null;
+        }
+        return res.json();
       })
-      .catch(console.error);
+      .then((data) => {
+        if (data && data.displayName) {
+          setDisplayName(data.displayName);
+        }
+      })
+      .catch((err) => console.error(err));
   }, []);
 
   // ====== 등록된 카메라 목록 ======
   const [cameraList, setCameraList] = useState([]);
 
-  // 탭 강조 로직
+  // 페이지 탭 강조 로직
   const isMonitorActive = location.pathname === "/monitor";
   const isDashboardActive = location.pathname === "/dashboard";
   const isAiInsightActive = location.pathname === "/ai-insight";
   const isGuideActive = location.pathname === "/guide";
 
-  // 장치등록 모달 열기/닫기
+  // 장치등록 모달
   const openDeviceModal = (type) => {
     setDeviceType(type);
     setDeviceModalOpen(true);
@@ -57,14 +68,13 @@ function Monitor() {
     setDeviceName("");
     setDeviceIP("");
     setDevicePort("");
-    setDeviceUser("");
-    setDevicePass("");
   };
 
   const handleSubmitDevice = async (e) => {
     e.preventDefault();
     const cameraId = deviceName || `cam-${Date.now()}`;
     const rtspUrl = `rtsp://${deviceIP || "192.168.0.10"}:${devicePort || "554"}`;
+
     try {
       const res = await fetch("/api/cameras", {
         method: "POST",
@@ -83,28 +93,32 @@ function Monitor() {
     closeDeviceModal();
   };
 
-  // ============ WebRTC (Janus) & VideoRoom ============
-  const [janus, setJanus] = useState(null);
-  const [publisherHandle, setPublisherHandle] = useState(null);
-  const [subscriberHandle, setSubscriberHandle] = useState(null);
-  const [myPublisherId, setMyPublisherId] = useState(null);
+  // ================================
+  // SFU & mediasoup 로직 (Ref 사용)
+  // ================================
+  const socketRef = useRef(null);
+  const deviceRef = useRef(null);
+  const [sendTransport, setSendTransport] = useState(null);
 
-  const [localStream, setLocalStream] = useState(null);   // 내 웹캠
-  const [remoteStream, setRemoteStream] = useState(null); // 내가 subscribe할 피드
+  const [localStream, setLocalStream] = useState(null);
+  const [remoteStream, setRemoteStream] = useState(null); // consume하려면 추가 로직 필요
 
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
 
-  // (A) “웹캠 선택” 모달 상태
+  // 웹캠 선택 모달
   const [webcamModalOpen, setWebcamModalOpen] = useState(false);
   const [videoDevices, setVideoDevices] = useState([]);
   const [selectedDeviceId, setSelectedDeviceId] = useState("");
 
-  // (B) “웹캠 연결” 버튼 클릭 시: 장치 목록 나열 후 모달 표시
+  // (A) 웹캠 선택 모달 열기
   const handleOpenWebcamSelect = async () => {
+    console.log("[DBG] handleOpenWebcamSelect start");
     try {
       const devices = await navigator.mediaDevices.enumerateDevices();
       const videoInputs = devices.filter((d) => d.kind === "videoinput");
+      console.log("[DBG] Found video inputs =>", videoInputs);
+
       setVideoDevices(videoInputs);
       if (videoInputs.length > 0) {
         setSelectedDeviceId(videoInputs[0].deviceId);
@@ -118,266 +132,213 @@ function Monitor() {
     }
   };
 
-  // (C) 선택된 카메라로 웹캠 연결
-  const handleConfirmWebcamSelection = () => {
+  // (B) 웹캠 선택 후 "확인" => produce
+  const handleConfirmWebcamSelection = async () => {
+    console.log("[DBG] handleConfirmWebcamSelection. selectedDeviceId=", selectedDeviceId);
     if (!selectedDeviceId) {
       alert("카메라를 선택하세요!");
       return;
     }
     setWebcamModalOpen(false);
-    handleWebcamConnect(selectedDeviceId);
+
+    // 만약 아직 SFU 연결 안 됐다면, 연결부터
+    if (!socketRef.current || !deviceRef.current) {
+      console.log("[DBG] SFU not connected or device not loaded => calling handleConnectSFU...");
+      await handleConnectSFUAndProduce(selectedDeviceId);
+    } else {
+      console.log("[DBG] SFU already connected => proceed to produce webcam...");
+      await handleStartWebcamWithDevice(selectedDeviceId);
+    }
   };
 
-  // (D) Janus init + attach (VideoRoom)
-  const handleWebcamConnect = (deviceId) => {
-    if (!window.Janus) {
-      alert("Janus.js not loaded");
+  // (C) SFU 연결 + produce를 한 번에
+  async function handleConnectSFUAndProduce(deviceId) {
+    console.log("[DBG] handleConnectSFU start...");
+
+    // 1) socket 연결
+    const s = io("https://msteam5iseeu.ddns.net", {
+      path: "/socket.io",
+      transports: ["websocket", "polling"]
+    });
+    socketRef.current = s;
+
+    console.log("[DBG] socket created. Waiting for connect event...");
+    await new Promise((resolve, reject) => {
+      s.on("connect", () => {
+        console.log("[SFU] socket connected:", s.id);
+        resolve();
+      });
+      s.on("connect_error", (err) => {
+        console.error("[SFU] socket connect error:", err);
+        reject(err);
+      });
+    });
+
+    // 2) getRouterCaps
+    const routerCaps = await getRouterCaps(s);
+    console.log("[DBG] got routerCaps =>", routerCaps);
+
+    // 3) Mediasoup Device 생성
+    const dev = new Device();
+    await dev.load({ routerRtpCapabilities: routerCaps });
+    deviceRef.current = dev;
+
+    console.log("Mediasoup Device loaded. canProduceVideo =", dev.canProduce("video"));
+    console.log("[DBG] handleConnectSFU done!");
+
+    // 4) 연결 성공 후 곧바로 produce
+    console.log("[DBG] => got s, dev => now produce webcam...");
+    await handleStartWebcamWithDevice(deviceId);
+  }
+
+  function getRouterCaps(sock) {
+    console.log("[DBG] getRouterCaps() start...");
+    return new Promise((resolve, reject) => {
+      sock.emit("getRouterRtpCapabilities", {}, (res) => {
+        if (!res.success) {
+          return reject(new Error(res.error));
+        }
+        resolve(res.rtpCapabilities);
+      });
+    });
+  }
+
+  // (D) getUserMedia + transport + produce
+  async function handleStartWebcamWithDevice(deviceId) {
+    console.log("[DBG] handleStartWebcamWithDevice. deviceId=", deviceId);
+
+    // 참조
+    const dev = deviceRef.current;
+    const sock = socketRef.current;
+    console.log("[DBG] mediasoupDevice=", dev, "socket=", sock);
+
+    if (!dev) {
+      console.warn("[WARN] deviceRef.current is null => can't produce");
       return;
     }
-    window.Janus.init({
-      debug: "all",
-      callback: () => createJanusSession(deviceId),
-    });
-  };
+    if (!sock) {
+      console.warn("[WARN] socketRef.current is null => can't produce");
+      return;
+    }
 
-  const createJanusSession = (deviceId) => {
-    const serverUrl = "wss://msteam5iseeu.ddns.net/janus-ws/";
-    const j = new window.Janus({
-      server: serverUrl,
-      success: () => {
-        setJanus(j);
-        attachPublisherHandle(j, deviceId);
+    // 1) getUserMedia
+    const constraints = {
+      video: {
+        deviceId: { exact: deviceId },
+        width: { ideal: 640 },
+        height: { ideal: 480 },
+        frameRate: { ideal: 30 }
       },
-      error: (err) => {
-        console.error("[Janus] init error:", err);
-      },
-    });
-  };
-
-  // (E) VideoRoom Publisher
-  const attachPublisherHandle = (janusInstance, deviceId) => {
-    let localPubHandle = null;
-
-    janusInstance.attach({
-      plugin: "janus.plugin.videoroom",
-      success: (pluginHandle) => {
-        localPubHandle = pluginHandle;
-        setPublisherHandle(pluginHandle);
-        console.log("[Publisher] handle created:", pluginHandle.getId());
-
-        // 1) "create" 요청 (room=9876)
-        const createReq = {
-          request: "create",
-          room: 9876,
-          publishers: 1,
-          videocodec: "vp8",
-          bitrate: 512000,
-        };
-        pluginHandle.send({
-          message: createReq,
-          success: (result) => {
-            console.log("[Publisher] create() result [sync]:", result);
-            if (result.error_code === 427) {
-              // 이미 존재하는 방
-              console.warn("[Publisher] Room 9876 already exists -> let's just join!");
-              joinPublisher(localPubHandle, 9876);
-            } else if (result.videoroom === "created") {
-              // 새 방
-              console.log("[Publisher] Room newly created => join it!");
-              const newRoomId = result.room;
-              joinPublisher(localPubHandle, newRoomId);
-            }
-          },
-          error: (err) => {
-            console.error("[Publisher] create() error [sync]:", err);
-          },
-        });
-      },
-      error: (err) => {
-        console.error("[Publisher] attach error:", err);
-      },
-      onmessage: (msg, jsep) => {
-        console.log("[Publisher] onmessage:", msg, jsep);
-        const event = msg.videoroom;
-
-        if (event === "joined") {
-          // join 성공
-          const myId = msg.id;
-          console.log("[Publisher] joined room, myId =", myId);
-          setMyPublisherId(myId);
-          publishOwnFeed(localPubHandle);
-
-        } else if (event === "event") {
-          // 그 외 다른 event
-          console.log("[Publisher] other event:", msg);
-        }
-
-        if (jsep) {
-          localPubHandle.handleRemoteJsep({ jsep });
-        }
-      },
-      onlocaltrack: (track, on) => {
-        console.log("[Publisher] onlocaltrack:", track, on);
-        if (!on) return;
-        const stream = new MediaStream([track]);
-        setLocalStream(stream);
-        if (localVideoRef.current) {
-          localVideoRef.current.srcObject = stream;
-        }
-      },
-      onremotetrack: (track, mid, on) => {
-        console.log("[Publisher] onremotetrack:", track, mid, on);
-      },
-      oncleanup: () => {
-        console.log("[Publisher] oncleanup");
-        setLocalStream(null);
-      },
-    });
-  };
-
-  const joinPublisher = (pluginHandle, roomId) => {
-    console.log(">>> joinPublisher() called with roomId =", roomId);
-
-    const joinReq = {
-      request: "join",
-      room: roomId,
-      ptype: "publisher",
-      display: "MyPrivateWebcam",
-    };
-    pluginHandle.send({
-      message: joinReq,
-      success: (resp) => {
-        console.log(">>> joinPublisher success (sync ack):", resp);
-      },
-      error: (err) => {
-        console.error(">>> joinPublisher error (sync ack):", err);
-      },
-    });
-  };
-
-  // **★ tracks + data: false 로 데이터 채널 비활성 ★**
-  const publishOwnFeed = (pluginHandle) => {
-    // audio + video track, no data track
-    const audioTrack = {
-      type: "audio",
-      capture: true,
-      recv: true,
-    };
-    const videoTrack = {
-      type: "video",
-      capture: {
-        deviceId: { exact: selectedDeviceId },
-      },
-      recv: true,
+      audio: false
     };
 
-    pluginHandle.createOffer({
-      tracks: [ audioTrack, videoTrack ],
-      data: false,  // 데이터 채널 비활성
-      success: (jsep) => {
-        console.log("[Publisher] createOffer success, jsep=", jsep);
-        const publishReq = {
-          request: "publish",
-          audio: true,
-          video: true,
-          data: false,   // 데이터 채널 쓰지 않음
-        };
-        pluginHandle.send({ message: publishReq, jsep });
-        // 발행 완료 후 -> Subscriber
-        attachSubscriberHandle(janus);
-      },
-      error: (err) => {
-        console.error("[Publisher] createOffer error:", err);
-      },
-    });
-  };
+    console.log("[DBG] getUserMedia constraints=", constraints);
+    let stream = null;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia(constraints);
+      console.log("[DBG] getUserMedia success => resolution:", constraints.video);
+    } catch (err) {
+      console.error("getUserMedia failed with constraints=", constraints, err);
+      alert("handleStartWebcamWithDevice error: " + err.message);
+      return;
+    }
 
-  // (F) VideoRoom Subscriber
-  const attachSubscriberHandle = (janusInstance) => {
-    let localSubHandle = null;
-    janusInstance.attach({
-      plugin: "janus.plugin.videoroom",
-      success: (pluginHandle) => {
-        localSubHandle = pluginHandle;
-        setSubscriberHandle(pluginHandle);
-        console.log("[Subscriber] handle created:", pluginHandle.getId());
-      },
-      error: (err) => {
-        console.error("[Subscriber] attach error:", err);
-      },
-      onmessage: (msg, jsep) => {
-        console.log("[Subscriber] onmessage:", msg, jsep);
-        const event = msg.videoroom;
+    // 로컬에 표시
+    if (localStream) {
+      localStream.getTracks().forEach((t) => t.stop());
+    }
+    setLocalStream(stream);
+    if (localVideoRef.current) {
+      localVideoRef.current.srcObject = stream;
+    }
 
-        if (event === "attached") {
-          // feed attach -> createAnswer
-          pluginHandle.createAnswer({
-            jsep,
-            media: { audio: true, video: true, data: false },
-            success: (ansJsep) => {
-              console.log("[Subscriber] createAnswer success!", ansJsep);
-              const body = { request: "start", room: 9876 };
-              pluginHandle.send({ message: body, jsep: ansJsep });
-            },
-            error: (error) => {
-              console.error("[Subscriber] createAnswer error:", error);
-            },
-          });
-        } else if (jsep) {
-          pluginHandle.handleRemoteJsep({ jsep });
+    // 2) createSendTransport
+    const transportParams = await createTransport(sock, "send");
+    const transport = dev.createSendTransport(transportParams);
+
+    transport.on("connect", ({ dtlsParameters }, callback, errback) => {
+      sock.emit(
+        "connectTransport",
+        { transportId: transport.id, dtlsParameters },
+        (res) => {
+          if (!res.success) {
+            errback(res.error);
+          } else {
+            callback();
+          }
         }
-      },
-      onremotetrack: (track, mid, on) => {
-        console.log("[Subscriber] onremotetrack:", track, on);
-        if (!on) return;
-        const stream = new MediaStream([track]);
-        setRemoteStream(stream);
-        if (remoteVideoRef.current) {
-          remoteVideoRef.current.srcObject = stream;
-        }
-      },
-      oncleanup: () => {
-        console.log("[Subscriber] oncleanup");
-        setRemoteStream(null);
-      },
+      );
     });
 
-    setTimeout(() => {
-      if (!myPublisherId) {
-        console.warn("[Subscriber] No publisher ID known yet?");
-        return;
-      }
-      console.log("[Subscriber] Subscribing to feed ID=", myPublisherId);
-      localSubHandle.send({
-        message: {
-          request: "join",
-          room: 9876,
-          ptype: "subscriber",
-          feed: myPublisherId,
+    transport.on("produce", (produceParams, callback, errback) => {
+      sock.emit(
+        "produce",
+        {
+          transportId: transport.id,
+          kind: produceParams.kind,
+          rtpParameters: produceParams.rtpParameters
         },
-      });
-    }, 1000);
-  };
+        (res) => {
+          if (!res.success) {
+            errback(res.error);
+          } else {
+            callback({ id: res.producerId });
+          }
+        }
+      );
+    });
 
-  // 연결 해제
+    setSendTransport(transport);
+    console.log("SendTransport created, id=", transport.id);
+
+    // 3) produce
+    const videoTrack = stream.getVideoTracks()[0];
+    try {
+      const producer = await transport.produce({ track: videoTrack });
+      console.log("Producer created, id =", producer.id);
+    } catch (err) {
+      console.error("produce error:", err);
+    }
+  }
+
+  function createTransport(sock, direction) {
+    return new Promise((resolve, reject) => {
+      sock.emit("createTransport", { direction }, (res) => {
+        if (!res.success) {
+          reject(new Error(res.error));
+        } else {
+          resolve(res.transportParams);
+        }
+      });
+    });
+  }
+
+  // (E) 연결 해제
   const handleWebcamDisconnect = () => {
-    if (subscriberHandle) {
-      subscriberHandle.hangup();
-      subscriberHandle.detach();
-      setSubscriberHandle(null);
+    console.log("[DBG] handleWebcamDisconnect: stopping local stream & closing transports");
+    if (localStream) {
+      localStream.getTracks().forEach((track) => track.stop());
     }
-    if (publisherHandle) {
-      publisherHandle.hangup();
-      publisherHandle.detach();
-      setPublisherHandle(null);
-    }
-    if (janus) {
-      janus.destroy();
-      setJanus(null);
-    }
-    setMyPublisherId(null);
     setLocalStream(null);
     setRemoteStream(null);
+
+    if (localVideoRef.current) {
+      localVideoRef.current.srcObject = null;
+    }
+    if (remoteVideoRef.current) {
+      remoteVideoRef.current.srcObject = null;
+    }
+
+    if (sendTransport) {
+      sendTransport.close();
+      setSendTransport(null);
+    }
+
+    if (socketRef.current) {
+      socketRef.current.disconnect();
+      socketRef.current = null;
+    }
+    deviceRef.current = null;
   };
 
   return (
@@ -524,7 +485,7 @@ function Monitor() {
           <span className="font-medium">환영합니다 {displayName}님!</span>
         </div>
 
-        {/* 연결 방식 4개 박스 */}
+        {/* 연결 방식 4개 카드 */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
           <div
             className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 flex flex-col items-center justify-center min-h-[200px] cursor-pointer hover:border-custom"
@@ -534,7 +495,6 @@ function Monitor() {
             <span className="text-gray-700">CCTV 연결</span>
           </div>
 
-          {/* 웹캠 연결 (선택 모달) */}
           <div
             className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 flex flex-col items-center justify-center min-h-[200px] cursor-pointer hover:border-custom"
             onClick={handleOpenWebcamSelect}
@@ -602,7 +562,7 @@ function Monitor() {
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
           <div className="bg-white p-6 rounded">
             <h3 className="text-lg font-semibold mb-2">스마트폰 연결</h3>
-            <p>이 QR 코드를 스캔하세요</p>
+            <p>이 QR 코드를 스캔하세요.</p>
             <button onClick={closeQRModal}>닫기</button>
           </div>
         </div>
@@ -662,8 +622,6 @@ function Monitor() {
                   placeholder="예: 554"
                 />
               </div>
-
-              {/* etc. 계정, 비번 등 */}
 
               <div className="flex justify-end space-x-2 mt-6">
                 <button
@@ -741,7 +699,7 @@ function Monitor() {
   );
 }
 
-/** 연결된 장치 목록 */
+// 연결된 장치 목록 예시 컴포넌트
 function ConnectedDevices({ cameraList }) {
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden mb-6">
