@@ -2,71 +2,75 @@ from ultralytics import YOLO
 from datetime import datetime
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
+from aiohttp import FormData
+from dotenv import load_dotenv
  
 import os
+import torch
 import cv2
 import random
-from datetime import datetime
+import pandas as pd
 import aiohttp
+import asyncio
 import numpy as np
+import base64
  
 app = FastAPI()
-
-# 프론트엔드 요청 바디 구조 (API용)
+ 
+# 프론트엔드에서 전달하는 요청 body의 구조를 정의하는 Pydantic 모델
 class DetectionRequest(BaseModel):
     cctv_url: str
     cctv_id: str
-
-# Azure API 연결: 이미지 분석을 통해 성별/연령 통계 추출 (현재 DB 전송은 주석 처리)
+ 
+# Azure API 연결 세부 정보 초기화
 class AzureAPI:
     def __init__(self):
         load_dotenv()  # .env 파일 로드
         self.url = os.getenv("AZURE_API_URL")
         self.headers = {
-            "Prediction-Key": "GEbnMihAUjSdLaPRMRkMyioJBnQLV45TnpV66sh1tD0BxUO9Nkl9JQQJ99BAACYeBjFXJ3w3AAAEACOG0gLQ",
+            "Prediction-Key": os.getenv("AZURE_PREDICTION_KEY"),
             "Content-Type": "application/octet-stream"
         }
         self.session = None
-
+ 
+    # aiohttp 클라이언트 세션 시작
     async def start(self):
-        if not self.session:
-            print("[AzureAPI] Starting client session...")
-            self.session = aiohttp.ClientSession()
-
+        self.session = aiohttp.ClientSession()
+ 
+    # Close the aiohttp client session
+    # aiohttp 클라이언트 세션 종료
     async def close(self):
         if self.session:
-            print("[AzureAPI] Closing client session...")
             await self.session.close()
-            self.session = None
-
+ 
+    # Analyze an image using Azure API
+    # Azure API를 사용하여 이미지 분석
     async def analyze_image(self, image_path):
-        try:
+        if not self.session:
             await self.start()
-            with open(image_path, "rb") as image_file:
-                image_data = image_file.read()
-            async with self.session.post(self.url, headers=self.headers, data=image_data) as response:
-                print(f"[AzureAPI] Response status: {response.status}")
-                result = await response.json()
-                print(f"[AzureAPI] Result received: {result}")
-            return self.normalize_predictions(result.get('predictions', []))
-        except Exception as e:
-            print(f"[AzureAPI] Error in analyze_image: {e}")
-            raise e
-
+        with open(image_path, "rb") as image_file:
+            image_data = image_file.read()
+        async with self.session.post(self.url, headers=self.headers, data=image_data) as response:
+            result = await response.json()
+        return self.normalize_predictions(result['predictions'])
+   
+    # Normalize prediction results
+    # 예측 결과 정규화
     def normalize_predictions(self, predictions):
         gender_preds = {p['tagName']: p['probability'] * 100 for p in predictions if p['tagName'] in ['Male', 'Female']}
         age_preds = {p['tagName']: p['probability'] * 100 for p in predictions if p['tagName'] in ['Age18to60', 'AgeOver60', 'AgeLess18']}
+       
         def normalize_group(group_preds):
             total = sum(group_preds.values())
             return {k: (v/total)*100 for k, v in group_preds.items()} if total > 0 else group_preds
-        normalized = {**normalize_group(gender_preds), **normalize_group(age_preds)}
-        print(f"[AzureAPI] Normalized predictions: {normalized}")
-        return normalized
-
-# 사람 감지, 모자이크 처리 및 (DB 전송 주석 처리) 클래스
+       
+        return {**normalize_group(gender_preds), **normalize_group(age_preds)}
+ 
+# Initialize PersonTracker with model and configuration
+# 모델 및 구성으로 PersonTracker 초기화
 class PersonTracker:
-    def __init__(self, model_path, result_dir='../outputs/results/', tracker_config="../data/config/botsort.yaml",
-                 conf=0.5, device=None, iou=0.5, img_size=(720, 1080), output_dir='../outputs/results_video'):
+    def __init__(self, model_path, result_dir='../outputs/results/', tracker_config="../data/config/botsort.yaml", conf=0.5, device=None,
+                 iou=0.5, img_size=(720, 1080), output_dir='../outputs/results_video'):
         self.device = device if device else ('cuda:0' if torch.cuda.is_available() else 'cpu')
         self.model = YOLO(model_path)
         self.result_dir = result_dir
@@ -76,16 +80,17 @@ class PersonTracker:
         self.img_size = img_size
         self.output_dir = output_dir
         self.color_map = {}
-        self.processed_frames = []  # 모자이크 처리된 프레임 저장 (최종 영상 저장용)
-        self.boxes = []             # 각 프레임의 박스 정보 저장
+        self.frames = []
+        self.boxes = []
         self.detected_ids = set()
+        self.captured_objects = set()
+        self.detected_ids_full_entry = set()
         self.azure_api = AzureAPI()
    
     def is_fully_inside_frame(self, x1, y1, x2, y2, frame_shape):  # 추가된 코드
         h, w, _ = frame_shape
         return x1 >= 0 and y1 >= 0 and x2 <= w and y2 <= h
  
-
     # Generate a unique color for each object ID
     # 각 객체 ID에 대한 고유한 색상 생성
     def generate_color(self, obj_id):
@@ -97,7 +102,7 @@ class PersonTracker:
     def estimate_face_area(self, keypoints, box):
         face_keypoints_indices = [0, 1, 2, 3, 4]
         face_keypoints = keypoints[face_keypoints_indices]
-
+ 
         if face_keypoints.shape[1] == 2:
             valid_points = face_keypoints
         elif face_keypoints.shape[1] == 3:
@@ -126,10 +131,8 @@ class PersonTracker:
  
             if x_max > x_min and y_max > y_min:
                 face_roi = frame[y_min:y_max, x_min:x_max]
-                mosaic_scale = 0.1  # 값이 클수록 모자이크 효과 강함
-                small_roi = cv2.resize(face_roi, None, fx=mosaic_scale, fy=mosaic_scale, interpolation=cv2.INTER_LINEAR)
-                mosaic_roi = cv2.resize(small_roi, (face_roi.shape[1], face_roi.shape[0]), interpolation=cv2.INTER_NEAREST)
-                frame[y_min:y_max, x_min:x_max] = mosaic_roi
+                blurred_roi = cv2.GaussianBlur(face_roi, (25, 25), 0)
+                frame[y_min:y_max, x_min:x_max] = blurred_roi
         return frame
  
     # Detect and track people in the video stream
@@ -165,10 +168,12 @@ class PersonTracker:
  
                 if obj_id not in self.detected_ids:
                     self.detected_ids.add(obj_id)
-                    cropped_path = self.save_cropped_person(original_frame, x1, y1, x2, y2, obj_id)  # 원본 프레임에서 크롭
-                    tasks.append(self.process_person(obj_id, cropped_path, cctv_id))
+                    face_area = self.estimate_face_area(kpts, [x1, y1, x2, y2])
+                    cropped_path, full_frame_path = self.save_cropped_person(original_frame, x1, y1, x2, y2, obj_id, face_area)
+                    tasks.append(self.process_person(obj_id, cropped_path, cctv_id, full_frame_path))
                     new_object_detected = True
-
+ 
+ 
                 face_area = self.estimate_face_area(kpts, [x1, y1, x2, y2])
                 if face_area:
                     display_frame = self.apply_face_blur(display_frame, face_area)
@@ -197,11 +202,11 @@ class PersonTracker:
  
         cv2.destroyAllWindows()
         await self.azure_api.close()
-        self.save_blurred_video_prompt()
+        # self.save_blurred_video_prompt()
  
     # Process detected person using Azure API
     # Azure API를 사용하여 감지된 사람 처리
-    async def process_person(self, obj_id, cropped_path, cctv_id):
+    async def process_person(self, obj_id, cropped_path, cctv_id, full_frame_path):
         threshold = 0.3  # 30% 기준
         predictions = await self.azure_api.analyze_image(cropped_path)
        
@@ -217,15 +222,17 @@ class PersonTracker:
         # 연령대 예측
         age_key = max([k for k in predictions if k in age_mapping and predictions[k] >= threshold],
                     key=predictions.get, default="Unknown")
-
         age = age_mapping.get(age_key, "Unknown")
        
-        await self.send_data_to_server(obj_id, gender, age, cctv_id)
+        await self.send_data_to_server(obj_id, gender, age, cctv_id, full_frame_path)
  
     # Send analysis results to the backend server
     # 분석 결과를 백엔드 서버로 전송
-    async def send_data_to_server(self, obj_id, gender, age, cctv_id):
-        """백엔드 서버로 분석 결과 전송"""
+    async def send_data_to_server(self, obj_id, gender, age, cctv_id, image_path=None):
+        """
+        obj_id, gender, age 등 텍스트 필드,
+        image_path가 있다면 이미지 파일을 multipart/form-data로 전송.
+        """
         url = "https://msteam5iseeu.ddns.net/api/cctv_data"
  
         # 1) FormData 생성
@@ -311,25 +318,25 @@ class PersonTracker:
     #         print("Invalid input. Please enter 'y' or 'n'.")
     #         self.save_blurred_video_prompt()
  
-    # Save video with blurred faces
-    # 얼굴이 블러 처리된 비디오 저장
-    def save_blurred_video(self):
-        os.makedirs(self.output_dir, exist_ok=True)
-        video_name = datetime.now().strftime("%Y-%m-%d-%H-%M-%S") + "_blurred.webm"
-        output_path = os.path.join(self.output_dir, video_name)
+    # # Save video with blurred faces
+    # # 얼굴이 블러 처리된 비디오 저장
+    # def save_blurred_video(self):
+    #     os.makedirs(self.output_dir, exist_ok=True)
+    #     video_name = datetime.now().strftime("%Y-%m-%d-%H-%M-%S") + "_blurred.webm"
+    #     output_path = os.path.join(self.output_dir, video_name)
        
-        fourcc = cv2.VideoWriter_fourcc(*'VP80')
-        height, width, _ = self.frames[0].shape
-        out = cv2.VideoWriter(output_path, fourcc, 30, (width, height))
+    #     fourcc = cv2.VideoWriter_fourcc(*'VP80')
+    #     height, width, _ = self.frames[0].shape
+    #     out = cv2.VideoWriter(output_path, fourcc, 30, (width, height))
        
-        for frame, boxes in zip(self.frames, self.boxes):
-            for box in boxes:
-                x1, y1, x2, y2 = map(int, box.xyxy[0].tolist())
-                roi = frame[y1:y2, x1:x2]
-                blurred_roi = cv2.GaussianBlur(roi, (15, 15), 0)
-                frame[y1:y2, x1:x2] = blurred_roi
+    #     for frame, boxes in zip(self.frames, self.boxes):
+    #         for box in boxes:
+    #             x1, y1, x2, y2 = map(int, box.xyxy[0].tolist())
+    #             roi = frame[y1:y2, x1:x2]
+    #             blurred_roi = cv2.GaussianBlur(roi, (15, 15), 0)
+    #             frame[y1:y2, x1:x2] = blurred_roi
  
-            out.write(frame)
+    #         out.write(frame)
  
     #     out.release()
     #     print(f"Blurred video saved at {output_path}")
@@ -341,75 +348,9 @@ Test code 할때는 __name__ == "__main__"으로 실행 (detect_people 함수는
 웹으로 호출해서 실제 cctv에서 실행할때는 detect_people로 실행 (__name__ == "__main__" 주석 처리)
 '''
 # 웹으로 호출되는 함수
-        out.release()
-        print(f"Blurred video saved at {output_path}")
-
-    def save_blurred_video_prompt(self):
-        # API 모드에서는 자동 저장
-        print("[INFO] Blurred video prompt skipped in API mode. Automatically saving blurred video.")
-        self.save_blurred_video()
-
-    async def detect_and_track(self, source, cctv_id):
-        print(f"[INFO] Starting detection and tracking for source: {source}")
-        # 유효한 소스 검사 (테스트 시 로컬 파일 경로여야 합니다)
-        if not os.path.exists(source):
-            raise ValueError(f"Source '{source}' does not exist. Provide a valid video source.")
-        try:
-            results = self.model.track(
-                source, show=False, stream=True, tracker=self.tracker_config, conf=self.conf,
-                device=self.device, iou=self.iou, stream_buffer=True, classes=[0], imgsz=self.img_size
-            )
-            await self.azure_api.start()
-            async for result in results:
-                original_frame = result.orig_img.copy()   # 분석용 원본 프레임
-                display_frame = original_frame.copy()       # 모자이크 처리 후 디스플레이용
-                boxes = result.boxes
-                keypoints_data = result.keypoints.data.cpu().numpy()
-                tasks = []
-                new_object_detected = False
-                for box, kpts in zip(boxes, keypoints_data):
-                    x1, y1, x2, y2 = map(int, box.xyxy[0].tolist())
-                    if box.id is None:
-                        continue
-                    obj_id = int(box.id)
-                    color = self.generate_color(obj_id)
-                    if obj_id not in self.detected_ids:
-                        self.detected_ids.add(obj_id)
-                        cropped_path = self.save_cropped_person(original_frame, x1, y1, x2, y2, obj_id)
-                        tasks.append(self.process_person(obj_id, cropped_path, cctv_id))
-                        new_object_detected = True
-                    face_area = self.estimate_face_area(kpts, [x1, y1, x2, y2])
-                    if face_area:
-                        display_frame = self.apply_face_mosaic(display_frame, face_area)
-                    cv2.rectangle(display_frame, (x1, y1), (x2, y2), color, 2)
-                    cv2.putText(display_frame, f"ID: {obj_id}", (x1, y1 - 10),
-                                cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
-                if tasks:
-                    await asyncio.gather(*tasks)
-                if new_object_detected:
-                    self.save_full_frame(original_frame, obj_id)
-                self.processed_frames.append(display_frame.copy())
-                cv2.imshow("Person Tracking", display_frame)
-                key = cv2.waitKey(1) & 0xFF
-                if key == ord('q'):
-                    break
-                elif key == ord('s'):
-                    while True:
-                        if cv2.waitKey(1) & 0xFF == ord('s'):
-                            break
-        except Exception as e:
-            print(f"[ERROR] Error in detect_and_track: {e}")
-            raise e
-        finally:
-            cv2.destroyAllWindows()
-            await self.azure_api.close()
-            self.save_blurred_video_prompt()
-
-# API 엔드포인트: 프론트엔드에서 /detect 요청 시 동작
 @app.post("/detect")
 async def detect_people(request: DetectionRequest):
     try:
-        print(f"[INFO] Received detection request: {request}")
         tracker = PersonTracker(
             model_path='FootTrafficReport/people-detection/model/yolo11n-pose.pt'
         )
@@ -417,7 +358,6 @@ async def detect_people(request: DetectionRequest):
         return result
    
     except Exception as e:
-        print(f"[ERROR] detect_people endpoint error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
  
 if __name__ == "__main__":
