@@ -10,12 +10,12 @@ from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 #--------------------------------------------Azure 결과 확인 부분-------------------------------------------------
 def Azure(file_path):
     # 1. URL 설정
-    url = "https://ai-services123.cognitiveservices.azure.com/customvision/v3.0/Prediction/e2185b3d-d764-4aeb-a672-5c2480425c05/classify/iterations/Iteration1/image"
+    url = "Path_to_your_Azure_Endpoint"  # Azure Custom Vision Prediction URL
 
     # 2&3. Headers 설정
     headers = {
-        "Prediction-Key": "GEbnMihAUjSdLaPRMRkMyioJBnQLV45TnpV66sh1tD0BxUO9Nkl9JQQJ99BAACYeBjFXJ3w3AAAEACOG0gLQ",
-        "Content-Type": "application/octet-stream"
+        "Prediction-Key": "Path_to_your_Azure_Prediction_Key",  # Azure Custom Vision Prediction Key
+        "Content-Type": "Path_to_your_Azure_Content_Type"  # Azure Custom Vision Content Type
     }
 
     # 4. 이미지 파일 읽기
