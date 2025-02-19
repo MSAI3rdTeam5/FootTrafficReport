@@ -11,6 +11,7 @@ import pandas as pd
 import aiohttp
 import asyncio
 import numpy as np
+import base64
  
 app = FastAPI()
  
@@ -86,15 +87,7 @@ class PersonTracker:
     def is_fully_inside_frame(self, x1, y1, x2, y2, frame_shape):  # 추가된 코드
         h, w, _ = frame_shape
         return x1 >= 0 and y1 >= 0 and x2 <= w and y2 <= h
- 
-    def save_full_frame(self, frame, obj_id):  # 추가된 코드
-        save_dir = "../outputs/full_frames/"
-        os.makedirs(save_dir, exist_ok=True)
-        timestamp = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-        file_name = f"{save_dir}{timestamp}_ID{obj_id}.jpg"
-        cv2.imwrite(file_name, frame)
-        print(f"[INFO] Full frame saved: {file_name}")
- 
+  
     # Generate a unique color for each object ID
     # 각 객체 ID에 대한 고유한 색상 생성
     def generate_color(self, obj_id):
@@ -172,8 +165,8 @@ class PersonTracker:
 
                 if obj_id not in self.detected_ids:
                     self.detected_ids.add(obj_id)
-                    cropped_path = self.save_cropped_person(original_frame, x1, y1, x2, y2, obj_id)  # 원본 프레임에서 크롭
-                    tasks.append(self.process_person(obj_id, cropped_path, cctv_id))
+                    cropped_path, full_frame_path = self.save_cropped_person(original_frame, x1, y1, x2, y2, obj_id)  # 원본 프레임에서 크롭
+                    tasks.append(self.process_person(obj_id, cropped_path, cctv_id, full_frame_path))
                     new_object_detected = True
 
                 face_area = self.estimate_face_area(kpts, [x1, y1, x2, y2])
@@ -185,8 +178,12 @@ class PersonTracker:
 
             await asyncio.gather(*tasks)
 
-            if new_object_detected:
-                self.save_full_frame(original_frame, obj_id)  # 원본 프레임 저장
+            if obj_id not in self.detected_ids:
+                self.detected_ids.add(obj_id)
+                cropped_path = self.save_cropped_person(original_frame, x1, y1, x2, y2, obj_id)
+                tasks.append(self.process_person(obj_id, cropped_path, cctv_id))
+                new_object_detected = True
+
 
             cv2.imshow("Person Tracking", display_frame)
 
@@ -204,7 +201,7 @@ class PersonTracker:
  
     # Process detected person using Azure API
     # Azure API를 사용하여 감지된 사람 처리
-    async def process_person(self, obj_id, cropped_path, cctv_id):
+    async def process_person(self, obj_id, cropped_path, cctv_id, full_frame_path):
         threshold = 0.3  # 30% 기준
         predictions = await self.azure_api.analyze_image(cropped_path)
         
@@ -222,21 +219,27 @@ class PersonTracker:
                     key=predictions.get, default="Unknown")
         age = age_mapping.get(age_key, "Unknown")
        
-        await self.send_data_to_server(obj_id, gender, age, cctv_id)
+        await self.send_data_to_server(obj_id, gender, age, cctv_id, full_frame_path)
  
     # Send analysis results to the backend server
     # 분석 결과를 백엔드 서버로 전송
-    async def send_data_to_server(self, obj_id, gender, age, cctv_id):
+    async def send_data_to_server(self, obj_id, gender, age, cctv_id, full_frame_path):
         """백엔드 서버로 분석 결과 전송"""
         url = "https://msteam5iseeu.ddns.net/api/cctv_data"
+
+        # 이미지 파일을 base64로 인코딩
+        with open(full_frame_path, "rb") as image_file:
+            encoded_image = base64.b64encode(image_file.read()).decode('utf-8')
+
         data = {
             "cctv_id": cctv_id,
             "detected_time": datetime.now().isoformat(),
             "person_label": str(obj_id),
             "gender": gender,
-            "age": age
+            "age": age,
+            "image_file": encoded_image
         }
- 
+
         session = aiohttp.ClientSession()
         try:
             async with session.post(url, json=data) as response:
@@ -248,11 +251,26 @@ class PersonTracker:
  
     # Save cropped image of detected person
     # 감지된 사람의 크롭된 이미지 저장    
-    def save_cropped_person(self, frame, x1, y1, x2, y2, obj_id, save_dir="../outputs/cropped_people/"):
-        os.makedirs(save_dir, exist_ok=True)
-        file_name = f"{save_dir}person_{obj_id}.jpg"
-        cv2.imwrite(file_name, frame[y1:y2, x1:x2])
-        return file_name
+    def save_cropped_person(self, frame, x1, y1, x2, y2, obj_id, save_dir="../outputs/"):
+        os.makedirs(save_dir + "cropped_people/", exist_ok=True)
+        os.makedirs(save_dir + "full_frames/", exist_ok=True)
+        
+        # 크롭된 이미지 저장
+        cropped_file_name = f"{save_dir}cropped_people/person_{obj_id}.jpg"
+        cv2.imwrite(cropped_file_name, frame[y1:y2, x1:x2])
+        
+        # 풀 프레임에 바운딩 박스 그리기
+        full_frame = frame.copy()
+        cv2.rectangle(full_frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
+        
+        # 풀 프레임 저장
+        timestamp = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+        full_frame_file_name = f"{save_dir}full_frames/{timestamp}_ID{obj_id}.jpg"
+        cv2.imwrite(full_frame_file_name, full_frame)
+        
+        print(f"[INFO] Cropped image and full frame saved for ID {obj_id}")
+        return cropped_file_name, full_frame_file_name
+
    
     # Prompt user to save blurred video
     # 사용자에게 블러 처리된 비디오 저장 여부 묻기
