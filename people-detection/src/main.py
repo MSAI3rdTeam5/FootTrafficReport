@@ -2,6 +2,8 @@ from ultralytics import YOLO
 from datetime import datetime
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
+from aiohttp import FormData
+from dotenv import load_dotenv
  
 import os
 import torch
@@ -11,6 +13,8 @@ import pandas as pd
 import aiohttp
 import asyncio
 import numpy as np
+import base64
+
  
 app = FastAPI()
  
@@ -22,9 +26,10 @@ class DetectionRequest(BaseModel):
 # Azure API 연결 세부 정보 초기화
 class AzureAPI:
     def __init__(self):
-        self.url = "https://ai-services123.cognitiveservices.azure.com/customvision/v3.0/Prediction/e2185b3d-d764-4aeb-a672-5c2480425c05/classify/iterations/Iteration1/image"
+        load_dotenv()  # .env 파일 로드
+        self.url = os.getenv("AZURE_API_URL")
         self.headers = {
-            "Prediction-Key": "GEbnMihAUjSdLaPRMRkMyioJBnQLV45TnpV66sh1tD0BxUO9Nkl9JQQJ99BAACYeBjFXJ3w3AAAEACOG0gLQ",
+            "Prediction-Key": os.getenv("AZURE_PREDICTION_KEY"),
             "Content-Type": "application/octet-stream"
         }
         self.session = None
@@ -86,15 +91,6 @@ class PersonTracker:
     def is_fully_inside_frame(self, x1, y1, x2, y2, frame_shape):  # 추가된 코드
         h, w, _ = frame_shape
         return x1 >= 0 and y1 >= 0 and x2 <= w and y2 <= h
- 
-    def save_full_frame(self, frame, obj_id):  # 추가된 코드
-        save_dir = "../outputs/full_frames/"
-        os.makedirs(save_dir, exist_ok=True)
-        timestamp = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-        file_name = f"{save_dir}{timestamp}_ID{obj_id}.jpg"
-        cv2.imwrite(file_name, frame)
-        print(f"[INFO] Full frame saved: {file_name}")
- 
     # Generate a unique color for each object ID
     # 각 객체 ID에 대한 고유한 색상 생성
     def generate_color(self, obj_id):
@@ -132,7 +128,6 @@ class PersonTracker:
     def apply_face_blur(self, frame, face_area):
         if face_area is not None:
             x_min, y_min, x_max, y_max = face_area
-
             if x_max > x_min and y_max > y_min:
                 face_roi = frame[y_min:y_max, x_min:x_max]
                 blurred_roi = cv2.GaussianBlur(face_roi, (25, 25), 0)
@@ -172,8 +167,9 @@ class PersonTracker:
 
                 if obj_id not in self.detected_ids:
                     self.detected_ids.add(obj_id)
-                    cropped_path = self.save_cropped_person(original_frame, x1, y1, x2, y2, obj_id)  # 원본 프레임에서 크롭
-                    tasks.append(self.process_person(obj_id, cropped_path, cctv_id))
+                    face_area = self.estimate_face_area(kpts, [x1, y1, x2, y2])
+                    cropped_path, full_frame_path = self.save_cropped_person(original_frame, x1, y1, x2, y2, obj_id, face_area)
+                    tasks.append(self.process_person(obj_id, cropped_path, cctv_id, full_frame_path))
                     new_object_detected = True
 
                 face_area = self.estimate_face_area(kpts, [x1, y1, x2, y2])
@@ -185,8 +181,12 @@ class PersonTracker:
 
             await asyncio.gather(*tasks)
 
-            if new_object_detected:
-                self.save_full_frame(original_frame, obj_id)  # 원본 프레임 저장
+            if obj_id not in self.detected_ids:
+                self.detected_ids.add(obj_id)
+                cropped_path = self.save_cropped_person(original_frame, x1, y1, x2, y2, obj_id)
+                tasks.append(self.process_person(obj_id, cropped_path, cctv_id))
+                new_object_detected = True
+
 
             cv2.imshow("Person Tracking", display_frame)
 
@@ -200,11 +200,12 @@ class PersonTracker:
 
         cv2.destroyAllWindows()
         await self.azure_api.close()
-        self.save_blurred_video_prompt()
+        # self.save_blurred_video_prompt()
  
     # Process detected person using Azure API
     # Azure API를 사용하여 감지된 사람 처리
-    async def process_person(self, obj_id, cropped_path, cctv_id):
+    async def process_person(self, obj_id, cropped_path, cctv_id, full_frame_path):
+
         threshold = 0.3  # 30% 기준
         predictions = await self.azure_api.analyze_image(cropped_path)
         
@@ -222,72 +223,125 @@ class PersonTracker:
                     key=predictions.get, default="Unknown")
         age = age_mapping.get(age_key, "Unknown")
        
-        await self.send_data_to_server(obj_id, gender, age, cctv_id)
+        await self.send_data_to_server(obj_id, gender, age, cctv_id, full_frame_path)
+
  
     # Send analysis results to the backend server
     # 분석 결과를 백엔드 서버로 전송
-    async def send_data_to_server(self, obj_id, gender, age, cctv_id):
-        """백엔드 서버로 분석 결과 전송"""
+    async def send_data_to_server(self, obj_id, gender, age, cctv_id, image_path=None):
+        """
+        obj_id, gender, age 등 텍스트 필드,
+        image_path가 있다면 이미지 파일을 multipart/form-data로 전송.
+        """
         url = "https://msteam5iseeu.ddns.net/api/cctv_data"
-        data = {
-            "cctv_id": cctv_id,
-            "detected_time": datetime.now().isoformat(),
-            "person_label": str(obj_id),
-            "gender": gender,
-            "age": age
-        }
- 
-        session = aiohttp.ClientSession()
-        try:
-            async with session.post(url, json=data) as response:
-                print(await response.json())
-        except aiohttp.ClientError as e:
-            print(f"⚠️ Failed to connect to server: {e}")
-        finally:
-            await session.close()
+
+        # 1) FormData 생성
+        form = FormData()
+        form.add_field("cctv_id", str(cctv_id))
+        form.add_field("detected_time", datetime.now().isoformat())
+        form.add_field("person_label", str(obj_id))
+        form.add_field("gender", gender)
+        form.add_field("age", age)
+
+        # 2) 이미지 파일이 있다면 파일을 비동기적으로 읽어 추가
+        if image_path:
+            try:
+                async with aiohttp.ClientSession() as session:
+                    with open(image_path, "rb") as f:
+                        image_data = f.read()
+                    
+                    form.add_field(
+                        "image_file",
+                        image_data,
+                        filename="myimage.jpg",  # 원하는 파일명
+                        content_type="image/jpeg"  # 혹은 "image/png"
+                    )
+
+                    # 3) multipart/form-data로 POST 요청
+                    async with session.post(url, data=form) as response:
+                        res_json = await response.json()
+                        print(res_json)
+            except aiohttp.ClientError as e:
+                print(f"[ERROR] Failed to send data: {e}")
+            finally:
+                await session.close()
  
     # Save cropped image of detected person
     # 감지된 사람의 크롭된 이미지 저장    
-    def save_cropped_person(self, frame, x1, y1, x2, y2, obj_id, save_dir="../outputs/cropped_people/"):
-        os.makedirs(save_dir, exist_ok=True)
-        file_name = f"{save_dir}person_{obj_id}.jpg"
-        cv2.imwrite(file_name, frame[y1:y2, x1:x2])
-        return file_name
-   
-    # Prompt user to save blurred video
-    # 사용자에게 블러 처리된 비디오 저장 여부 묻기
-    def save_blurred_video_prompt(self):
-        save_input = input("Do you want to save the blurred video? (y/n): ").strip().lower()
-        if save_input == 'y':
-            self.save_blurred_video()
-        elif save_input == 'n':
-            print("Video not saved.")
-        else:
-            print("Invalid input. Please enter 'y' or 'n'.")
-            self.save_blurred_video_prompt()
+    def save_cropped_person(self, frame, x1, y1, x2, y2, obj_id, face_area, save_dir="../outputs/"):
+        os.makedirs(save_dir + "cropped_people/", exist_ok=True)
+        os.makedirs(save_dir + "full_frames/", exist_ok=True)
+        
+        # 크롭된 이미지 저장
+        cropped_file_name = f"{save_dir}cropped_people/person_{obj_id}.jpg"
+        cv2.imwrite(cropped_file_name, frame[y1:y2, x1:x2])
+        
+        # 풀 프레임 처리
+        full_frame = frame.copy()
+        
+        # 바운딩 박스 외부 블러 처리
+        mask = np.zeros(full_frame.shape[:2], dtype=np.uint8)
+        cv2.rectangle(mask, (x1, y1), (x2, y2), 255, -1)
+        blurred = cv2.GaussianBlur(full_frame, (55, 55), 0)
+        full_frame = np.where(mask[:,:,None] == 255, full_frame, blurred)
+
+         # 바운딩 박스 그리기
+        color = self.generate_color(obj_id)
+        cv2.rectangle(full_frame, (x1, y1), (x2, y2), color, 2)
+        cv2.putText(full_frame, f"ID: {obj_id}", (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
+            
+        # 얼굴 블러 처리
+        if face_area:
+            fx1, fy1, fx2, fy2 = face_area
+            face_roi = full_frame[fy1:fy2, fx1:fx2]
+            blurred_face = cv2.GaussianBlur(face_roi, (25, 25), 0)
+            full_frame[fy1:fy2, fx1:fx2] = blurred_face
+        
+        # 풀 프레임 저장
+        timestamp = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+        full_frame_file_name = f"{save_dir}full_frames/{timestamp}_ID{obj_id}.jpg"
+        cv2.imwrite(full_frame_file_name, full_frame)
+        
+        return cropped_file_name, full_frame_file_name
+
+#-----------------영상 후 블러 처리 코드-----------------
+
+    # # Prompt user to save blurred video
+    # # 사용자에게 블러 처리된 비디오 저장 여부 묻기
+    # def save_blurred_video_prompt(self):
+    #     save_input = input("Do you want to save the blurred video? (y/n): ").strip().lower()
+    #     if save_input == 'y':
+    #         self.save_blurred_video()
+    #     elif save_input == 'n':
+    #         print("Video not saved.")
+    #     else:
+    #         print("Invalid input. Please enter 'y' or 'n'.")
+    #         self.save_blurred_video_prompt()
  
-    # Save video with blurred faces
-    # 얼굴이 블러 처리된 비디오 저장
-    def save_blurred_video(self):
-        os.makedirs(self.output_dir, exist_ok=True)
-        video_name = datetime.now().strftime("%Y-%m-%d-%H-%M-%S") + "_blurred.webm"
-        output_path = os.path.join(self.output_dir, video_name)
+    # # Save video with blurred faces
+    # # 얼굴이 블러 처리된 비디오 저장
+    # def save_blurred_video(self):
+    #     os.makedirs(self.output_dir, exist_ok=True)
+    #     video_name = datetime.now().strftime("%Y-%m-%d-%H-%M-%S") + "_blurred.webm"
+    #     output_path = os.path.join(self.output_dir, video_name)
        
-        fourcc = cv2.VideoWriter_fourcc(*'VP80')
-        height, width, _ = self.frames[0].shape
-        out = cv2.VideoWriter(output_path, fourcc, 30, (width, height))
+    #     fourcc = cv2.VideoWriter_fourcc(*'VP80')
+    #     height, width, _ = self.frames[0].shape
+    #     out = cv2.VideoWriter(output_path, fourcc, 30, (width, height))
        
-        for frame, boxes in zip(self.frames, self.boxes):
-            for box in boxes:
-                x1, y1, x2, y2 = map(int, box.xyxy[0].tolist())
-                roi = frame[y1:y2, x1:x2]
-                blurred_roi = cv2.GaussianBlur(roi, (15, 15), 0)
-                frame[y1:y2, x1:x2] = blurred_roi
+    #     for frame, boxes in zip(self.frames, self.boxes):
+    #         for box in boxes:
+    #             x1, y1, x2, y2 = map(int, box.xyxy[0].tolist())
+    #             roi = frame[y1:y2, x1:x2]
+    #             blurred_roi = cv2.GaussianBlur(roi, (15, 15), 0)
+    #             frame[y1:y2, x1:x2] = blurred_roi
  
-            out.write(frame)
+    #         out.write(frame)
  
-        out.release()
-        print(f"Blurred video saved at {output_path}")
+    #     out.release()
+    #     print(f"Blurred video saved at {output_path}")
+
+#-----------------영상 후 블러 처리 코드-----------------
 
 '''
 Test code 할때는 __name__ == "__main__"으로 실행 (detect_people 함수는 주석 처리)
@@ -311,8 +365,8 @@ Test code 할때는 __name__ == "__main__"으로 실행 (detect_people 함수는
 #     uvicorn.run(app, host="0.0.0.0", port=8500)
 
 
-#Test할때 하는 작업 (cctv_id는 임의로 설정)
-if __name__ == '__main__':
-    source = "../data/videos/05_seoul.mp4"
-    tracker = PersonTracker(model_path='../model/yolo11n-pose.pt')
-    asyncio.run(tracker.detect_and_track(source=source, cctv_id=1))
+# #Test할때 하는 작업 (cctv_id는 임의로 설정)
+# if __name__ == '__main__':
+#     source = "../data/videos/05_seoul.mp4"
+#     tracker = PersonTracker(model_path='../model/yolo11n-pose.pt')
+#     asyncio.run(tracker.detect_and_track(source=source, cctv_id=1))
