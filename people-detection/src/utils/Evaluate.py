@@ -34,7 +34,6 @@ def Azure(file_path):
     predictions = {}
     for prediction in result['predictions']:
         predictions[prediction['tagName']] = prediction['probability'] * 100
-        
     return predictions
 
 def normalize_predictions(predictions):
