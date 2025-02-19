@@ -1,7 +1,7 @@
 from celery.schedules import crontab
 from .celery_app import celery_app
-from app.cleanup import clean_old_data
-from app.aggregate import aggregate_person_data
+from .cleanup import clean_old_data
+from .aggregate import aggregate_person_data
 
 @celery_app.on_after_configure.connect
 def setup_periodic_tasks(sender, **kwargs):
