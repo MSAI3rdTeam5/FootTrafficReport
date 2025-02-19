@@ -241,125 +241,75 @@ function Dashboard() {
 
       const result = calculateStats(filteredData);
       setStats(result);
+
+      updatePieChart(filteredData);
     };
     loadData();
   }, [selectedCCTV, selectedPeriod]);
 
   const chartRef = useRef(null);
+  const [chartInstance, setChartInstance] = useState(null);
 
   useEffect(() => {
-    if (!chartRef.current) return;
-
-    const myChart = echarts.init(chartRef.current);
-
-    let xAxisData = ["08시", "10시", "12시", "14시", "16시", "18시", "20시"];
-
-    // 만약 selectedPeriod가 "1주일"이면 월~일로 표시
-    if (selectedPeriod === "1주일") {
-      xAxisData = ["월", "화", "수", "목", "금", "토", "일"];
+    if (chartRef.current) {
+      const instance = echarts.init(chartRef.current);
+      setChartInstance(instance);
     }
+  }, []);
 
-    // 공통 옵션
-    const baseOption = {
+  // 원형 차트로 표시
+  const updatePieChart = (filteredData) => {
+    if (!chartInstance) return;
+
+    // 남성/여성 합계
+    let sumMale = 0;
+    let sumFemale = 0;
+    filteredData.forEach((row) => {
+      const maleCount =
+        row.male_young_adult + row.male_middle_aged + row.male_minor;
+      const femaleCount =
+        row.female_young_adult + row.female_middle_aged + row.female_minor;
+      sumMale += maleCount;
+      sumFemale += femaleCount;
+    });
+
+    // 퍼센트 계산
+    const total = sumMale + sumFemale;
+    const malePercent = total === 0 ? 0 : ((sumMale / total) * 100).toFixed(1);
+    const femalePercent =
+      total === 0 ? 0 : ((sumFemale / total) * 100).toFixed(1);
+
+    const option = {
       animation: false,
       tooltip: {
-        trigger: "axis",
-        formatter: function (params) {
-          let result = params[0].axisValue + "<br/>";
-          params.forEach((param) => {
-            result += param.seriesName + ": " + param.value + "명<br/>";
-          });
-          return result;
-        },
+        trigger: "item",
       },
       legend: {
-        show: true,
+        orient: "vertical",
+        left: "left",
+        data: [`남성 ${malePercent}%`, `여성 ${femalePercent}%`],
       },
-      grid: {
-        left: "3%",
-        right: "4%",
-        bottom: "3%",
-        containLabel: true,
-      },
-      xAxis: {
-        type: "category",
-        boundaryGap: false,
-        data: xAxisData,
-      },
-      yAxis: {
-        type: "value",
-      },
-      series: [],
+      series: [
+        {
+          name: "성별 비율",
+          type: "pie",
+          radius: "50%",
+          data: [
+            { value: sumMale, name: `남성 ${malePercent}%` },
+            { value: sumFemale, name: `여성 ${femalePercent}%` },
+          ],
+          emphasis: {
+            itemStyle: {
+              shadowBlur: 10,
+              shadowOffsetX: 0,
+              shadowColor: "rgba(0, 0, 0, 0.5)",
+            },
+          },
+        },
+      ],
     };
-
-    // currentChart에 따라 시리즈 데이터 분기
-    if (currentChart === "time") {
-      // 시간대별 방문자
-      baseOption.series = [
-        {
-          name: "총 방문자",
-          type: "line",
-          smooth: true,
-          // 예시 데이터 (시간대 vs 요일에 따라 값이 달라지도록 할 수도 있음)
-          data:
-            selectedPeriod === "1주일"
-              ? [320, 280, 330, 300, 380, 220, 160] // 월~일 예시
-              : [120, 180, 230, 200, 180, 220, 160], // 시간대 예시
-          itemStyle: { color: "#4A90E2" },
-        },
-        {
-          name: "남성",
-          type: "line",
-          smooth: true,
-          data:
-            selectedPeriod === "1주일"
-              ? [165, 95, 220, 110, 190, 115, 85]
-              : [65, 95, 120, 110, 90, 115, 85],
-          itemStyle: { color: "#2ECC71" },
-        },
-        {
-          name: "여성",
-          type: "line",
-          smooth: true,
-          data:
-            selectedPeriod === "1주일"
-              ? [155, 185, 110, 190, 190, 105, 175]
-              : [55, 85, 110, 90, 90, 105, 75],
-          itemStyle: { color: "#F1C40F" },
-        },
-      ];
-    } else {
-      // gender 모드 (남성, 여성만 표시)
-      baseOption.series = [
-        {
-          name: "남성",
-          type: "line",
-          smooth: true,
-          data:
-            selectedPeriod === "1주일"
-              ? [165, 95, 220, 110, 190, 115, 85]
-              : [65, 95, 120, 110, 90, 115, 85],
-          itemStyle: { color: "#2ECC71" },
-        },
-        {
-          name: "여성",
-          type: "line",
-          smooth: true,
-          data:
-            selectedPeriod === "1주일"
-              ? [155, 185, 110, 190, 190, 105, 175]
-              : [55, 85, 110, 90, 90, 105, 75],
-          itemStyle: { color: "#F1C40F" },
-        },
-      ];
-    }
-
-    myChart.setOption(baseOption);
-
-    return () => {
-      myChart.dispose();
-    };
-  }, [currentChart, selectedPeriod]);
+    chartInstance.setOption(option);
+  };
 
   return (
     <div className="bg-gray-50">
