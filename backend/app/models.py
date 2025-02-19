@@ -38,6 +38,8 @@ class CctvData(Base):
     person_label = Column(String(50))
     gender = Column(String(10))
     age = Column(String(20))
+    # image_data = Column(LargeBinary, nullable=True)
+    image_url = Column(String(500), nullable=True) #url 방식으로 저장장
     created_at = Column(TIMESTAMP, server_default=func.now())
 
 class PersonCount(Base):

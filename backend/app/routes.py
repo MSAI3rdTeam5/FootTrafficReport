@@ -10,6 +10,7 @@ from .models import (
     PersonCount, Auth, Withdrawal, Report
 )
 from pydantic import BaseModel
+from .azure_blob import upload_image_to_azure
 
 router = APIRouter()
 
@@ -179,39 +180,53 @@ def delete_cctv(cctv_id: int, db: Session = Depends(get_db)):
 # 3) cctv_data 테이블 관련
 # -----------------------------------------------------------
 
-class CctvDataCreate(BaseModel):
-    cctv_id: int
-    detected_time: datetime
-    person_label: Optional[str] = None
-    gender: Optional[str] = None
-    age: Optional[str] = None
-
 @router.post("/cctv_data", response_model=dict)
-def create_cctv_data(data: CctvDataCreate, db: Session = Depends(get_db)):
+async def create_cctv_data(
+    cctv_id: int = Form(...),
+    detected_time: datetime = Form(...),
+    person_label: Optional[str] = Form(None),
+    gender: Optional[str] = Form(None),
+    age: Optional[str] = Form(None),
+    image_file: UploadFile = File(None),
+    db: Session = Depends(get_db)
+):
+    image_url = None
+    if image_file:
+        file_bytes = await image_file.read()
+        # Azure 업로드
+        image_url = upload_image_to_azure(file_bytes, cctv_id)
+
     new_data = CctvData(
-        cctv_id=data.cctv_id,
-        detected_time=data.detected_time,
-        person_label=data.person_label,
-        gender=data.gender,
-        age=data.age
+        cctv_id=cctv_id,
+        detected_time=detected_time,
+        person_label=person_label,
+        gender=gender,
+        age=age,
+        image_url=image_url
     )
     db.add(new_data)
     db.commit()
     db.refresh(new_data)
-    return {"message": "cctv_data created", "id": new_data.id}
+    return {
+        "message": "cctv_data created",
+        "id": new_data.id,
+        "image_url": new_data.image_url
+    }
 
 @router.get("/cctv_data/{data_id}", response_model=dict)
 def get_cctv_data(data_id: int, db: Session = Depends(get_db)):
     row = db.query(CctvData).filter(CctvData.id == data_id).first()
     if not row:
-        raise HTTPException(status_code=404, detail="Data not found")
+        raise HTTPException(status_code=404, detail="Not found")
+
     return {
         "id": row.id,
         "cctv_id": row.cctv_id,
         "detected_time": row.detected_time,
         "person_label": row.person_label,
         "gender": row.gender,
-        "age": row.age
+        "age": row.age,
+        "image_url": row.image_url
     }
 
 @router.get("/cctv_data", response_model=List[dict])
@@ -224,7 +239,8 @@ def list_cctv_data(db: Session = Depends(get_db)):
             "detected_time": r.detected_time,
             "person_label": r.person_label,
             "gender": r.gender,
-            "age": r.age
+            "age": r.age,
+            "image_url": r.image_url
         }
         for r in rows
     ]
