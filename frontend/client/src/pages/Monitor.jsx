@@ -367,7 +367,7 @@ function Monitor() {
       <footer className="bg-white border-t border-gray-200 mt-8">
         <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="text-center text-sm text-gray-500">
-            © 2024 I See U. All rights reserved.
+            © 2025 I See U. All rights reserved.
           </div>
         </div>
       </footer>
