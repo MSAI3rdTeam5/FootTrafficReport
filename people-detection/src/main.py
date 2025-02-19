@@ -14,6 +14,7 @@ import aiohttp
 import asyncio
 import numpy as np
 import base64
+
  
 app = FastAPI()
  
@@ -90,7 +91,6 @@ class PersonTracker:
     def is_fully_inside_frame(self, x1, y1, x2, y2, frame_shape):  # 추가된 코드
         h, w, _ = frame_shape
         return x1 >= 0 and y1 >= 0 and x2 <= w and y2 <= h
-  
     # Generate a unique color for each object ID
     # 각 객체 ID에 대한 고유한 색상 생성
     def generate_color(self, obj_id):
@@ -128,7 +128,6 @@ class PersonTracker:
     def apply_face_blur(self, frame, face_area):
         if face_area is not None:
             x_min, y_min, x_max, y_max = face_area
-
             if x_max > x_min and y_max > y_min:
                 face_roi = frame[y_min:y_max, x_min:x_max]
                 blurred_roi = cv2.GaussianBlur(face_roi, (25, 25), 0)
@@ -173,7 +172,6 @@ class PersonTracker:
                     tasks.append(self.process_person(obj_id, cropped_path, cctv_id, full_frame_path))
                     new_object_detected = True
 
-
                 face_area = self.estimate_face_area(kpts, [x1, y1, x2, y2])
                 if face_area:
                     display_frame = self.apply_face_blur(display_frame, face_area)
@@ -207,6 +205,7 @@ class PersonTracker:
     # Process detected person using Azure API
     # Azure API를 사용하여 감지된 사람 처리
     async def process_person(self, obj_id, cropped_path, cctv_id, full_frame_path):
+
         threshold = 0.3  # 30% 기준
         predictions = await self.azure_api.analyze_image(cropped_path)
         
@@ -225,6 +224,7 @@ class PersonTracker:
         age = age_mapping.get(age_key, "Unknown")
        
         await self.send_data_to_server(obj_id, gender, age, cctv_id, full_frame_path)
+
  
     # Send analysis results to the backend server
     # 분석 결과를 백엔드 서버로 전송
@@ -347,22 +347,22 @@ class PersonTracker:
 Test code 할때는 __name__ == "__main__"으로 실행 (detect_people 함수는 주석 처리)
 웹으로 호출해서 실제 cctv에서 실행할때는 detect_people로 실행 (__name__ == "__main__" 주석 처리)
 '''
-# 웹으로 호출되는 함수
-@app.post("/detect") 
-async def detect_people(request: DetectionRequest):
-    try:
-        tracker = PersonTracker(
-            model_path='FootTrafficReport/people-detection/model/yolo11n-pose.pt'
-        )
-        result = await tracker.detect_and_track(source=request.cctv_url, cctv_id=request.cctv_id)
-        return result
+# # 웹으로 호출되는 함수
+# @app.post("/detect") 
+# async def detect_people(request: DetectionRequest):
+#     try:
+#         tracker = PersonTracker(
+#             model_path='FootTrafficReport/people-detection/model/yolo11n-pose.pt'
+#         )
+#         result = await tracker.detect_and_track(source=request.cctv_url, cctv_id=request.cctv_id)
+#         return result
     
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=str(e))
 
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8500)
+# if __name__ == "__main__":
+#     import uvicorn
+#     uvicorn.run(app, host="0.0.0.0", port=8500)
 
 
 # #Test할때 하는 작업 (cctv_id는 임의로 설정)
