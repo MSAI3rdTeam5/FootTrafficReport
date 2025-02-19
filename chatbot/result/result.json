@@ -1,6 +1,6 @@
 [
     {
-      "chapter_id": 1,
+      "chapter_id": "1-b",
       "chapter_title": "사업별 주요 내용",
       "title": "예비창업 패키지",
       "content": {
@@ -14,7 +14,7 @@
       }
     },
     {
-      "chapter_id": 2,
+      "chapter_id": "2-b",
       "chapter_title": "사업별 주요 내용",
       "title": "초기창업 패키지",
       "content": {
@@ -28,7 +28,7 @@
       }
     },
     {
-      "chapter_id": 3,
+      "chapter_id": "3-b",
       "chapter_title": "사업별 주요 내용",
       "title": "창업도약 패키지",
       "content": {
@@ -42,7 +42,7 @@
       }
     },
     {
-      "chapter_id": 4,
+      "chapter_id": "4-b",
       "chapter_title": "사업별 주요 내용",
       "title": "초격차 스타트업 1000+ 프로젝트",
       "content": {
@@ -56,7 +56,7 @@
       }
     },
     {
-      "chapter_id": 5,
+      "chapter_id": "5-b",
       "chapter_title": "사업별 주요 내용",
       "title": "민관공동 창업자발굴 육성사업",
       "content": {
@@ -70,7 +70,7 @@
       }
     },
     {
-      "chapter_id": 6,
+      "chapter_id": "6-b",
       "chapter_title": "사업별 주요 내용",
       "title": "통합 창업 패키지 지원",
       "content": {
@@ -84,7 +84,7 @@
       }
     },
     {
-      "chapter_id": 7,
+      "chapter_id": "7-b",
       "chapter_title": "사업별 주요 내용",
       "title": "창업중심 대학",
       "content": {
@@ -98,7 +98,7 @@
       }
     },
     {
-      "chapter_id": 8,
+      "chapter_id": "8-b",
       "chapter_title": "사업별 주요 내용",
       "title": "창업성공 패키지 (청년창업 사관학교)",
       "content": {
@@ -112,7 +112,7 @@
       }
     },
     {
-      "chapter_id": 9,
+      "chapter_id": "9-b",
       "chapter_title": "사업별 주요 내용",
       "title": "재도전성공 패키지",
       "content": {
@@ -126,7 +126,7 @@
       }
     },
     {
-      "chapter_id": 10,
+      "chapter_id": "10-b",
       "chapter_title": "사업별 주요 내용",
       "title": "신사업창업 사관학교",
       "content": {
@@ -140,7 +140,7 @@
       }
     },
     {
-      "chapter_id": 11,
+      "chapter_id": "11-b",
       "chapter_title": "사업별 주요 내용",
       "title": "로컬 크리에이터 육성사업",
       "content": {
@@ -154,7 +154,7 @@
       }
     },
     {
-      "chapter_id": 12,
+      "chapter_id": "12-b",
       "chapter_title": "사업별 주요 내용",
       "title": "예술기업 성장 지원",
       "content": {
@@ -168,7 +168,7 @@
       }
     },
     {
-      "chapter_id": 13,
+      "chapter_id": "13-b",
       "chapter_title": "사업별 주요 내용",
       "title": "스포츠산업 예비초기창업·창업도약 지원",
       "content": {
@@ -182,7 +182,7 @@
       }
     },
     {
-      "chapter_id": 14,
+      "chapter_id": "14-b",
       "chapter_title": "사업별 주요 내용",
       "title": "스포츠산업 창업중기(엑셀러레이팅) 지원",
       "content": {
@@ -196,7 +196,7 @@
       }
     },
     {
-      "chapter_id": 15,
+      "chapter_id": "15-b",
       "chapter_title": "사업별 주요 내용",
       "title": "콘텐츠 아이디어 사업화 지원",
       "content": {
@@ -210,7 +210,7 @@
       }
     },
     {
-      "chapter_id": 16,
+      "chapter_id": "16-b",
       "chapter_title": "사업별 주요 내용",
       "title": "콘텐츠 엑셀러레이터 연계 사업화 지원",
       "content": {
@@ -224,7 +224,7 @@
       }
     },
     {
-      "chapter_id": 17,
+      "chapter_id": "17-b",
       "chapter_title": "사업별 주요 내용",
       "title": "콘텐츠 투자 연계 사업화 지원",
       "content": {
@@ -238,7 +238,7 @@
       }
     },
     {
-      "chapter_id": 18,
+      "chapter_id": "18-b",
       "chapter_title": "사업별 주요 내용",
       "title": "선도기업 연계 동반성장 지원 (콘텐츠 오픈 이노베이션)",
       "content": {
@@ -252,7 +252,7 @@
       }
     },
     {
-      "chapter_id": 19,
+      "chapter_id": "19-b",
       "chapter_title": "사업별 주요 내용",
       "title": "전통문화 청년 창업 육성지원 사업",
       "content": {
@@ -266,7 +266,7 @@
       }
     },
     {
-      "chapter_id": 20,
+      "chapter_id": "20-b",
       "chapter_title": "사업별 주요 내용",
       "title": "관광벤처사업 공모전",
       "content": {
@@ -280,7 +280,7 @@
       }
     },
     {
-      "chapter_id": 21,
+      "chapter_id": "21-b",
       "chapter_title": "사업별 주요 내용",
       "title": "에코스타트업 지원사업",
       "content": {
@@ -294,7 +294,7 @@
       }
     },
     {
-      "chapter_id": 22,
+      "chapter_id": "22-b",
       "chapter_title": "사업별 주요 내용",
       "title": "농식품 벤처육성지원",
       "content": {
@@ -308,7 +308,7 @@
       }
     },
     {
-      "chapter_id": 23,
+      "chapter_id": "23-b",
       "chapter_title": "사업별 주요 내용",
       "title": "농식품 기술창업 액셀러레이터 육성지원",
       "content": {
@@ -322,7 +322,7 @@
       }
     },
     {
-      "chapter_id": 24,
+      "chapter_id": "24-b",
       "chapter_title": "사업별 주요 내용",
       "title": "농식품 기술평가지원",
       "content": {
@@ -336,7 +336,7 @@
       }
     },
     {
-      "chapter_id": 25,
+      "chapter_id": "25-b",
       "chapter_title": "사업별 주요 내용",
       "title": "농식품 판로지원",
       "content": {
@@ -350,7 +350,7 @@
       }
     },
     {
-      "chapter_id": 26,
+      "chapter_id": "26-b",
       "chapter_title": "사업별 주요 내용",
       "title": "경북·구미 방산혁신 클러스터 전주기 방산 창업지원",
       "content": {
@@ -364,7 +364,7 @@
       }
     },
     {
-      "chapter_id": 27,
+      "chapter_id": "27-b",
       "chapter_title": "사업별 주요 내용",
       "title": "대전 방산혁신 클러스터 방산 진입형 드론특화 창업 지원",
       "content": {
@@ -378,7 +378,7 @@
       }
     },
     {
-      "chapter_id": 28,
+      "chapter_id": "28-b",
       "chapter_title": "사업별 주요 내용",
       "title": "국방기술을 활용한 창업경진대회",
       "content": {
@@ -392,7 +392,7 @@
       }
     },
     {
-      "chapter_id": 29,
+      "chapter_id": "29-b",
       "chapter_title": "사업별 주요 내용",
       "title": "기창업자 경영 개선 자금 지원사업",
       "content": {
@@ -406,7 +406,7 @@
       }
     },
     {
-      "chapter_id": 30,
+      "chapter_id": "30-b",
       "chapter_title": "사업별 주요 내용",
       "title": "소규모 신규 창업자 지원사업",
       "content": {
@@ -420,7 +420,7 @@
       }
     },
     {
-      "chapter_id": 31,
+      "chapter_id": "31-b",
       "chapter_title": "사업별 주요 내용",
       "title": "데이터 활용 사업화 지원 (DATA-Stars)",
       "content": {
@@ -434,7 +434,7 @@
       }
     },
     {
-      "chapter_id": 32,
+      "chapter_id": "32-b",
       "chapter_title": "사업별 주요 내용",
       "title": "글로벌 ICT 미래 유니콘 육성 (ICT GROWTH)",
       "content": {
@@ -448,7 +448,7 @@
       }
     },
     {
-      "chapter_id": 33,
+      "chapter_id": "33-b",
       "chapter_title": "사업별 주요 내용",
       "title": "K-Global 액셀러레이팅",
       "content": {
@@ -462,21 +462,21 @@
       }
     },
     {
-      "chapter_id": 34,
+      "chapter_id": "34-b",
       "chapter_title": "사업별 주요 내용",
-      "title": "디지털 혁신 기업 글로벌",
+      "title": "디지털 혁신 기업 글로벌 성장 바우처 지원원",
       "content": {
-        "사업개요": "글로벌 진출 지향 디지털 혁신기업의 제품 개발·고도화",
+        "사업개요": "글로벌 진출 지향 디지털 혁신기업의 제품 개발·고도화 및 레퍼런스 확보를 전문 민간기관(기업)과 연계하여 바우처 형태로 지원원",
         "지원내용": ["제품 개발·고도화", "지역 실증"],
         "지원대상": "유망 글로벌 디지털 혁신 중소·스타트업",
         "예산(억원)": 30,
         "사업공고일": "'25.2월",
-        "소관부처": "과학기술 정보통신부",
-        "전담(주관)기관": "정보통신 산업진흥원"
+        "소관부처": "과학기술 정보통신부(정보통신 산업기반과)",
+        "전담(주관)기관": "정보통신 산업진흥원(글로벌창업팀)"
       }
     },
     {
-      "chapter_id": 35,
+      "chapter_id": "35-b",
       "chapter_title": "사업별 주요 내용",
       "title": "유망 창업기업 투자유치 지원 사업",
       "content": {
@@ -490,77 +490,77 @@
       }
     },
     {
-      "chapter_id": 1,
+      "chapter_id": "1-c",
       "chapter_title": "사업별 주요 내용",
       "title": "창업성장 기술개발",
       "content": {
         "사업개요": "성장 잠재력을 보유한 창업 기업 기술개발 지원으로 기술 창업 활성화 및 창업 기업 성장 촉진",
         "지원내용": ["기술개발 지원"],
         "지원대상": "업력 7년 이하이며 전년도 매출액 20억원 미만의 창업기업",
-        "예산(억원)": 5.96,
+        "예산(억원)": 5960,
         "사업공고일": "'25.4월",
         "소관부처": "중소벤처기업부(기술개발과)",
         "전담(주관)기관": "중소기업기술정보진흥원(창업성장 사업실, 팁스글로벌실)"
       }
     },
     {
-      "chapter_id": 2,
+      "chapter_id": "2-c",
       "chapter_title": "사업별 주요 내용",
       "title": "공공기술기반 시장연계 창업탐색지원",
       "content": {
         "사업개요": "대학·출연(연) 연구실에서 나온 기초.원천 연구성과가 빠른 시간 내에 시장에서 활용될 수 있도록 'Lab to Market'형 실험실 창업 교육 및 창업탐색 활동 지원",
         "지원내용": ["아이템검증 등 창업탐색교육", "시작품제작 등 창업보육"],
         "지원대상": "대학(원)생, 박사 후연구원, 출연(연) 연구원 등으로 구성된 예비창업탐색팀",
-        "예산(억원)": 1.07,
+        "예산(억원)": 107,
         "사업공고일": "'25.1월",
         "소관부처": "과학기술정보통신부(연구성과 혁신정책과)",
         "전담(주관)기관": "과학기술사업화진흥원(기술창업팀)"
       }
     },
     {
-      "chapter_id": 3,
+      "chapter_id": "3-c",
       "chapter_title": "사업별 주요 내용",
       "title": "실험실 특화형 창업선도대학 사업",
       "content": {
         "사업개요": "대학 인사·학사제도 개편, 기술창업 전문인력 확보, 후속 R&D 지원 등을 통해 실험실 창업에 특화된 창업선도대학 육성",
         "지원내용": ["창업 교과목·동아리, 학생 수당 등 지급", "BM고도화, R&BD, 실전 창업교육"],
         "지원대상": "실험실 특화형 창업선도대학 및 교원, 대학원생, 박사후 연구원으로 구성된 혁신창업실험실",
-        "예산(억원)": 1.07,
+        "예산(억원)": 107,
         "사업공고일": "'25.1월",
         "소관부처": "과학기술정보통신부(연구성과 혁신정책과)",
         "전담(주관)기관": "과학기술사업화진흥원(기술창업팀)"
       }
     },
     {
-      "chapter_id": 4,
+      "chapter_id": "4-c",
       "chapter_title": "사업별 주요 내용",
-      "title": "딥사이언스 창업활성화",
+      "title": "딥사이언스 창업활성화 지원",
       "content": {
-        "사업개요": "'과학적 원리 탐구(R&D)'에 기반한 '기술혁신'이",
-        "지원내용": ["사업화 기획 및 창업 준비"],
-        "지원대상": "대학 및 출연(연) 연구자, 엑셀러레이터",
-        "예산(억원)": 0.89,
+        "사업개요": "'과학적 원리 탐구(R&D)'에 기반한 '기술혁신'이'시장혁신(창업·사업화)'으로 이어지도록 지원하여 딥사이언스 분야 미래 신산업 씨앗 창출",
+        "지원내용": ["사업화 기획 및 창업 준비","기술고도화+창업지원", "시장지향 R&D + 기업 성장지원"],
+        "지원대상": "대학 및 출연(연) 연구자, 엑셀러레이터, 예비창업자, 창업기업 등",
+        "예산(억원)": 89,
         "사업공고일": "'25.1월",
         "소관부처": "과학기술정보통신부",
         "전담(주관)기관": "과학기술사업화진흥원"
       }
     },
     {
-      "chapter_id": 5,
+      "chapter_id": "5-c",
       "chapter_title": "사업별 주요 내용",
       "title": "첨단과학기술 기업 글로벌 협력 스케일 업 R&D 지원",
       "content": {
         "사업개요": "첨단과학기술기업(딥사이언스 기업 등)의 선진 해외시장 진출을 촉진할 수 있는 기술 스케일업 및 글로벌 역량 강화 협력 프로그램 추진",
         "지원내용": ["글로벌 역량 강화 교육 지원", "해외 기술 스케일업(실증 등) 지원"],
         "지원대상": "첨단과학기술기업 창업·사업화 지원 역량 및 글로벌 시장 진출 지원 역량을 보유하고 있는 기관",
-        "예산(억원)": 1.0,
+        "예산(억원)": 10,
         "사업공고일": "'25.2월",
         "소관부처": "과학기술정보통신부(연구성과 혁신정책과)",
         "전담(주관)기관": "과학기술사업화진흥원(기술창업팀)"
       }
     },
     {
-      "chapter_id": 1,
+      "chapter_id": "1-d",
       "chapter_title": "사업별 주요 내용",
       "title": "창업보육센터 지원사업",
       "content": {
@@ -574,7 +574,7 @@
       }
     },
     {
-      "chapter_id": 2,
+      "chapter_id": "2-d",
       "chapter_title": "사업별 주요 내용",
       "title": "지역창업특화 지원",
       "content": {
@@ -588,12 +588,12 @@
       }
     },
     {
-      "chapter_id": 3,
+      "chapter_id": "3-d",
       "chapter_title": "사업별 주요 내용",
       "title": "메이커 스페이스",
       "content": {
         "사업개요": "국민 누구나 창의적 아이디어를 구현할 수 있는 공간인 메이커 스페이스를 운영하여 시제품 제작 등 제조창업 촉진 및 메이커 저변 확대",
-        "지원내용": ["기존 선정된 메이커 스페이스 운영 지원('24년 기준, 43개 내외)", "메이커 스페이스 운영 역량을 갖춘 3개 이상의 법인 간 연계·협업 (컨소시엄)"],
+        "지원내용": ["기존 선정된 메이커 스페이스 운영 지원('24년 기준, 43개 내외)", "메이커 스페이스 운영 역량을 갖춘 3개 이상의 법인 간 연계·협업 (컨소시엄)으로 전문 메이커 활동 및 제조창업을 촉진하는 프로그램 지원(8개팀 내외)"],
         "지원대상": "민간, 공공기관, 단체 등 법인 ('25년 기준 중기부 선정·지원 중인 메이커 스페이스 제외)",
         "예산(억원)": 173,
         "사업공고일": "'25.1월",
@@ -602,7 +602,7 @@
       }
     },
     {
-      "chapter_id": 4,
+      "chapter_id": "4-d",
       "chapter_title": "사업별 주요 내용",
       "title": "창업존",
       "content": {
@@ -616,7 +616,7 @@
       }
     },
     {
-      "chapter_id": 5,
+      "chapter_id": "5-d",
       "chapter_title": "사업별 주요 내용",
       "title": "창조경제혁신 센터",
       "content": {
@@ -630,7 +630,7 @@
       }
     },
     {
-      "chapter_id": 6,
+      "chapter_id": "6-d",
       "chapter_title": "사업별 주요 내용",
       "title": "스타트업 파크",
       "content": {
@@ -644,7 +644,7 @@
       }
     },
     {
-      "chapter_id": 7,
+      "chapter_id": "7-d",
       "chapter_title": "사업별 주요 내용",
       "title": "딥테크 밸류업 프로그램",
       "content": {
@@ -658,7 +658,7 @@
       }
     },
     {
-      "chapter_id": 8,
+      "chapter_id": "8-d",
       "chapter_title": "사업별 주요 내용",
       "title": "공간정보 창업지원사업",
       "content": {
@@ -672,7 +672,7 @@
       }
     },
     {
-      "chapter_id": 9,
+      "chapter_id": "9-d",
       "chapter_title": "사업별 주요 내용",
       "title": "국토교통 창업 및 기업 지원",
       "content": {
@@ -686,7 +686,7 @@
       }
     },
     {
-      "chapter_id": 10,
+      "chapter_id": "10-d",
       "chapter_title": "사업별 주요 내용",
       "title": "혁신창업멤버스",
       "content": {
@@ -700,7 +700,7 @@
       }
     },
     {
-      "chapter_id": 1,
+      "chapter_id": "1-e",
       "chapter_title": "사업별 주요 내용",
       "title": "청소년 비즈쿨",
       "content": {
@@ -714,7 +714,7 @@
       }
     },
     {
-      "chapter_id": 2,
+      "chapter_id": "2-e",
       "chapter_title": "사업별 주요 내용",
       "title": "스타트업 법률지원",
       "content": {
@@ -729,7 +729,7 @@
       }
     },
     {
-      "chapter_id": 1,
+      "chapter_id": "3-e",
       "chapter_title": "사업별 주요 내용",
       "title": "IP디딤돌 프로그램",
       "content": {
@@ -743,7 +743,7 @@
       }
     },
     {
-      "chapter_id": 2,
+      "chapter_id": "4-e",
       "chapter_title": "사업별 주요 내용",
       "title": "IP나래 프로그램",
       "content": {
@@ -757,7 +757,7 @@
       }
     },
     {
-      "chapter_id": 3,
+      "chapter_id": "5-e",
       "chapter_title": "사업별 주요 내용",
       "title": "농식품 크라우드펀딩 활성화",
       "content": {
@@ -771,7 +771,7 @@
       }
     },
     {
-      "chapter_id": 4,
+      "chapter_id": "6-e",
       "chapter_title": "사업별 주요 내용",
       "title": "농식품 벤처창업센터",
       "content": {
@@ -785,7 +785,7 @@
       }
     },
     {
-      "chapter_id": 5,
+      "chapter_id": "7-e",
       "chapter_title": "사업별 주요 내용",
       "title": "학생 창업팀 육성",
       "content": {
@@ -799,7 +799,7 @@
       }
     },
     {
-      "chapter_id": 6,
+      "chapter_id": "8-e",
       "chapter_title": "사업별 주요 내용",
       "title": "경영컨설팅 지원사업",
       "content": {
@@ -814,7 +814,7 @@
       }
     },
     {
-      "chapter_id": 9,
+      "chapter_id": "9-e",
       "chapter_title": "사업별 주요 내용",
       "title": "해양수산 인큐베이팅 지원 사업",
       "content": {
@@ -828,7 +828,7 @@
       }
     },
     {
-      "chapter_id": 10,
+      "chapter_id": "10-e",
       "chapter_title": "사업별 주요 내용",
       "title": "K-Global 창업멘토링 (ICT 혁신기업 멘토링)",
       "content": {
@@ -842,7 +842,7 @@
       }
     },
     {
-      "chapter_id": 11,
+      "chapter_id": "11-e",
       "chapter_title": "사업별 주요 내용",
       "title": "인·허가 컨설팅 지원사업",
       "content": {
@@ -856,7 +856,7 @@
       }
     },
     {
-      "chapter_id": 12,
+      "chapter_id": "12-e",
       "chapter_title": "사업별 주요 내용",
       "title": "특허전략 컨설팅 지원사업",
       "content": {
@@ -870,12 +870,12 @@
       }
     },
     {
-      "chapter_id": "1 1",
+      "chapter_id": "1-f",
       "chapter_title": "사업별 주요 내용",
       "title": "컴업 (COMEUP) 2025",
       "content": {
-        "사업개요": "K-스타트업 생태계를 전 세계에 소개하고, 글로벌 스타트업, VC, 창업관계자 등 글로벌 창업생태계와 국내 우수 스타트업이 해외 유망한 VC 및 창업생태계 관계자를 통해 연결됨",
-        "지원내용": [],
+        "사업개요": "K-스타트업 생태계를 전 세계에 소개하고, 글로벌 스타트업, VC, 창업관계자 등 글로벌 창업생태계와 교류하며 협력을 강화하는 기회의 장 마련련",
+        "지원내용": "국내 우수 스타트업이 해외 유망한 VC 및 창업생태계와 관계자를 통해 투자유치를 받을 수 있도록 다양한 프로그램 운영영",
         "지원대상": "국내·외 스타트업",
         "예산(억원)": 29,
         "사업공고일": "'25.上 (미확정)",
@@ -884,7 +884,7 @@
       }
     },
     {
-      "chapter_id": "2",
+      "chapter_id": "2-f",
       "chapter_title": "사업별 주요 내용",
       "title": "여성창업 액셀러레이팅",
       "content": {
@@ -898,7 +898,7 @@
       }
     },
     {
-      "chapter_id": "3",
+      "chapter_id": "3-f",
       "chapter_title": "사업별 주요 내용",
       "title": "도전! K-스타트업",
       "content": {
@@ -912,7 +912,7 @@
       }
     },
     {
-      "chapter_id": "4",
+      "chapter_id": "4-f",
       "chapter_title": "사업별 주요 내용",
       "title": "민관협력 오픈 이노베이션 지원",
       "content": {
@@ -926,7 +926,7 @@
       }
     },
     {
-      "chapter_id": "5",
+      "chapter_id": "5-f",
       "chapter_title": "사업별 주요 내용",
       "title": "환경창업대전",
       "content": {
@@ -940,7 +940,7 @@
       }
     },
     {
-      "chapter_id": "6",
+      "chapter_id": "6-f",
       "chapter_title": "사업별 주요 내용",
       "title": "대한민국 물산업 혁신창업 대전",
       "content": {
@@ -954,7 +954,7 @@
       }
     },
     {
-      "chapter_id": "7",
+      "chapter_id": "7-f",
       "chapter_title": "사업별 주요 내용",
       "title": "농식품 창업콘테스트",
       "content": {
@@ -968,7 +968,7 @@
       }
     },
     {
-      "chapter_id": "8",
+      "chapter_id": "8-f",
       "chapter_title": "사업별 주요 내용",
       "title": "원자력 혁신 창업경진대회",
       "content": {
@@ -982,7 +982,7 @@
       }
     },
     {
-      "chapter_id": "9",
+      "chapter_id": "9-f",
       "chapter_title": "사업별 주요 내용",
       "title": "해양수산 창업콘테스트",
       "content": {
@@ -996,35 +996,35 @@
       }
     },
     {
-      "chapter_id": "1",
+      "chapter_id": "1-g",
       "chapter_title": "사업별 주요 내용",
       "title": "창업기반지원 자금",
       "content": {
         "사업개요": "기술력과 사업성은 우수하나 자금이 부족한 창업 초기 중소벤처기업의 창업을 활성화하고 고용 창출을 도모",
         "지원내용": ["융자 지원"],
         "지원대상": "「중소기업창업지원법」 제2조에 따른 창업자, 업력 7년 미만 중소기업",
-        "예산(억원)": 13.358,
+        "예산(억원)": 13358,
         "사업공고일": "'24.12월",
         "소관부처": "중소벤처기업부(기업금융과)",
         "전담(주관)기관": "중소벤처기업진흥공단(정책자금 안내 콜센터, 1811-3655)"
       }
     },
     {
-      "chapter_id": "2",
+      "chapter_id": "2-g",
       "chapter_title": "사업별 주요 내용",
       "title": "재창업자금",
       "content": {
         "사업개요": "원활한 재도전을 통한 도전적인 창업 생태계 조성을 위해 정직한 실패기업인에 대하여 재창업에 필요한 자금을 융자",
         "지원내용": ["시설자금 및 운전자금 융자"],
         "지원대상": "예비재창업자 및 업력 7년 미만 재창업 기업",
-        "예산(억원)": 2.0,
+        "예산(억원)": 2000,
         "사업공고일": "'24.12월",
         "소관부처": "중소벤처기업부(창업정책과)",
         "전담(주관)기관": "중소벤처기업진흥공단(재도약성장처)"
       }
     },
     {
-      "chapter_id": "1",
+      "chapter_id": "3-g",
       "chapter_title": "사업별 주요 내용",
       "title": "스타트업 AI 기술인력 양성 (이어드림 스쿨)",
       "content": {
@@ -1038,7 +1038,7 @@
       }
     },
     {
-      "chapter_id": "1",
+      "chapter_id": "1-h",
       "chapter_title": "사업별 주요 내용",
       "title": "창업성공패키지 (글로벌창업 사관학교)",
       "content": {
@@ -1052,7 +1052,7 @@
       }
     },
     {
-      "chapter_id": "2",
+      "chapter_id": "2-h",
       "chapter_title": "사업별 주요 내용",
       "title": "글로벌 기업 협업 프로그램",
       "content": {
@@ -1066,7 +1066,7 @@
       }
     },
     {
-      "chapter_id": "3",
+      "chapter_id": "3-h",
       "chapter_title": "사업별 주요 내용",
       "title": "스타트업 해외 전시회 지원",
       "content": {
@@ -1080,7 +1080,7 @@
       }
     },
     {
-      "chapter_id": "4",
+      "chapter_id": "4-h",
       "chapter_title": "사업별 주요 내용",
       "title": "K-스타트업 그랜드 챌린지",
       "content": {
@@ -1094,21 +1094,21 @@
       }
     },
     {
-      "chapter_id": "5",
+      "chapter_id": "5-h",
       "chapter_title": "사업별 주요 내용",
       "title": "글로벌 스타트업 육성",
       "content": {
-        "사업개요": "해외 진출을 희망하는 창업기업의 글로벌 진출 가능성을 타진하고 글로벌",
-        "지원내용": ["해외 액셀러레이팅 프로그램", "글로벌 기업과의 협업"],
+        "사업개요": "해외 진출을 희망하는 창업기업의 글로벌 진출 가능성을 타진하고 글로벌 기업으로서 경쟁령 함양유도",
+        "지원내용": ["해외 액셀러레이팅 프로그램", "글로벌 기업과의 실증 지원","해외진출자금"],
         "지원대상": "해외진출을 희망하는 7년 이내 창업기업",
         "예산(억원)": 99,
         "사업공고일": "'25.3월",
-        "소관부처": "중소벤처기업부(글로벌)",
+        "소관부처": "중소벤처기업부(글로벌창업팀)",
         "전담(주관)기관": "창업진흥원(글로벌진출팀)"
       }
     },
     {
-      "chapter_id": "6",
+      "chapter_id": "6-h",
       "chapter_title": "사업별 주요 내용",
       "title": "K-스타트업 센터 사업",
       "content": {
@@ -1122,7 +1122,7 @@
       }
     },
     {
-      "chapter_id": "7",
+      "chapter_id": "7-h",
       "chapter_title": "사업별 주요 내용",
       "title": "글로벌 스타트업센터 (GSC) 운영",
       "content": {
@@ -1136,7 +1136,7 @@
       }
     },
     {
-      "chapter_id": "8",
+      "chapter_id": "8-h",
       "chapter_title": "사업별 주요 내용",
       "title": "글로벌 진출 지원",
       "content": {
@@ -1150,7 +1150,7 @@
       }
     },
     {
-      "chapter_id": "9",
+      "chapter_id": "9-h",
       "chapter_title": "사업별 주요 내용",
       "title": "관광 글로벌 선도기업 육성",
       "content": {
@@ -1164,7 +1164,7 @@
       }
     },
     {
-      "chapter_id": "10",
+      "chapter_id": "10-h",
       "chapter_title": "사업별 주요 내용",
       "title": "K-Global 해외진출 지원사업 (글로벌 창업 활성화 기반 조성)",
       "content": {
@@ -1178,7 +1178,7 @@
       }
     },
     {
-      "chapter_id": "11",
+      "chapter_id": "11-h",
       "chapter_title": "사업별 주요 내용",
       "title": "DNA 융합 제품 · 서비스 해외진출 지원사업",
       "content": {
@@ -1192,7 +1192,7 @@
       }
     },
     {
-      "chapter_id": "12",
+      "chapter_id": "12-h",
       "chapter_title": "사업별 주요 내용",
       "title": "AI·디지털전환 혁신기업 해외실증 지원",
       "content": {
@@ -1206,7 +1206,7 @@
       }
     },
     {
-      "chapter_id": "13",
+      "chapter_id": "13-h",
       "chapter_title": "사업별 주요 내용",
       "title": "창업이민 인재양성프로그램 (OASIS)",
       "content": {
@@ -1220,7 +1220,7 @@
       }
     },
     {
-      "chapter_id": "1",
+      "chapter_id": "1-i",
       "chapter_title": "사업별 주요 내용",
       "title": "대중견기업- 스타트업 오픈이노베이션",
       "content": {
@@ -1235,7 +1235,7 @@
       }
     },
     {
-      "chapter_id": "2",
+      "chapter_id": "2-i",
       "chapter_title": "사업별 주요 내용",
       "title": "관악S밸리 스타트업 스케일업",
       "content": {
@@ -1250,7 +1250,7 @@
       }
     },
     {
-      "chapter_id": "3",
+      "chapter_id": "3-i",
       "chapter_title": "사업별 주요 내용",
       "title": "관악S밸리 기술컨설팅 지원",
       "content": {
@@ -1265,7 +1265,7 @@
       }
     },
     {
-      "chapter_id": "4",
+      "chapter_id": "4-i",
       "chapter_title": "사업별 주요 내용",
       "title": "사회적경제 문화 예술 청년 창업 지원 프로젝트",
       "content": {
@@ -1280,7 +1280,7 @@
       }
     },
     {
-      "chapter_id": "5",
+      "chapter_id": "5-i",
       "chapter_title": "사업별 주요 내용",
       "title": "산업 스마트화 공모사업",
       "content": {
@@ -1295,7 +1295,7 @@
       }
     },
     {
-      "chapter_id": "6",
+      "chapter_id": "6-i",
       "chapter_title": "사업별 주요 내용",
       "title": "부산창조경제 혁신센터 지원",
       "content": {
@@ -1310,7 +1310,7 @@
       }
     },
     {
-      "chapter_id": "7",
+      "chapter_id": "7-i",
       "chapter_title": "사업별 주요 내용",
       "title": "창업기업 성장단계별 지원사업",
       "content": {
@@ -1325,7 +1325,7 @@
       }
     },
     {
-      "chapter_id": "8",
+      "chapter_id": "8-i",
       "chapter_title": "사업별 주요 내용",
       "title": "부산대표 창업기업 지원사업",
       "content": {
@@ -1340,7 +1340,7 @@
       }
     },
     {
-      "chapter_id": "9",
+      "chapter_id": "9-i",
       "chapter_title": "사업별 주요 내용",
       "title": "벤처·창업 ESG선도기업 지원사업",
       "content": {
@@ -1355,7 +1355,7 @@
       }
     },
     {
-      "chapter_id": "10",
+      "chapter_id": "10-i",
       "chapter_title": "사업별 주요 내용",
       "title": "디자인 융합 창업기업 육성",
       "content": {
@@ -1370,7 +1370,7 @@
       }
     },
     {
-      "chapter_id": "11",
+      "chapter_id": "11-i",
       "chapter_title": "사업별 주요 내용",
       "title": "부산진구 창업 키워드림 지원사업",
       "content": {
@@ -1385,7 +1385,7 @@
       }
     },
     {
-      "chapter_id": "12",
+      "chapter_id": "12-i",
       "chapter_title": "사업별 주요 내용",
       "title": "청년 해외 진출 기지 지원",
       "content": {
@@ -1401,7 +1401,7 @@
       }
     },
     {
-      "chapter_id": "13",
+      "chapter_id": "13-i",
       "chapter_title": "사업별 주요 내용",
       "title": "청년창업 챌린지",
       "content": {
@@ -1417,7 +1417,7 @@
       }
     },
     {
-      "chapter_id": "14",
+      "chapter_id": "14-i",
       "chapter_title": "사업별 주요 내용",
       "title": "청년 소셜벤처기업 육성사업",
       "content": {
@@ -1433,7 +1433,7 @@
       }
     },
     {
-      "chapter_id": "15",
+      "chapter_id": "15-i",
       "chapter_title": "사업별 주요 내용",
       "title": "대·중견기업 협업 오픈이노베이션 지원",
       "content": {
@@ -1448,7 +1448,7 @@
       }
     },
     {
-      "chapter_id": "16",
+      "chapter_id": "16-i",
       "chapter_title": "사업별 주요 내용",
       "title": "청년창업 재정지원 사업",
       "content": {
@@ -1464,7 +1464,7 @@
       }
     },
     {
-      "chapter_id": "17",
+      "chapter_id": "17-i",
       "chapter_title": "사업별 주요 내용",
       "title": "바이오클러스터 조성 지원사업",
       "content": {
@@ -1479,7 +1479,7 @@
       }
     },
     {
-      "chapter_id": "18",
+      "chapter_id": "18-i",
       "chapter_title": "사업별 주요 내용",
       "title": "TRYOUT 실증 제품 시범구매 지원",
       "content": {
@@ -1494,7 +1494,7 @@
       }
     },
     {
-      "chapter_id": "19",
+      "chapter_id": "19-i",
       "chapter_title": "사업별 주요 내용",
       "title": "대구 C-Lab",
       "content": {
@@ -1509,7 +1509,7 @@
       }
     },
     {
-      "chapter_id": "20",
+      "chapter_id": "20-i",
       "chapter_title": "사업별 주요 내용",
       "title": "스타트업 오픈이노베이션",
       "content": {
@@ -1524,7 +1524,7 @@
       }
     },
     {
-      "chapter_id": "21",
+      "chapter_id": "21-i",
       "chapter_title": "사업별 주요 내용",
       "title": "대구스타벤처 육성사업",
       "content": {
@@ -1539,7 +1539,7 @@
       }
     },
     {
-      "chapter_id": "22",
+      "chapter_id": "22-i",
       "chapter_title": "사업별 주요 내용",
       "title": "신기술사업화 프로젝트 사업",
       "content": {
@@ -1554,7 +1554,7 @@
       }
     },
     {
-      "chapter_id": "23",
+      "chapter_id": "23-i",
       "chapter_title": "사업별 주요 내용",
       "title": "창업기업제품 실증지원",
       "content": {
@@ -1569,7 +1569,7 @@
       }
     },
     {
-      "chapter_id": "24",
+      "chapter_id": "24-i",
       "chapter_title": "사업별 주요 내용",
       "title": "맞춤형 예비창업가 발굴·육성",
       "content": {
@@ -1584,7 +1584,7 @@
       }
     },
     {
-      "chapter_id": "25",
+      "chapter_id": "25-i",
       "chapter_title": "사업별 주요 내용",
       "title": "창업재도전 지원",
       "content": {
@@ -1599,7 +1599,7 @@
       }
     },
     {
-      "chapter_id": "26",
+      "chapter_id": "26-i",
       "chapter_title": "사업별 주요 내용",
       "title": "여성창업지원",
       "content": {
@@ -1614,7 +1614,7 @@
       }
     },
     {
-      "chapter_id": "27",
+      "chapter_id": "27-i",
       "chapter_title": "사업별 주요 내용",
       "title": "청년창업 샌드박스 지원사업",
       "content": {
@@ -1629,7 +1629,7 @@
       }
     },
     {
-      "chapter_id": "28",
+      "chapter_id": "28-i",
       "chapter_title": "사업별 주요 내용",
       "title": "창업기업 마케팅 지원",
       "content": {
@@ -1644,7 +1644,7 @@
       }
     },
     {
-      "chapter_id": "29",
+      "chapter_id": "29-i",
       "chapter_title": "사업별 주요 내용",
       "title": "혁신창업 및 기술사업화 플랫폼 운영",
       "content": {
@@ -1659,7 +1659,7 @@
       }
     },
     {
-      "chapter_id": "30",
+      "chapter_id": "30-i",
       "chapter_title": "청년 창업 지원",
       "title": "대전 청년마을 조성사업",
       "content": {
@@ -1674,7 +1674,7 @@
       }
     },
     {
-      "chapter_id": "31",
+      "chapter_id": "31-i",
       "chapter_title": "청년 창업 지원",
       "title": "프로젝트 Y",
       "content": {
@@ -1689,7 +1689,7 @@
       }
     },
     {
-      "chapter_id": "32",
+      "chapter_id": "32-i",
       "chapter_title": "기업 창업 지원",
       "title": "기업 자율형 창업프로그램",
       "content": {
@@ -1704,7 +1704,7 @@
       }
     },
     {
-      "chapter_id": "33",
+      "chapter_id": "33-i",
       "chapter_title": "청년 창업 지원",
       "title": "청년CEO육성사업",
       "content": {
@@ -1719,7 +1719,7 @@
       }
     },
     {
-      "chapter_id": "34",
+      "chapter_id": "34-i",
       "chapter_title": "청년 창업 지원",
       "title": "(울산)청년창업 아카데미 사업",
       "content": {
@@ -1734,7 +1734,7 @@
       }
     },
     {
-      "chapter_id": "35",
+      "chapter_id": "35-i",
       "chapter_title": "창업 활성화 사업",
       "title": "민간협업 열린창업 활성화 사업",
       "content": {
@@ -1749,7 +1749,7 @@
       }
     },
     {
-      "chapter_id": "36",
+      "chapter_id": "36-i",
       "chapter_title": "창업 활성화 사업",
       "title": "청년 융합기술 창업지원",
       "content": {
@@ -1764,7 +1764,7 @@
       }
     },
     {
-      "chapter_id": "37",
+      "chapter_id": "37-i",
       "chapter_title": "창업 활성화 사업",
       "title": "민간주도 오픈이노베이션 지원",
       "content": {
@@ -1779,7 +1779,7 @@
       }
     },
     {
-      "chapter_id": "38",
+      "chapter_id": "38-i",
       "chapter_title": "창업 활성화 사업",
       "title": "기술창업 재도전 지원",
       "content": {
@@ -1794,7 +1794,7 @@
       }
     },
     {
-      "chapter_id": "39",
+      "chapter_id": "39-i",
       "chapter_title": "창업 활성화 사업",
       "title": "민간투자연계형 기술창업지원",
       "content": {
@@ -1809,7 +1809,7 @@
       }
     },
     {
-      "chapter_id": "40",
+      "chapter_id": "40-i",
       "chapter_title": "창업 활성화 사업",
       "title": "예비 · 초기 기술창업지원",
       "content": {
@@ -1824,7 +1824,7 @@
       }
     },
     {
-      "chapter_id": "41",
+      "chapter_id": "41-i",
       "chapter_title": "창업 활성화 사업",
       "title": "기술이전 창업지원",
       "content": {
@@ -1839,7 +1839,7 @@
       }
     },
     {
-      "chapter_id": "42",
+      "chapter_id": "42-i",
       "chapter_title": "창업 활성화 사업",
       "title": "맞춤형 창업지원",
       "content": {
@@ -1854,7 +1854,7 @@
       }
     },
     {
-      "chapter_id": "43",
+      "chapter_id": "43-i",
       "chapter_title": "창업 활성화 사업",
       "title": "딥테크 시제품 제작 지원",
       "content": {
@@ -1869,7 +1869,7 @@
       }
     },
     {
-      "chapter_id": "44",
+      "chapter_id": "44-i",
       "chapter_title": "창업 활성화 사업",
       "title": "와우메이커스 시제품 제작 지원",
       "content": {
@@ -1884,7 +1884,7 @@
       }
     },
     {
-      "chapter_id": "45",
+      "chapter_id": "45-i",
       "chapter_title": "창업 활성화 사업",
       "title": "민간투자연계 기술창업지원",
       "content": {
@@ -1899,7 +1899,7 @@
       }
     },
     {
-      "chapter_id": "46",
+      "chapter_id": "46-i",
       "chapter_title": "창업 활성화 사업",
       "title": "성남 스케일업 오픈이노베이션",
       "content": {
@@ -1914,7 +1914,7 @@
       }
     },
     {
-      "chapter_id": "47",
+      "chapter_id": "47-i",
       "chapter_title": "창업 활성화 사업",
       "title": "IP C&D 전략지원 (舊)P제품혁신 지원) (성남시 협업형)",
       "content": {
@@ -1929,7 +1929,7 @@
       }
     },
     {
-      "chapter_id": "48",
+      "chapter_id": "48-i",
       "chapter_title": "창업 활성화 사업",
       "title": "성남청년 창업 역량강화 프로젝트 『THE 와플』",
       "content": {
@@ -1944,7 +1944,7 @@
       }
     },
     {
-      "chapter_id": "49",
+      "chapter_id": "49-i",
       "chapter_title": "창업 활성화 사업",
       "title": "부천창업리그 운영",
       "content": {
@@ -1959,7 +1959,7 @@
       }
     },
     {
-      "chapter_id": "50",
+      "chapter_id": "50-i",
       "chapter_title": "창업 활성화 사업",
       "title": "청년창업기업 액셀러레이팅 지원",
       "content": {
@@ -1974,7 +1974,7 @@
       }
     },
     {
-      "chapter_id": "51",
+      "chapter_id": "51-i",
       "chapter_title": "창업 활성화 사업",
       "title": "스타트업 지원사업",
       "content": {
@@ -1989,7 +1989,7 @@
       }
     },
     {
-      "chapter_id": "52",
+      "chapter_id": "52-i",
       "chapter_title": "창업 활성화 사업",
       "title": "군포 청년 창업 경진대회",
       "content": {
@@ -2004,7 +2004,7 @@
       }
     },
     {
-      "chapter_id": "53",
+      "chapter_id": "53-i",
       "chapter_title": "창업 활성화 사업",
       "title": "창업기업 크라우드펀딩 지원 사업",
       "content": {
@@ -2019,7 +2019,7 @@
       }
     },
     {
-      "chapter_id": "54",
+      "chapter_id": "54-i",
       "chapter_title": "창업 활성화 사업",
       "title": "안성맞춤 창업 통합지원사업",
       "content": {
@@ -2034,7 +2034,7 @@
       }
     },
     {
-      "chapter_id": "55",
+      "chapter_id": "55-i",
       "chapter_title": "창업 지원 사업",
       "title": "25년 예비창업 패키지",
       "content": {
@@ -2049,7 +2049,7 @@
       }
     },
     {
-      "chapter_id": "56",
+      "chapter_id": "56-i",
       "chapter_title": "창업 지원 사업",
       "title": "Monday Batch 100 프로그램",
       "content": {
@@ -2064,7 +2064,7 @@
       }
     },
     {
-      "chapter_id": "57",
+      "chapter_id": "57-i",
       "chapter_title": "창업 지원 사업",
       "title": "이차전지 스타트업 육성 플랫폼 구축 사업",
       "content": {
@@ -2079,7 +2079,7 @@
       }
     },
     {
-      "chapter_id": "58",
+      "chapter_id": "58-i",
       "chapter_title": "창업 지원 사업",
       "title": "창업BUS 프로그램 운영",
       "content": {
@@ -2094,7 +2094,7 @@
       }
     },
     {
-      "chapter_id": "59",
+      "chapter_id": "59-i",
       "chapter_title": "창업 지원 사업",
       "title": "2024년 충북 스타트업 액셀러레이팅 지원 사업",
       "content": {
@@ -2109,12 +2109,12 @@
       }
     },
     {
-      "chapter_id": "60",
+      "chapter_id": "60-i",
       "chapter_title": "창업 지원 사업",
       "title": "ICT디바이스랩 시제품 제작 및 사업화 지원",
       "content": {
         "사업개요": "스마트 디바이스 관련 창의적 아이디어를 발굴하고 실제 시제품을 제작할 수 있는 인프라(장비) 및 사업화 지원",
-        "지원내용": ["시제품 재료비 및 제작공간·장비 지원", "사업화(지재권)"],
+        "지원내용": ["시제품 재료비 및 제작공간·장비 지원", "사업화(지재권출원, 비즈니스 모델 기획 등 지원)"],
         "지원대상": "예비창업자, 학생, 중소기업(스타트업)",
         "예산(억원)": 2.4,
         "사업공고일": "'25.3월",
@@ -2124,7 +2124,7 @@
       }
     },
     {
-      "chapter_id": "61",
+      "chapter_id": "61-i",
       "chapter_title": "창업 지원 사업",
       "title": "충북 콘텐츠코리아랩 운영",
       "content": {
@@ -2139,7 +2139,7 @@
       }
     },
     {
-      "chapter_id": "62",
+      "chapter_id": "62-i",
       "chapter_title": "창업 지원 사업",
       "title": "청년 창업 우수기업 맞춤형 지원",
       "content": {
@@ -2155,7 +2155,7 @@
       }
     },
     {
-      "chapter_id": "63",
+      "chapter_id": "63-i",
       "chapter_title": "창업 지원 사업",
       "title": "벤처 및 스타트업 공동연구장비 활용 지원",
       "content": {
@@ -2170,7 +2170,7 @@
       }
     },
     {
-      "chapter_id": "64",
+      "chapter_id": "64-i",
       "chapter_title": "창업 지원 사업",
       "title": "중장년 재도약 창업지원사업",
       "content": {
@@ -2186,7 +2186,7 @@
       }
     },
     {
-      "chapter_id": "65",
+      "chapter_id": "65-i",
       "chapter_title": "창업 지원 사업",
       "title": "창업중심대학 사업 지원",
       "content": {
@@ -2201,23 +2201,23 @@
       }
     },
     {
-      "chapter_id": "66",
+      "chapter_id": "66-i",
       "chapter_title": "창업 지원 사업",
       "title": "전남 창업투자 지원센터",
       "content": {
-        "사업개요": "전남도내 해양수산관련 중소기업의 성장단계별 주력 산업 육성 및 역량강화를 통한 지역 강소기업 성장토",
-        "지원내용": ["사업화 자금", "컨설팅 및 교육", "사업화 자금", "간접 투자프로그램"],
+        "사업개요": "전남도내 해양수산관련 중소기업의 성장단계별 주력 산업 육성 및 역량강화를 통한 지역 강소기업 성장토대 마련련",
+        "지원내용": ["사업화 자금", "컨설팅 및 교육", "사업화 자금", "간접 투자프로그램연계 컨설팅 및 IR제작 지원","판로개척지원(국내외 박람회 및 상담회)"],
         "지원대상": "'25년 창업기업 및 예비창업자",
         "예산(억원)": 17,
         "사업공고일": "'25.1월",
         "소관부처": "전라남도 (수산유통 가공과)",
         "전담(주관)기관": "(재)전남바이오 진흥원 해양바이오 연구센터",
         "지역구분": "전남",
-        "추가설명": "중장년, 청년, 해외"
+        "추가설명": "중장년, 청년, 해외진출"
       }
     },
     {
-      "chapter_id": "67",
+      "chapter_id": "67-i",
       "chapter_title": "창업 지원 사업",
       "title": "여수시 청년 도전 창업 지원",
       "content": {
@@ -2233,7 +2233,7 @@
       }
     },
     {
-      "chapter_id": "68",
+      "chapter_id": "68-i",
       "chapter_title": "창업 지원 사업",
       "title": "여수시 청년 소상공인 맞춤형 방문 컨설팅",
       "content": {
@@ -2249,7 +2249,7 @@
       }
     },
     {
-      "chapter_id": "69",
+      "chapter_id": "69-i",
       "chapter_title": "창업 지원 사업",
       "title": "1인 창조기업 지원센터",
       "content": {
@@ -2265,7 +2265,7 @@
       }
     },
     {
-      "chapter_id": "70",
+      "chapter_id": "70-i",
       "chapter_title": "창업 지원 사업",
       "title": "창업보육센터 운영지원사업",
       "content": {
@@ -2281,13 +2281,13 @@
       }
     },
     {
-      "chapter_id": "71",
+      "chapter_id": "71-i",
       "chapter_title": "창업 지원 사업",
       "title": "강진군 청년 창업 지원사업",
       "content": {
         "사업개요": "청년의 정착 기회 확대 및 청년 인구 유입 촉진을 위해 창업하는 데 필요한 비용을 지원",
         "지원내용": ["사업화자금"],
-        "지원대상": "1~3요건 모두 충족, 1공고일 기준 만 19~45세, 2공고일 기준 2개월",
+        "지원대상": "1~3요건 모두 충족, 1공고일 기준 만 19~45세, 2공고일 기준 2개월이상 강진군에 주민등록을 두고 거주, 강진 관내 사업장장",
         "예산(억원)": 1,
         "사업공고일": "'25.3월",
         "소관부처": "강진군 (인구정책과)",
@@ -2297,7 +2297,7 @@
       }
     },
     {
-      "chapter_id": "72",
+      "chapter_id": "72-i",
       "chapter_title": "창업 지원 사업",
       "title": "대학 특화 청년 창업 활성화 지원",
       "content": {
@@ -2329,7 +2329,7 @@
       }
     },
     {
-      "chapter_id": "74",
+      "chapter_id": "74-i",
       "chapter_title": "창업 지원 사업",
       "title": "창업·벤처투자 유치 지원사업",
       "content": {
@@ -2345,7 +2345,7 @@
       }
     },
     {
-      "chapter_id": "75",
+      "chapter_id": "75-i",
       "chapter_title": "창업 지원 사업",
       "title": "C-블루윙 펀드 조성",
       "content": {
@@ -2361,7 +2361,7 @@
       }
     },
     {
-      "chapter_id": "76",
+      "chapter_id": "76-i",
       "chapter_title": "창업 지원 사업",
       "title": "청년기술 창업수당 지원",
       "content": {
@@ -2377,12 +2377,12 @@
       }
     },
     {
-      "chapter_id": "77",
+      "chapter_id": "77-i",
       "chapter_title": "창업 지원 사업",
       "title": "창업기업 (예비창업자)지원",
       "content": {
-        "사업개요": "창업기업(예비창업자)에 대하여 단계별 지원을 함으로써 성",
-        "지원내용": ["멘토링 및 컨설팅", "창업교육 프로그램"],
+        "사업개요": "창업기업(예비창업자)에 대하여 단계별 지원을 함으로써 성공적인 창업을 유도",
+        "지원내용": ["멘토링 및 컨설팅", "창업교육 프로그램","창업기업(예비창업) 사업화 지원"],
         "지원대상": "통영 소재 창업기업 (예비창업자)",
         "예산(억원)": 1.24,
         "사업공고일": "'25.2월 ~",
@@ -2393,7 +2393,7 @@
       }
     },
     {
-      "chapter_id": "78",
+      "chapter_id": "78-i",
       "chapter_title": "창업 지원 사업",
       "title": "스타트업 마케팅 강화 사업",
       "content": {
@@ -2409,7 +2409,7 @@
       }
     },
     {
-      "chapter_id": "79",
+      "chapter_id": "79-i",
       "chapter_title": "창업 지원 사업",
       "title": "거제시 로컬크리에이터 육성 사업",
       "content": {
@@ -2425,7 +2425,7 @@
       }
     },
     {
-      "chapter_id": "80",
+      "chapter_id": "80-i",
       "chapter_title": "창업 지원 사업",
       "title": "함안청년창업가 지속성장 지원 사업",
       "content": {
@@ -2441,7 +2441,7 @@
       }
     },
     {
-      "chapter_id": "81",
+      "chapter_id": "81-i",
       "chapter_title": "창업 지원 사업",
       "title": "우리지역 스타 기업 만들기 사업",
       "content": {
@@ -2457,7 +2457,7 @@
       }
     },
     {
-      "chapter_id": "82",
+      "chapter_id": "82-i",
       "chapter_title": "창업 지원 사업",
       "title": "창업하면 고성 스쿨",
       "content": {
@@ -2473,7 +2473,7 @@
       }
     },
     {
-      "chapter_id": "83",
+      "chapter_id": "83-i",
       "chapter_title": "창업 지원 사업",
       "title": "합천 청년·여성 창업지원사업",
       "content": {
@@ -2489,7 +2489,7 @@
       }
     },
     {
-      "chapter_id": "84",
+      "chapter_id": "84-i",
       "chapter_title": "창업 지원 사업",
       "title": "G-Star Dreamers 스타트업 육성지원",
       "content": {
@@ -2505,7 +2505,7 @@
       }
     },
     {
-      "chapter_id": "85",
+      "chapter_id": "85-i",
       "chapter_title": "창업 지원 사업",
       "title": "경북 TIPS(기술 창업) 프로그램",
       "content": {
@@ -2521,7 +2521,7 @@
       }
     },
     {
-      "chapter_id": "86",
+      "chapter_id": "86-i",
       "chapter_title": "창업 지원 사업",
       "title": "경북 예비유니콘 성장지원사업",
       "content": {
@@ -2537,7 +2537,7 @@
       }
     },
     {
-      "chapter_id": "87",
+      "chapter_id": "87-i",
       "chapter_title": "창업 지원 사업",
       "title": "경북 청년CEO 심화육성 지원",
       "content": {
@@ -2553,7 +2553,7 @@
       }
     },
     {
-      "chapter_id": "88",
+      "chapter_id": "88-i",
       "chapter_title": "창업 지원 사업",
       "title": "북부권 청년창업 지원센터 운영",
       "content": {
@@ -2569,11 +2569,11 @@
       }
     },
     {
-      "chapter_id": "89",
+      "chapter_id": "89-i",
       "chapter_title": "창업 지원 사업",
       "title": "경북청년예비창업가육성지원",
       "content": {
-        "사업개요": "좋은 아이템과 기술력을 갖고 있는 예비 또는 초기 청년창업가들에게 사업화지원으로 청년창업",
+        "사업개요": "좋은 아이템과 기술력을 갖고 있는 예비 또는 초기 청년창업가들에게 사업화지원으로 청년창업 촉진",
         "지원내용": ["사업화자금", "창업교육", "컨설팅"],
         "지원대상": "도내 만 39세 이하 예비청년창업가 또는 창업 1년 이내 인자",
         "예산(억원)": 14,
@@ -2585,7 +2585,7 @@
       }
     },
     {
-      "chapter_id": "90",
+      "chapter_id": "90-i",
       "chapter_title": "창업 지원 사업",
       "title": "포항창조경제혁신 센터 사업운영",
       "content": {
@@ -2601,7 +2601,7 @@
       }
     },
     {
-      "chapter_id": "91",
+      "chapter_id": "91-i",
       "chapter_title": "창업 지원 사업",
       "title": "벤처기업 집적 시설 입주기업 역량강화사업",
       "content": {
@@ -2617,7 +2617,7 @@
       }
     },
     {
-      "chapter_id": "92",
+      "chapter_id": "92-i",
       "chapter_title": "청년 창업 지원 사업",
       "title": "김천시 청년 창업 공간 지원사업",
       "content": {
@@ -2633,7 +2633,7 @@
       }
     },
     {
-      "chapter_id": "93",
+      "chapter_id": "93-i",
       "chapter_title": "청년 창업 지원 사업",
       "title": "김천시 청년 CEO 육성사업",
       "content": {
@@ -2649,7 +2649,7 @@
       }
     },
     {
-      "chapter_id": "94",
+      "chapter_id": "94-i",
       "chapter_title": "청년 창업 지원 사업",
       "title": "청년창업 지역정착 지원사업",
       "content": {
@@ -2665,7 +2665,7 @@
       }
     },
     {
-      "chapter_id": "95",
+      "chapter_id": "95-i",
       "chapter_title": "청년 창업 지원 사업",
       "title": "G스타트업 예비창업 지원",
       "content": {
@@ -2681,7 +2681,7 @@
       }
     },
     {
-      "chapter_id": "96",
+      "chapter_id": "96-i",
       "chapter_title": "창업 지원 사업",
       "title": "G스타트업 초기창업 지원",
       "content": {
@@ -2697,7 +2697,7 @@
       }
     },
     {
-      "chapter_id": "97",
+      "chapter_id": "97-i",
       "chapter_title": "창업 지원 사업",
       "title": "G스타트업 창업 도약 지원",
       "content": {
@@ -2713,7 +2713,7 @@
       }
     },
     {
-      "chapter_id": "98",
+      "chapter_id": "98-i",
       "chapter_title": "창업 지원 사업",
       "title": "강원 로컬벤처기업 성장단계별 육성사업",
       "content": {
@@ -2729,7 +2729,7 @@
       }
     },
     {
-      "chapter_id": "99",
+      "chapter_id": "99-i",
       "chapter_title": "창업 지원 사업",
       "title": "반려동물산업 창업 및 영업 지원",
       "content": {
@@ -2745,7 +2745,7 @@
       }
     },
     {
-      "chapter_id": "100",
+      "chapter_id": "100-i",
       "chapter_title": "청년 창업 지원 사업",
       "title": "청년창업 희망키움 사업",
       "content": {
@@ -2761,23 +2761,23 @@
       }
     },
     {
-      "chapter_id": "101",
+      "chapter_id": "101-i",
       "chapter_title": "청년 창업 지원 사업",
       "title": "홍천군청년창업 지원사업",
       "content": {
-        "사업개요": "청년창업가의 신규 창업 지원을 통해 지역경제 활성화",
-        "지원내용": ["시설개선비", "임차료 24회"],
-        "지원대상": "19세이상 47세 이하 인자로 홍천군에 거주하는 청년",
+        "사업개요": "청년창업가의 신규 창업 지원을 통해 지역경제 활성화 및 청년의 경제활동 참여 유도",
+        "지원내용": ["시설개선비", "임차료 24회","(후속지원)교육 프로그램 지원"],
+        "지원대상": "19세이상 47세 이하 인자로 홍천군에 주민등록을 유지한 예비창업자 및 3년 미만 기존 창업자",
         "예산(억원)": 1.9,
         "사업공고일": "'25.1~2월",
-        "소관부처": "강원 특별자치도",
+        "소관부처": "강원 특별자치도 홍천군(경제진흥과)",
         "전담(주관)기관": "-",
         "지역구분": "강원",
-        "추가설명": "청년 지원"
+        "추가설명": "청년 지원 창업 사업업"
       }
     },
     {
-      "chapter_id": "102",
+      "chapter_id": "102-i",
       "chapter_title": "청년 지원 창업 사업",
       "title": "영월군 청년 창업육성 지원사업",
       "content": {
@@ -2788,11 +2788,12 @@
         "사업공고일": "'25.2월",
         "소관부처": "강원 특별자치도 영월군 (일자리 청년과)",
         "전담(주관)기관": "1",
-        "비고": "청년 지원 창업 II오 사업"
+        "비고": "청년 지원 창업 II오 사업",
+        "지역구분": "강원"
       }
     },
     {
-      "chapter_id": "103",
+      "chapter_id": "103-i",
       "chapter_title": "청년 지원 창업 사업",
       "title": "창업보육센터 입주기업 지원사업",
       "content": {
@@ -2803,11 +2804,12 @@
         "사업공고일": "'25.6월",
         "소관부처": "강원 특별자치도 영월군 (산업경제과)",
         "전담(주관)기관": "영월군 창업보육센터",
-        "비고": ""
+        "비고": "",
+        "지역구분": "강원"
       }
     },
     {
-      "chapter_id": "104",
+      "chapter_id": "104-i",
       "chapter_title": "청년 지원 창업 사업",
       "title": "희망점포 청년 창업 지원사업",
       "content": {
@@ -2818,11 +2820,12 @@
         "사업공고일": "'25.1월",
         "소관부처": "강원 특별자치도 철원군 (경제진흥과)",
         "전담(주관)기관": "강원 특별자치도 경제진흥원",
-        "비고": "청년 지원 창업 사업"
+        "비고": "청년 지원 창업 사업",
+        "지역구분": "강원"
       }
     },
     {
-      "chapter_id": "105",
+      "chapter_id": "105-i",
       "chapter_title": "청년 지원 창업 사업",
       "title": "청년창업 및 빈점포 창업 지원사업",
       "content": {
@@ -2833,11 +2836,12 @@
         "사업공고일": "'25.1~2월",
         "소관부처": "강원 특별자치도 인제군 (경제산업과)",
         "전담(주관)기관": "",
-        "비고": "청년 지원 창업 사업"
+        "비고": "청년 지원 창업 사업",
+        "지역구분": "강원"
       }
     },
     {
-      "chapter_id": "106",
+      "chapter_id": "106-i",
       "chapter_title": "청년 지원 창업 사업",
       "title": "고성평생살기, 청년 창업 지원",
       "content": {
@@ -2848,11 +2852,12 @@
         "사업공고일": "'25.1월",
         "소관부처": "강원 특별자치도 고성군 (경제체육과)",
         "전담(주관)기관": "-",
-        "비고": ""
+        "비고": "",
+        "지역구분": "강원"
       }
     },
     {
-      "chapter_id": "107",
+      "chapter_id": "107-i",
       "chapter_title": "청년 지원 창업 사업",
       "title": "• 양구군 소상공인 예비창업자 지원사업",
       "content": {
@@ -2865,11 +2870,12 @@
         "예산(억원)": "2",
         "사업공고일": "'25.1월",
         "소관부처": "강원 특별자치도 양구군 (경제체육과)",
-        "전담(주관)기관": ""
+        "전담(주관)기관": "",
+        "지역구분": "강원"
       }
     },
     {
-      "chapter_id": "108",
+      "chapter_id": "108-i",
       "chapter_title": "청년 지원 창업 사업",
       "title": "• 스타트업 전북 챌린지 사업",
       "content": {
@@ -2883,11 +2889,12 @@
         "예산(억원)": "2",
         "사업공고일": "'25.2~3월",
         "소관부처": "전북 특별자치도 (창업지원과)",
-        "전담(주관)기관": "주관기관 미정 (공모 예정)"
+        "전담(주관)기관": "주관기관 미정 (공모 예정)",
+        "지역구분": "전북"
       }
     },
     {
-      "chapter_id": "109",
+      "chapter_id": "109-i",
       "chapter_title": "청년 지원 창업 사업",
       "title": "• 시군 청년혁신가 예비창업 지원",
       "content": {
@@ -2899,11 +2906,12 @@
         "예산(억원)": "6.35",
         "사업공고일": "'25.3월",
         "소관부처": "전북 특별자치도 (창업지원과)",
-        "전담(주관)기관": "전북창조경제 혁신센터"
+        "전담(주관)기관": "전북창조경제 혁신센터",
+        "지역구분": "전북"
       }
     },
     {
-      "chapter_id": "110",
+      "chapter_id": "110-i",
       "chapter_title": "청년 지원 창업 사업",
       "title": "• 창업기업 양성 프로젝트",
       "content": {
@@ -2916,11 +2924,12 @@
         "예산(억원)": "3",
         "사업공고일": "'25.2월",
         "소관부처": "전북 특별자치도 (창업지원과)",
-        "전담(주관)기관": "전북창조경제 혁신센터"
+        "전담(주관)기관": "전북창조경제 혁신센터",
+        "지역구분": "전북"
       }
     },
     {
-      "chapter_id": "111",
+      "chapter_id": "111-i",
       "chapter_title": "청년 지원 창업 사업",
       "title": "· 전북형 창업패키지 지원",
       "content": {
@@ -2935,29 +2944,31 @@
         "예산(억원)": "20",
         "사업공고일": "'25.2월",
         "소관부처": "전북 특별자치도 (창업지원과)",
-        "전담(주관)기관": "전주시, 군산시"
+        "전담(주관)기관": "전주시, 군산시",
+        "지역구분": "전북"
       }
     },
     {
-      "chapter_id": "112",
+      "chapter_id": "112-i",
       "chapter_title": "청년 지원 창업 사업",
       "title": "· 창업 중심대학 사업",
       "content": {
-        "사업개요": "창업지원 역량이 우수한 대학을 '창업중심대학'으로 지정하여 창업지원 사업 수행",
+        "사업개요": "창업지원 역량이 우수한 대학을 '창업중심대학'으로 지정하여 대학발 창업을 활성화하고 지역창업허브 역할 수행하기 위한 사업으로 대학발 창업기업 및 지역특화 창업기업 지원",
         "지원내용": [
           "사업화 자금",
           "민간 연계 투자유치",
-          "글로벌 창업 지원 등"
+          "글로벌 진출 등 역량 강화 프로그램 지원"
         ],
         "지원대상": "예비창업자 및 창업기업",
         "예산(억원)": "0.5",
         "사업공고일": "'25.1월",
-        "소관부처": "전주시 (일자리)",
-        "전담(주관)기관": "전북대학교 창업지원단"
+        "소관부처": "전주시 (일자리정책과)",
+        "전담(주관)기관": "전북대학교 창업지원단",
+        "지역구분": "전북"
       }
     },
     {
-      "chapter_id": "113",
+      "chapter_id": "113-i",
       "chapter_title": "청년 지원 창업 사업",
       "title": "정읍시 로컬 청년창업 지원사업",
       "content": {
@@ -2970,11 +2981,12 @@
         "예산(억원)": "1.5",
         "사업공고일": "'25. 4월",
         "소관부처": "정읍시 (일자리 정책과)",
-        "전담(주관)기관": "정읍시 청년지원센터 (창업컨설팅)"
+        "전담(주관)기관": "정읍시 청년지원센터 (창업컨설팅)",
+        "지역구분": "전북"
       }
     },
     {
-      "chapter_id": "114",
+      "chapter_id": "114-i",
       "chapter_title": "청년 지원 창업 사업",
       "title": "창업 소상공인 지원사업",
       "content": {
@@ -2986,11 +2998,12 @@
         "예산(억원)": "1.5",
         "사업공고일": "'25.1월",
         "소관부처": "김제시 (경제진흥과)",
-        "전담(주관)기관": "-"
+        "전담(주관)기관": "-",
+        "지역구분": "전북"
       }
     },
     {
-      "chapter_id": "115",
+      "chapter_id": "115-i",
       "chapter_title": "청년 지원 창업 사업",
       "title": "빈점포 창업지원사업 김제애 마켓",
       "content": {
@@ -3002,11 +3015,12 @@
         "예산(억원)": "0.8",
         "사업공고일": "'25.1월",
         "소관부처": "김제시 (경제진흥과)",
-        "전담(주관)기관": "-"
+        "전담(주관)기관": "-",
+        "지역구분": "전북"
       }
     },
     {
-      "chapter_id": "116",
+      "chapter_id": "116-i",
       "chapter_title": "청년 지원 창업 사업",
       "title": "소상공인 생애 첫 창업지원금 지원사업",
       "content": {
@@ -3018,11 +3032,12 @@
         "예산(억원)": "1.5",
         "사업공고일": "'25.1월",
         "소관부처": "김제시 (경제진흥과)",
-        "전담(주관)기관": "-"
+        "전담(주관)기관": "-",
+        "지역구분": "전북"
       }
     },
     {
-      "chapter_id": "117",
+      "chapter_id": "117-i",
       "chapter_title": "청년 지원 창업 사업",
       "title": "김제청년 예비 창업 도전 지원 사업 ‘힌트’",
       "content": {
@@ -3034,11 +3049,12 @@
         "예산(억원)": "2",
         "사업공고일": "'25.1월",
         "소관부처": "김제시 (경제진흥과)",
-        "전담(주관)기관": "전북창조경제 혁신센터"
+        "전담(주관)기관": "전북창조경제 혁신센터",
+        "지역구분": "전북"
       }
     },
     {
-      "chapter_id": "118",
+      "chapter_id": "118-i",
       "chapter_title": "청년 지원 창업 사업",
       "title": "김제청년 창업 도약 지원사업 ‘톡톡’",
       "content": {
@@ -3050,11 +3066,12 @@
         "예산(억원)": "0.6",
         "사업공고일": "'25.1월",
         "소관부처": "1",
-        "전담(주관)기관": "전북창조경제 혁신센터"
+        "전담(주관)기관": "전북창조경제 혁신센터",
+        "지역구분": "전북"
       }
     },
     {
-      "chapter_id": "119",
+      "chapter_id": "119-i",
       "chapter_title": "청년 지원 창업 사업",
       "title": "청년창업 더하기 지원사업",
       "content": {
@@ -3066,11 +3083,12 @@
         "예산(억원)": "0.72",
         "사업공고일": "'25.2월",
         "소관부처": "장수군 (농산업 정책과)",
-        "전담(주관)기관": "장수군 (농산업 정책과)"
+        "전담(주관)기관": "장수군 (농산업 정책과)",
+        "지역구분": "전북"
       }
     },
     {
-      "chapter_id": "120",
+      "chapter_id": "120-i",
       "chapter_title": "청년 지원 창업 사업",
       "title": "장수군 청년혁신 가 예비창업지원",
       "content": {
@@ -3083,11 +3101,12 @@
         "예산(억원)": "0.38",
         "사업공고일": "'25.3월",
         "소관부처": "장수군 (농산업 정책과)",
-        "전담(주관)기관": "(재)전북창조경제 혁신센터 (특화사업 본부)"
+        "전담(주관)기관": "(재)전북창조경제 혁신센터 (특화사업 본부)",
+        "지역구분": "전북"
       }
     },
     {
-      "chapter_id": "121",
+      "chapter_id": "121-i",
       "chapter_title": "청년 지원 창업 사업",
       "title": "예비창업인(in) 프로젝트 지원 사업",
       "content": {
@@ -3101,11 +3120,12 @@
         "예산(억원)": "0.7",
         "사업공고일": "'25. 2~3월",
         "소관부처": "제주도 (소상 공인과)",
-        "전담(주관)기관": "제주경제통상 진흥원"
+        "전담(주관)기관": "제주경제통상 진흥원",
+        "지역구분": "제주"
       }
     },
     {
-      "chapter_id": "122",
+      "chapter_id": "122-i",
       "chapter_title": "청년 지원 창업 사업",
       "title": "혁신창업 성장 맞춤형 지원사업",
       "content": {
@@ -3119,29 +3139,33 @@
         "예산(억원)": "1.3",
         "사업공고일": "'25. 3~4월",
         "소관부처": "제주도 (소상 공인과)",
-        "전담(주관)기관": "제주 테크노파크"
+        "전담(주관)기관": "제주 테크노파크",
+        "지역구분": "제주"
       }
     },
     {
-      "chapter_id": "123",
+      "chapter_id": "123-i",
       "chapter_title": "청년 지원 창업 사업",
       "title": "청년창업 스케일업 지원사업",
       "content": {
-        "사업개요": "청년창업 촉진 및 선순환 창업생태계 환경 조성을 위한 청년기업 IR 투자역량 강화, 경영 컨설팅 / 멘토링, 제품 고도화 지원 등",
+        "사업개요": "청년창업 촉진 및 선순환 창업생태계 환경 조성을 위한 청년기업 IR 투자역량 강화, 경영 컨설팅 / 멘토링, 제품 고도화 개발 등 종합 성장 지원",
         "지원내용": [
           "IR 투자역량 강화",
           "경영 컨설팅 / 멘토링",
-          "제품 고도화 개"
+          "제품 고도화 개발, 마케팅·판로개척",
+          "데모데이, 투자 연계"
+
         ],
         "지원대상": "7년 이내 청년 창업기업 12개사 내외 (39세 이하)",
         "예산(억원)": "2.0",
         "사업공고일": "'25. 3~4월",
         "소관부처": "제주도 (소상공인과)",
-        "전담(주관)기관": "제주 테크노파크"
+        "전담(주관)기관": "제주 테크노파크",
+        "지역구분": "제주"
       }
     },
     {
-      "chapter_id": "124",
+      "chapter_id": "124-i",
       "chapter_title": "벤처기업 육성사업",
       "title": "벤처기업 육성사업",
       "content": {
@@ -3154,11 +3178,12 @@
         "예산(억원)": "1.0",
         "사업공고일": "'25. 3~4월",
         "소관부처": "제주도 (소상공인과)",
-        "전담(주관)기관": "제주 테크노파크"
+        "전담(주관)기관": "제주 테크노파크",
+        "지역구분": "제주"
       }
     },
     {
-      "chapter_id": "125",
+      "chapter_id": "125-i",
       "chapter_title": "청년 지원 창업 사업",
       "title": "청년 다시-DREAM 재창업 지원사업",
       "content": {
@@ -3171,11 +3196,12 @@
         "예산(억원)": "1.4",
         "사업공고일": "'25.3월",
         "소관부처": "제주도 (소상공인과)",
-        "전담(주관)기관": "제주경제통상 진흥원"
+        "전담(주관)기관": "제주경제통상 진흥원",
+        "지역구분": "제주"
       }
     },
     {
-      "chapter_id": "126",
+      "chapter_id": "126-i",
       "chapter_title": "ICT 기업 지원사업",
       "title": "도내 ICT 기업 지원사업",
       "content": {
@@ -3188,11 +3214,12 @@
         "예산(억원)": "1.0",
         "사업공고일": "'25.3월",
         "소관부처": "제주도 (미래 성장과)",
-        "전담(주관)기관": "제주 테크노파크 미래산업센터"
+        "전담(주관)기관": "제주 테크노파크 미래산업센터",
+        "지역구분": "제주"
       }
     },
     {
-      "chapter_id": "127",
+      "chapter_id": "127-i",
       "chapter_title": "IP 활용 창업 지원사업",
       "title": "IP활용 창업·성장 지원사업",
       "content": {
@@ -3205,11 +3232,12 @@
         "예산(억원)": "7.2",
         "사업공고일": "'25. 1.~ 2월",
         "소관부처": "특허청 (지역산업 재산과)",
-        "전담(주관)기관": "제주상공 회의소 제주지식 재산센터"
+        "전담(주관)기관": "제주상공 회의소 제주지식 재산센터",
+        "지역구분": "제주"
       }
     },
     {
-      "chapter_id": "128",
+      "chapter_id": "128-i",
       "chapter_title": "청년 지원 창업 사업",
       "title": "제주콘텐츠코리아 랩 운영",
       "content": {
@@ -3222,11 +3250,12 @@
         "예산(억원)": "3.0",
         "사업공고일": "'25. 2~3월",
         "소관부처": "제주도 (문화 정책과)",
-        "전담(주관)기관": "(재)제주 콘텐츠 진흥원"
+        "전담(주관)기관": "(재)제주 콘텐츠 진흥원",
+        "지역구분": "제주"
       }
     },
     {
-      "chapter_id": "129",
+      "chapter_id": "129-i",
       "chapter_title": "제주 관광 스타트업 육성 사업",
       "title": "제주 관광 스타트업 육성 사업",
       "content": {
@@ -3243,7 +3272,7 @@
       }
     },
     {
-      "chapter_id": "130",
+      "chapter_id": "130-i",
       "chapter_title": "청년 지원 창업 사업",
       "title": "청년농업인 창업 인큐베이팅 지원",
       "content": {
@@ -3260,7 +3289,7 @@
       }
     },
     {
-      "chapter_id": "131",
+      "chapter_id": "131-i",
       "chapter_title": "청년 지원 창업 사업",
       "title": "청년창업농 영농정착지원금 (제주시)",
       "content": {
@@ -3279,7 +3308,7 @@
       }
     },
     {
-      "chapter_id": "132",
+      "chapter_id": "132-i",
       "chapter_title": "청년 지원 창업 사업",
       "title": "청년농업인 영농정착지원금 (서귀포시)",
       "content": {
@@ -3298,7 +3327,7 @@
       }
     },
     {
-      "chapter_id": "133",
+      "chapter_id": "133-i",
       "chapter_title": "수산산업 창업투자 지원사업",
       "title": "수산산업 창업투자 지원사업",
       "content": {
@@ -3316,7 +3345,7 @@
       }
     },
     {
-      "chapter_id": "134",
+      "chapter_id": "134-i",
       "chapter_title": "속초시 생애 첫 창업지원금 지원",
       "title": "속초시 생애 첫 창업지원금 지원",
       "content": {
@@ -3333,7 +3362,7 @@
       }
     },
     {
-      "chapter_id": "1",
+      "chapter_id": "135-i",
       "chapter_title": "창업기업 스케일업 지원",
       "title": "창업기업 스케일업 지원",
       "content": {
@@ -3350,7 +3379,7 @@
       }
     },
     {
-      "chapter_id": "2",
+      "chapter_id": "136-i",
       "chapter_title": "민간주도 창업 기업 스케일업 실증지원",
       "title": "민간주도 창업 기업 스케일업 실증지원",
       "content": {
@@ -3367,7 +3396,7 @@
       }
     },
     {
-      "chapter_id": "3",
+      "chapter_id": "137-i",
       "chapter_title": "데이터 분야 서비스·기술기업 창업지원",
       "title": "데이터 분야 서비스·기술기업 창업지원",
       "content": {
@@ -3386,7 +3415,7 @@
       }
     },
     {
-      "chapter_id": "1",
+      "chapter_id": "1-j",
       "chapter_title": "서울창업허브 공덕(우수기업 발굴·육성)",
       "title": "서울창업허브 공덕(우수기업 발굴·육성)",
       "content": {
@@ -3405,7 +3434,7 @@
       }
     },
     {
-      "chapter_id": "2",
+      "chapter_id": "2-j",
       "chapter_title": "서울창업허브 M+ 운영",
       "title": "서울창업허브 M+ 운영",
       "content": {
@@ -3425,7 +3454,7 @@
       }
     },
     {
-      "chapter_id": "3",
+      "chapter_id": "3-j",
       "chapter_title": "서울창업허브 창동 운영",
       "title": "서울창업허브 창동 운영",
       "content": {
@@ -3442,7 +3471,7 @@
       }
     },
     {
-      "chapter_id": "4",
+      "chapter_id": "4-j",
       "chapter_title": "서울창업허브 성수 운영",
       "title": "서울창업허브 성수 운영",
       "content": {
@@ -3462,7 +3491,7 @@
       }
     },
     {
-      "chapter_id": "5",
+      "chapter_id": "5-j",
       "chapter_title": "서울용산시제품 제작소 운영",
       "title": "서울용산시제품 제작소 운영",
       "content": {
@@ -3483,16 +3512,17 @@
       }
     },
     {
-      "chapter_id": "6",
+      "chapter_id": "6-j",
       "chapter_title": "서울새활용플라자 창업지원센터",
       "title": "서울새활용플라자 창업지원센터",
       "content": {
-        "사업개요": "새활용·재활용 및 도시문제해결 분야 스타트업 선발 및 입주공간 지원, 맞춤형 프로그램 제공",
+        "사업개요": "새활용·재활용 및 도시문제해결 분야 스타트업 선발 및 입주공간 지원, 맞춤형 교육 및 멘토링/컨설팅을 통한 사업화 지원, 창업행상/네트워킹 지원",
         "지원내용": [
           "설·공간·보육",
-          "멘토링·컨설팅·교육"
+          "멘토링·컨설팅·교육",
+          "행사·네트워크"
         ],
-        "지원대상": "새활용·재활용 및 도시문제해결 분야 우수 기술 및 서비스 기업",
+        "지원대상": "새활용·재활용 및 도시문제해결 분야 우수 기술 및 서비스 역량을 보유한 공고일 기준, 사업개시일로부터 7년이 지나지 아니한 스타트업",
         "예산(억원)": "5.7",
         "사업공고일": "'25.5월",
         "소관부처": "서울특별시 (창업정책과)",
@@ -3501,7 +3531,7 @@
       }
     },
     {
-      "chapter_id": "7",
+      "chapter_id": "7-j",
       "chapter_title": "서울창업 성장센터",
       "title": "서울창업 성장센터",
       "content": {
@@ -3521,7 +3551,7 @@
       }
     },
     {
-      "chapter_id": "8",
+      "chapter_id": "8-j",
       "chapter_title": "서울창업디딤터",
       "title": "서울창업디딤터",
       "content": {
@@ -3540,7 +3570,7 @@
       }
     },
     {
-      "chapter_id": "9",
+      "chapter_id": "9-j",
       "chapter_title": "서울창업센터 관악",
       "title": "서울창업센터 관악",
       "content": {
@@ -3559,24 +3589,26 @@
       }
     },
     {
-      "chapter_id": "10",
+      "chapter_id": "10-j",
       "chapter_title": "서울창업센터 동작",
       "title": "서울창업센터 동작",
       "content": {
-        "사업개요": "중장년 중심 기술창업 지원, 동행 테크 및 기",
+        "사업개요": "중장년 중심 기술창업 지원, 동행 테크 및 기술 기반 스타트업 발굴 및 육성",
         "지원내용": [
-          "서울창업허브 독립사무공간"
+          "서울창업허브 독립사무공간제공",
+          "중장년 중심 팀빌딩 기술창업 지원",
+          "우수 스타트업 선발 및 보육"
         ],
         "지원대상": "창업 7년 이내 기업, 예비창업자",
         "예산(억원)": "8.4",
-        "사업공고일": "'24.11월, '25년",
+        "사업공고일": "'24.11월, '25년 상반기",
         "소관부처": "서울특별시 (창업정책과)",
         "전담(주관)기관": "서울경제 진흥원",
         "지역": "서울"
       }
     },
     {
-      "chapter_id": "11",
+      "chapter_id": "11-j",
       "chapter_title": "서울핀테크랩 운영",
       "title": "서울핀테크랩 운영",
       "content": {
@@ -3595,7 +3627,7 @@
       }
     },
     {
-      "chapter_id": "12",
+      "chapter_id": "12-j",
       "chapter_title": "제2서울핀테크랩 운영",
       "title": "제2서울핀테크랩 운영",
       "content": {
@@ -3614,7 +3646,7 @@
       }
     },
     {
-      "chapter_id": "13",
+      "chapter_id": "13-j",
       "chapter_title": "G밸리 창업큐브",
       "title": "G밸리 창업큐브",
       "content": {
@@ -3633,7 +3665,7 @@
       }
     },
     {
-      "chapter_id": "14",
+      "chapter_id": "14-j",
       "chapter_title": "서울디자인창업 센터",
       "title": "서울디자인창업 센터",
       "content": {
@@ -3651,25 +3683,26 @@
       }
     },
     {
-      "chapter_id": "15",
+      "chapter_id": "15-j",
       "chapter_title": "강동구 청년해냄센터",
       "title": "강동구 청년해냄센터",
       "content": {
-        "사업개요": "우수한 기술과 아이디어를 보유한 청년 창업자",
+        "사업개요": "우수한 기술과 아이디어를 보유한 청년 창업자 발굴 및 업무공간 제공, 멘토링, 창업 교육을 통한 기업 육성",
         "지원내용": [
           "사무공간 제공",
-          "교육 및 멘토링"
+          "교육 및 멘토링",
+          "네트워킹"
         ],
-        "지원대상": "39세 이하, 예비~창업 3년 이하",
+        "지원대상": "39세 이하, 예비~창업 3년 이내 창업기업",
         "예산(억원)": "3.5",
         "사업공고일": "'25.5월, 11월",
-        "소관부처": "강동구 (일자리)",
+        "소관부처": "강동구 (일자리정책과)",
         "전담(주관)기관": "(주)희망설계",
         "지역": "서울"
       }
     },
     {
-      "chapter_id": "16",
+      "chapter_id": "16-j",
       "chapter_title": "관악S밸리 창업공간 운영",
       "title": "관악S밸리 창업공간 운영",
       "content": {
@@ -3688,7 +3721,7 @@
       }
     },
     {
-      "chapter_id": "17",
+      "chapter_id": "17-j",
       "chapter_title": "광진경제 허브센터 운영",
       "title": "광진경제 허브센터 운영",
       "content": {
@@ -3706,7 +3739,7 @@
       }
     },
     {
-      "chapter_id": "18",
+      "chapter_id": "18-j",
       "chapter_title": "도봉구 청년창업센터",
       "title": "도봉구 청년창업센터",
       "content": {
@@ -3727,15 +3760,15 @@
       }
     },
     {
-      "chapter_id": "19",
+      "chapter_id": "19-j",
       "chapter_title": "도봉구 중소기업 창업보육센터",
       "title": "도봉구 중소기업 창업보육센터",
       "content": {
-        "사업개요": "역세권의 창업 사무공간을 시세 대비 저렴한 임대료로 제공하여 창업기",
+        "사업개요": "역세권의 창업 사무공간을 시세 대비 저렴한 임대료로 제공하여 창업기업의 안정적인 성장을 지원하는 사업",
         "지원내용": [
           "창업 사무실",
           "각종 요금",
-          "창업교육 및"
+          "창업교육 및 컨설팅"
         ],
         "지원대상": "예비 및 설립 7년 미만 창업자",
         "예산(억원)": "1.8",
@@ -3746,7 +3779,7 @@
       }
     },
     {
-      "chapter_id": "20",
+      "chapter_id": "20-j",
       "chapter_title": "창업지원센터 운영 (청년, 중소기업)",
       "title": "창업지원센터 운영 (청년, 중소기업)",
       "content": {
@@ -3765,7 +3798,7 @@
       }
     },
     {
-      "chapter_id": "21",
+      "chapter_id": "21-j",
       "chapter_title": "서대문구-서울 시립대 창업지원 센터",
       "title": "서대문구-서울 시립대 창업지원 센터",
       "content": {
@@ -3783,7 +3816,7 @@
       }
     },
     {
-      "chapter_id": "22",
+      "chapter_id": "22-j",
       "chapter_title": "양천창업지원센터 운영",
       "title": "양천창업지원센터 운영",
       "content": {
@@ -3801,7 +3834,7 @@
       }
     },
     {
-      "chapter_id": "23",
+      "chapter_id": "23-j",
       "chapter_title": "은평창업지원 센터 입주기업 모집",
       "title": "은평창업지원 센터 입주기업 모집",
       "content": {
@@ -3821,15 +3854,16 @@
       }
     },
     {
-      "chapter_id": "24",
+      "chapter_id": "24-j",
       "chapter_title": "중랑 창업지원센터",
       "title": "중랑 창업지원센터",
       "content": {
-        "사업개요": "유망 기업을 조기 발굴하여 일자리 창출 및 지역경제 활성화에 기여할 수 있",
+        "사업개요": "유망 기업을 조기 발굴하여 일자리 창출 및 지역경제 활성화에 기여할 수 있도록 맞춤형 교육 및 컨설팅, 투자 유치 등을 통해 우량 기업으로 육성함",
         "지원내용": [
           "창업 공간 제공",
           "교육 및 컨설팅",
-          "기업 간 네트워킹"
+          "기업 간 네트워킹",
+          "투자유치 기원"
         ],
         "지원대상": "예비창업자, 창업 7년 이내 유망 중소기업",
         "예산(억원)": "0.88",
@@ -3840,7 +3874,7 @@
       }
     },
     {
-      "chapter_id": "25",
+      "chapter_id": "25-j",
       "chapter_title": "청년 지원 창업 사업",
       "title": "마포비즈니스센터",
       "content": {
@@ -3851,11 +3885,12 @@
         "사업공고일": "공실 발생에 따라 수시",
         "소관부처": "마포구 (경제진흥과)",
         "전담(주관)기관": "마포구 (홍익대 산학협력단)",
+        "지역": "서울",
         "비고": ""
       }
     },
     {
-      "chapter_id": "26",
+      "chapter_id": "26-j",
       "chapter_title": "청년 지원 창업 사업",
       "title": "중장년 기술창업센터",
       "content": {
@@ -3866,11 +3901,12 @@
         "사업공고일": "공실 발생에 따라 수시",
         "소관부처": "마포구 (경제진흥과)",
         "전담(주관)기관": "마포구 (홍익대 산학협력단)",
-        "비고": "중장년"
+        "비고": "중장년",
+        "지역": "서울"
       }
     },
     {
-      "chapter_id": "27",
+      "chapter_id": "27-j",
       "chapter_title": "청년 지원 창업 사업",
       "title": "1인 창조기업 지원센터",
       "content": {
@@ -3881,11 +3917,12 @@
         "사업공고일": "공실 발생에 따라 수시",
         "소관부처": "마포구 (경제진흥과)",
         "전담(주관)기관": "마포구 (홍익대 산학협력단)",
-        "비고": ""
+        "비고": "",
+        "지역": "서울"
       }
     },
     {
-      "chapter_id": "28",
+      "chapter_id": "28-j",
       "chapter_title": "청년 지원 창업 사업",
       "title": "중소기업 창업지원센터 운영",
       "content": {
@@ -3896,26 +3933,28 @@
         "사업공고일": "상시",
         "소관부처": "영등포구 (지역경제과, 청년정책과)",
         "전담(주관)기관": "영등포구 (지역경제과, 청년정책과)",
-        "비고": ""
+        "비고": "",
+        "지역": "서울"
       }
     },
     {
-      "chapter_id": "29",
+      "chapter_id": "29-j",
       "chapter_title": "청년 지원 창업 사업",
       "title": "창업공간100 운영",
       "content": {
-        "사업개요": "(예비)창업기업에게 사무 공간 및 편의시설 제공",
-        "지원내용": ["사무공간", "교육 및 컨설팅", "멘토링"],
+        "사업개요": "(예비)창업기업에게 사무 공간 및 편의시설 제공, 교류의 장 활성화로 지역창업문화 확산 및 창업기업의 안정적 사업화 도모",
+        "지원내용": ["사무공간", "교육 및 컨설팅", "멘토링 및 액셀러레이팅 지원"],
         "지원대상": "예비 및 7년 이내 창업기업",
         "예산(억원)": "1.9",
         "사업공고일": "수시 공고",
-        "소관부처": "부산광역시 (창업벤처)",
+        "소관부처": "부산광역시 (창업벤처담당관)",
         "전담(주관)기관": "(재)부산기술 창업투자원",
-        "비고": ""
+        "비고": "",
+        "지역": "부산"
       }
     },
     {
-      "chapter_id": "30",
+      "chapter_id": "30-j",
       "chapter_title": "청년 지원 창업 사업",
       "title": "센텀기술창업 타운 운영",
       "content": {
@@ -3926,11 +3965,12 @@
         "사업공고일": "사업별 상이",
         "소관부처": "부산광역시 (창업벤처 담당관)",
         "전담(주관)기관": "(재)부산기술 창업투자원",
-        "비고": ""
+        "비고": "",
+        "지역": "부산"
       }
     },
     {
-      "chapter_id": "31",
+      "chapter_id": "31-j",
       "chapter_title": "청년 지원 창업 사업",
       "title": "금사 푸드앤파크 창업지원시설 운영",
       "content": {
@@ -3941,11 +3981,12 @@
         "사업공고일": "입주기업 계약 만료시",
         "소관부처": "부산광역시 금정구 (일자리 경제과)",
         "전담(주관)기관": "",
-        "비고": "외식 창업"
+        "비고": "외식 창업",
+        "지역": "부산"
       }
     },
     {
-      "chapter_id": "32",
+      "chapter_id": "32-j",
       "chapter_title": "청년 지원 창업 사업",
       "title": "청년창조발전소 꿈터플러스 운영",
       "content": {
@@ -3956,11 +3997,12 @@
         "사업공고일": "연중",
         "소관부처": "부산광역시 금정구 (일자리 경제과)",
         "전담(주관)기관": "(주)스마트파머 (민간위탁)",
-        "비고": "청년 지원 창업 사업"
+        "비고": "청년 지원 창업 사업",
+        "지역": "부산"
       }
     },
     {
-      "chapter_id": "33",
+      "chapter_id": "33-j",
       "chapter_title": "청년 지원 창업 사업",
       "title": "청년창업문화촌 운영",
       "content": {
@@ -3971,11 +4013,12 @@
         "사업공고일": "입주기업 계약 만료시",
         "소관부처": "부산광역시 금정구 (일자리 경제과)",
         "전담(주관)기관": "",
-        "비고": "청년 지원 창업 사업"
+        "비고": "청년 지원 창업 사업",
+        "지역": "부산"
       }
     },
     {
-      "chapter_id": "34",
+      "chapter_id": "34-j",
       "chapter_title": "청년 지원 창업 사업",
       "title": "수영구 청년창업둥지 사업",
       "content": {
@@ -3986,26 +4029,28 @@
         "사업공고일": "'24. 12월",
         "소관부처": "부산시 수영구 (일자리 경제과)",
         "전담(주관)기관": "부산시 수영구 (일자리 경제과)",
-        "비고": "청년 지원 창업 사업"
+        "비고": "청년 지원 창업 사업",
+        "지역": "부산"
       }
     },
     {
-      "chapter_id": "35",
+      "chapter_id": "35-j",
       "chapter_title": "청년 지원 창업 사업",
       "title": "수영구 창업육성센터",
       "content": {
-        "사업개요": "유망한 사업아이템과 사업성을 보유한 창업가의 성공적 창업 지원을 위해 창업공간을 제공입주기업의 초기 자립에",
+        "사업개요": "유망한 사업아이템과 사업성을 보유한 창업가의 성공적 창업 지원을 위해 창업공간을 제공입주기업의 초기 자립에 보탬이 되고자 판로개척비 지원",
         "지원내용": ["창업공간", "판로개척비", "창업 교육"],
         "지원대상": "부산지역 사업자 등록 7년 이내자",
         "예산(억원)": "0.10",
         "사업공고일": "공실 발생시",
         "소관부처": "부산시 수영구 (일자리 경제과)",
         "전담(주관)기관": "부산시 수영구 (일자리 경제과)",
-        "비고": ""
+        "비고": "",
+        "지역": "부산"
       }
     },
     {
-      "chapter_id": "36",
+      "chapter_id": "36-j",
       "chapter_title": "청년 지원 창업 사업",
       "title": "디딤스페이스 입주자 공개 모집",
       "content": {
@@ -4016,11 +4061,12 @@
         "사업공고일": "'24.11월",
         "소관부처": "부산광역시 부산진구 (일자리 산업과)",
         "전담(주관)기관": "부산광역시 부산진구 (일자리 산업과)",
-        "비고": ""
+        "비고": "",
+        "지역": "부산"
       }
     },
     {
-      "chapter_id": "37",
+      "chapter_id": "37-j",
       "chapter_title": "청년 지원 창업 사업",
       "title": "비상스페이스 입주자 공개 모집",
       "content": {
@@ -4031,11 +4077,12 @@
         "사업공고일": "'24.11월",
         "소관부처": "부산광역시 부산진구 (일자리산업 과)",
         "전담(주관)기관": "부산광역시 부산진구 (일자리 산업과)",
-        "비고": ""
+        "비고": "",
+        "지역": "부산"
       }
     },
     {
-      "chapter_id": "38",
+      "chapter_id": "38-j",
       "chapter_title": "청년 지원 창업 사업",
       "title": "청년창조발전소 공유사무실 입주 모집",
       "content": {
@@ -4046,26 +4093,28 @@
         "사업공고일": "'24.11월",
         "소관부처": "부산광역시 부산진구 (일자리 산업과)",
         "전담(주관)기관": "부산광역시 부산진구 (일자리 산업과)",
-        "비고": ""
+        "비고": "",
+        "지역": "부산"
       }
     },
     {
-      "chapter_id": "39",
+      "chapter_id": "39-j",
       "chapter_title": "청년 지원 창업 사업",
       "title": "청년창조발전소 카페 입주 모집",
       "content": {
-        "사업개요": "지역특화 창업 사업으로 인기있는 분야인 카페창업 예비·초기 창업자에게 저렴한 임대료로 카페 공간을 지원, 부담없이 카페운영을",
+        "사업개요": "지역특화 창업 사업으로 인기있는 분야인 카페창업 예비·초기 창업자에게 저렴한 임대료로 카페 공간을 지원, 부담없이 카페운영을 경험하여 최종적인 성공률을 높이고자 함",
         "지원내용": ["입주 공간 지원"],
         "지원대상": "창업 3년 이내 기업",
         "예산(억원)": "-",
         "사업공고일": "'25.1월",
         "소관부처": "부산광역시 부산진구 (일자리 산업과)",
         "전담(주관)기관": "부산광역시 부산진구 (일자리 산업과)",
-        "비고": ""
+        "비고": "",
+        "지역": "부산"
       }
     },
     {
-      "chapter_id": "40",
+      "chapter_id": "40-j",
       "chapter_title": "청년 지원 창업 사업",
       "title": "전포메트로청춘 드림센터 입주자 모집",
       "content": {
@@ -4081,7 +4130,7 @@
       }
     },
     {
-      "chapter_id": "41",
+      "chapter_id": "41-j",
       "chapter_title": "청년 지원 창업 사업",
       "title": "스포츠산업 창업 지원실 운영사업",
       "content": {
@@ -4097,7 +4146,7 @@
       }
     },
     {
-      "chapter_id": "42",
+      "chapter_id": "42-j",
       "chapter_title": "청년 지원 창업 사업",
       "title": "정서진 아라뱃길 청년창업 공간운영",
       "content": {
@@ -4113,23 +4162,23 @@
       }
     },
     {
-      "chapter_id": "43",
+      "chapter_id": "43-j",
       "chapter_title": "청년 지원 창업 사업",
       "title": "청년창업 희망스타트 지원사업",
       "content": {
         "지역": "인천",
-        "사업개요": "관내 변종유흥업소 일대를 청년창업 특화거리로 조성",
-        "지원내용": ["건물 임차보증금, 임차료 50% 지원"],
+        "사업개요": "관내 변종유흥업소 일대를 청년창업 특화거리로 조성하여 청년 일자리 창출 및 도시 이미지 제고",
+        "지원내용": ["건물 임차보증금, 임차료 50% 지원","컨설팅 지원"],
         "지원대상": "예비창업가 및 3년 이내 창업기업",
         "예산(억원)": "0.7",
         "사업공고일": "연중 수시",
-        "소관부처": "인천광역시 미추홀구",
-        "전담(주관)기관": "인천광역시 미추홀구",
-        "비고": "청년 지원 창업"
+        "소관부처": "인천광역시 미추홀구(일자리정책과)",
+        "전담(주관)기관": "인천광역시 미추홀구(일자리정책과)",
+        "비고": "청년 지원 창업 사업"
       }
     },
     {
-      "chapter_id": "44",
+      "chapter_id": "44-j",
       "chapter_title": "청년 지원 창업 사업",
       "title": "K-콘텐츠 청년창업 지원사업",
       "content": {
@@ -4145,7 +4194,7 @@
       }
     },
     {
-      "chapter_id": "45",
+      "chapter_id": "45-j",
       "chapter_title": "청년 지원 창업 사업",
       "title": "서구 스타트업센터 입주기업 모집",
       "content": {
@@ -4161,7 +4210,7 @@
       }
     },
     {
-      "chapter_id": "46",
+      "chapter_id": "46-j",
       "chapter_title": "청년 지원 창업 사업",
       "title": "북구 공공임대주택 청년창업공간 운영",
       "content": {
@@ -4177,7 +4226,7 @@
       }
     },
     {
-      "chapter_id": "47",
+      "chapter_id": "47-j",
       "chapter_title": "청년 지원 창업 사업",
       "title": "동구 창업지원센터 입주기업 운영",
       "content": {
@@ -4193,7 +4242,7 @@
       }
     },
     {
-      "chapter_id": "48",
+      "chapter_id": "48-j",
       "chapter_title": "청년 지원 창업 사업",
       "title": "창업생태계 조성 및 스타트업파크 운영",
       "content": {
@@ -4209,23 +4258,23 @@
       }
     },
     {
-      "chapter_id": "49",
+      "chapter_id": "49-j",
       "chapter_title": "청년 지원 창업 사업",
-      "title": "소셜벤처 창업 플랫폼 운영",
+      "title": "소셜벤처 창업 플랫폼 운영 활성화",
       "content": {
         "지역": "대전",
-        "사업개요": "소셜벤처 3년미만 창업기업 대상으로 아이템 검증",
-        "지원내용": ["입주공간", "사업화 지원", "경영컨설팅"],
-        "지원대상": "소셜벤처 예비창업자 및 창업 후 3년",
+        "사업개요": "소셜벤처 3년미만 창업기업 대상으로 아이템 검증을 통한 우수기업 발굴, 1:1 전문가컨설팅(회계, 세무, 경영) 등 사업화 지원",
+        "지원내용": ["입주공간", "사업화 지원", "경영컨설팅","글로벌 진출 등"],
+        "지원대상": "소셜벤처 예비창업자 및 창업 후 3년이내 기업",
         "예산(억원)": "18",
         "사업공고일": "연중",
         "소관부처": "대전광역시 (창업진흥과)",
-        "전담(주관)기관": "대전창조경제 혁신센터",
+        "전담(주관)기관": "대전창조경제 혁신센터(임팩트창업본부)",
         "비고": ""
       }
     },
     {
-      "chapter_id": "50",
+      "chapter_id": "50-j",
       "chapter_title": "청년 지원 창업 사업",
       "title": "소셜벤처 성장 플랫폼 운영 활성화",
       "content": {
@@ -4245,7 +4294,7 @@
       }
     },
     {
-      "chapter_id": "51",
+      "chapter_id": "51-j",
       "chapter_title": "청년 지원 창업 사업",
       "title": "대전 창업성장캠퍼스 활성화 사업",
       "content": {
@@ -4264,7 +4313,7 @@
       }
     },
     {
-      "chapter_id": "52",
+      "chapter_id": "52-j",
       "chapter_title": "청년 지원 창업 사업",
       "title": "글로벌 혁신창업 성장허브 운영",
       "content": {
@@ -4283,7 +4332,7 @@
       }
     },
     {
-      "chapter_id": "53",
+      "chapter_id": "53-j",
       "chapter_title": "청년 지원 창업 사업",
       "title": "기업키움 센터 운영 활성화",
       "content": {
@@ -4302,7 +4351,7 @@
       }
     },
     {
-      "chapter_id": "54",
+      "chapter_id": "54-j",
       "chapter_title": "청년 지원 창업 사업",
       "title": "1인창조기업 지원센터",
       "content": {
@@ -4321,7 +4370,7 @@
       }
     },
     {
-      "chapter_id": "55",
+      "chapter_id": "55-j",
       "chapter_title": "청년 지원 창업 사업",
       "title": "청년창업가 비즈니스센터 운영",
       "content": {
@@ -4338,28 +4387,28 @@
       }
     },
     {
-      "chapter_id": "56",
+      "chapter_id": "56-j",
       "chapter_title": "청년 지원 창업 사업",
-      "title": "대전 서구 창업 공간(수밋들 코워)",
+      "title": "대전 서구 창업 공간(수밋들 코워킹스페이스) 운영",
       "content": {
-        "사업개요": "대전 서구 소재 기술창업 기업에게 입주공간 제공",
+        "사업개요": "대전 서구 소재 기술창업 기업에게 입주공간 제공, 네트워킹 지원, 컨설팅 지원, 투자유치 행사 참여기회를 제공하여 창업 기업 발굴 및 지역경제 활성화",
         "지원내용": [
           "입주공간",
           "네트워킹",
           "컨설팅",
-          "투자유치"
+          "투자유치 행사참여"
         ],
         "지원대상": "(예비)기술창업기업 / 핀테크기업 우대",
         "예산(억원)": "2",
         "사업공고일": "'25.3월",
-        "소관부처": "대전광역시 서구",
-        "전담(주관)기관": "대전광역시 서구",
+        "소관부처": "대전광역시 서구(전략사업과)",
+        "전담(주관)기관": "대전광역시 서구(전략사업과)",
         "지역": "대전"
       }
     },
     {
       "chapter_title": "청년 지원 창업 사업",
-      "chapter_id": "57",
+      "chapter_id": "57-j",
       "title": "대전광역시 서구 청년창업지원센터 운영",
       "content": {
         "사업개요": "19~39세 예비 · 초기 청년창업가에게 창업공간 제공, 분야별 전문가 멘토링(상담), 마케팅 및 판로 개척 등",
@@ -4378,7 +4427,7 @@
     },
     {
       "chapter_title": "청년 지원 창업 사업",
-      "chapter_id": "58",
+      "chapter_id": "58-j",
       "title": "톡톡팩토리 운영",
       "content": {
         "사업개요": "청년창업기업 성장을 위한 기반 시설 제공(제조)",
@@ -4397,7 +4446,7 @@
     },
     {
       "chapter_title": "청년 지원 창업 사업",
-      "chapter_id": "59",
+      "chapter_id": "59-j",
       "title": "울주 꿈꾸는 청년대장간",
       "content": {
         "사업개요": "청년창업기업 성장을 위한 기반 시설 제공(제조)",
@@ -4416,7 +4465,7 @@
     },
     {
       "chapter_title": "기술 창업 지원 사업",
-      "chapter_id": "60",
+      "chapter_id": "60-j",
       "title": "기술창업 생태계 지원사업",
       "content": {
         "사업개요": "창업 개시 7년 이내 기술 창업기업에 성장단계별 맞춤형 지원사업을 제공하여 기술창업 생태계 활성화를 유도",
@@ -4434,27 +4483,8 @@
       }
     },
     {
-      "chapter_title": "중장년 창업 지원 사업",
-      "chapter_id": "60",
-      "title": "중장년 기술창업센터",
-      "content": {
-        "사업개요": "기술창업을 희망하는 40대 이상 중장년들을 대상으로 실전 창업교육, 사무공간, 지적재산권 확보 등의 원스톱 지원으로 성공적인 창업을 유도하여 안정적인 창업 및 성장기반 구축 유도",
-        "지원내용": [
-          "시설",
-          "사무실",
-          "창업 교육 등 초기창업활동 일체 지원"
-        ],
-        "지원대상": "만40세 이상의 중장년 (예비)창업자",
-        "예산(억원)": "0.86",
-        "사업공고일": "연중 수시",
-        "소관부처": "울주군 (일자리 지원과)",
-        "전담(주관)기관": "울산테크노파크",
-        "지역": "울산"
-      }
-    },
-    {
       "chapter_title": "청년 지원 창업 사업",
-      "chapter_id": "61",
+      "chapter_id": "61-j",
       "title": "세종 보육공간 운영사업",
       "content": {
         "사업개요": "창업기업 입주공간 및 창업 프로그램(교육, 멘토링 등) 지원",
@@ -4473,7 +4503,7 @@
     },
     {
       "chapter_title": "청년 지원 창업 사업",
-      "chapter_id": "62",
+      "chapter_id": "62-j",
       "title": "세종창업 키움센터 운영",
       "content": {
         "사업개요": "창업공간 및 사업화(사업화 자금 등) 연계 지원을 통한 유망 창업기업 발굴·육성",
@@ -4493,7 +4523,7 @@
     },
     {
       "chapter_title": "청년 지원 창업 사업",
-      "chapter_id": "63",
+      "chapter_id": "63-j",
       "title": "경기창업혁신공간 운영",
       "content": {
         "사업개요": "창업기업 대상 저렴한 입주공간과 성장단계별 맞춤형 지원, 지역 스타트업 발굴·육성 및 공간 간 유기적 연계운영을 통한 혁신 창업 생태계 구축",
@@ -4511,7 +4541,7 @@
     },
     {
       "chapter_title": "청년 지원 창업 사업",
-      "chapter_id": "64",
+      "chapter_id": "64-j",
       "title": "경기벤처창업지원센터 운영",
       "content": {
         "사업개요": "예비 ~ 7년 이내 창업기업에 저렴한 입주공간 제공",
@@ -4529,7 +4559,7 @@
     },
     {
       "chapter_title": "청년 지원 창업 사업",
-      "chapter_id": "65",
+      "chapter_id": "65-j",
       "title": "스타트업 랩 운영",
       "content": {
         "사업개요": "4차산업 핵심분야 스타트업 발굴·육성을 위해 창업기업에 입주공간과 수요 맞춤형 프로그램 지원",
@@ -4547,7 +4577,7 @@
     },
     {
       "chapter_title": "청년 지원 창업 사업",
-      "chapter_id": "66",
+      "chapter_id": "66-j",
       "title": "창업 보육센터 운영지원",
       "content": {
         "사업개요": "인적, 물적 인프라를 갖춘 대학 및 연구소 내 창업보육시설 입주기업에게 사업화 지원을 통한 창업·성장 지원",
@@ -4564,10 +4594,10 @@
     },
     {
       "chapter_title": "여성 창업 지원 사업",
-      "chapter_id": "67",
+      "chapter_id": "67-j",
       "title": "여성창업지원센터 및 성장센터 운영",
       "content": {
-        "사업개요": "창업 초기~7년차 여성기업의 데쓰밸리를 극복하고 경쟁시장에 안착할 수 있도록",
+        "사업개요": "창업 초기~7년차 여성기업의 데쓰밸리를 극복하고 경쟁시장에 안착할 수 있도록 개별 사무공간 제공, 사업화지원, 멘토링을 지원하여 여성기업 지속성장 지원",
         "지원내용": [
           "입주공간",
           "사업화지원",
@@ -4582,7 +4612,7 @@
       }
     },
     {
-      "chapter_id": "68",
+      "chapter_id": "68-j",
       "chapter_title": "청년 지원 창업 사업",
       "title": "· 창업지원센터 통합운영",
       "content": {
@@ -4601,9 +4631,9 @@
       }
     },
     {
-      "chapter_id": "69",
+      "chapter_id": "69-j",
       "chapter_title": "청년 지원 창업 사업",
-      "title": "• 드림 비상주 창업 센터 운영",
+      "title": "드림 비상주 창업 센터 운영",
       "content": {
         "사업개요": "관내 예비창업자 및 창업기업 활성화를 위한 창업지원 공간 운영",
         "지원내용": [
@@ -4619,9 +4649,9 @@
       }
     },
     {
-      "chapter_id": "70",
+      "chapter_id": "70-j",
       "chapter_title": "청년 지원 창업 사업",
-      "title": "• 화성시 창업지원 플랫폼",
+      "title": "화성시 창업지원 플랫폼",
       "content": {
         "사업개요": "창업에 필요한 모든 솔루션을 한 공간에서 접할 수 있는 인프라를 운영하여 화성시 스타트업 생태계의 중추 역할 수행",
         "지원내용": [
@@ -4638,9 +4668,9 @@
       }
     },
     {
-      "chapter_id": "71",
+      "chapter_id": "71-j",
       "chapter_title": "청년 지원 창업 사업",
-      "title": "• 화성시 창업지원 플랫폼 +PLUS",
+      "title": "화성시 창업지원 플랫폼 +PLUS",
       "content": {
         "사업개요": "POST-BI 공간구축 및 우수기업 지원을 통해 성장하는 기업의 질적 고도화 및 화성시 전략·특화산업 육성",
         "지원내용": [
@@ -4657,9 +4687,9 @@
       }
     },
     {
-      "chapter_id": "72",
+      "chapter_id": "72-j",
       "chapter_title": "청년 지원 창업 사업",
-      "title": "• 성남창업센터 (정글ON)",
+      "title": "성남창업센터 (정글ON)",
       "content": {
         "사업개요": "기업의 성장 단계별 맞춤형 공간지원 및 스케일업을 위한 창업프로그램 지원",
         "지원내용": [
@@ -4675,16 +4705,17 @@
       }
     },
     {
-      "chapter_id": "73",
+      "chapter_id": "73-j",
       "chapter_title": "청년 지원 창업 사업",
-      "title": "• 청년오피스",
+      "title": "청년오피스",
       "content": {
         "사업개요": "청년, 창업 초기기업, 예비 창업자 - 전문 밀착코칭을 위한 자생력 강화 및 가상 오피스, 멘토링 지원",
         "지원내용": [
           "가상오피스 (주소지 및 임대차 계약서 지원)",
           "창업 공간",
           "스튜디오",
-          "멘토링"
+          "멘토링",
+          "교육"
         ],
         "지원대상": "청년 예비창업자 및 창업초기기업",
         "예산(억원)": "4.24",
@@ -4696,9 +4727,9 @@
       }
     },
     {
-      "chapter_id": "74",
+      "chapter_id": "74-j",
       "chapter_title": "청년 지원 창업 사업",
-      "title": "• 스타트업 오피스 지원",
+      "title": "스타트업 오피스 지원",
       "content": {
         "사업개요": "창업공간 및 멘토링 지원",
         "지원내용": [
@@ -4713,9 +4744,9 @@
       }
     },
     {
-      "chapter_id": "75",
+      "chapter_id": "75-j",
       "chapter_title": "청년 지원 창업 사업",
-      "title": "· 창업보육센터 운영 지원사업",
+      "title": "창업보육센터 운영 지원사업",
       "content": {
         "사업개요": "안정적인 입주공간 및 창업프로그램 지원을 통한 창업 성공률 제고",
         "지원내용": [
@@ -4732,9 +4763,9 @@
       }
     },
     {
-      "chapter_id": "76",
+      "chapter_id": "76-j",
       "chapter_title": "청년 지원 창업 사업",
-      "title": "• 양주시 청년센터 운영",
+      "title": "양주시 청년센터 운영",
       "content": {
         "사업개요": "예비·초기창업자를 위한 창업공간 제공 및 창업지원 프로그램 운영",
         "지원내용": [
@@ -4752,9 +4783,9 @@
       }
     },
     {
-      "chapter_id": "77",
+      "chapter_id": "77-j",
       "chapter_title": "청년 지원 창업 사업",
-      "title": "• 교통창업지원센터 모빌리티 분야 창업기업 육성 지원 사업",
+      "title": "교통창업지원센터 모빌리티 분야 창업기업 육성 지원 사업",
       "content": {
         "사업개요": "교통분야 창업기업 육성과 지역 인재 발굴을 통해 지역 경제 활성화에 기여",
         "지원내용": [
@@ -4771,9 +4802,9 @@
       }
     },
     {
-      "chapter_id": "78",
+      "chapter_id": "78-j",
       "chapter_title": "청년 지원 창업 사업",
-      "title": "• 구리시 청년내일 센터 운영",
+      "title": "구리시 청년내일 센터 운영",
       "content": {
         "사업개요": "39세 이하 청년 대상으로 구리시 청년의 성장과 자립을 위한 다양한 지원 사업과 정책 정보 제공",
         "지원내용": [
@@ -4790,9 +4821,9 @@
       }
     },
     {
-      "chapter_id": "79",
+      "chapter_id": "79-j",
       "chapter_title": "청년 지원 창업 사업",
-      "title": "• 의왕청년발전소 청년창업지원공간 운영",
+      "title": "의왕청년발전소 청년창업지원공간 운영",
       "content": {
         "사업개요": "의왕청년센터 내에 청년 창업지원공간을 조성하여 입주자를 모집",
         "지원내용": [
@@ -4810,9 +4841,9 @@
       }
     },
     {
-      "chapter_id": "80",
+      "chapter_id": "80-j",
       "chapter_title": "청년 지원 창업 사업",
-      "title": "• 의왕시 창업지원 공간 유니콘로드 운영",
+      "title": "의왕시 창업지원 공간 유니콘로드 운영",
       "content": {
         "사업개요": "우수한 창업기업을 발굴 및 육성하여 건강한 창업생태계 조성",
         "지원내용": [
@@ -4831,9 +4862,9 @@
       }
     },
     {
-      "chapter_id": "81",
+      "chapter_id": "81-j",
       "chapter_title": "청년 지원 창업 사업",
-      "title": "• 과천시 창업지원센터 운영",
+      "title": "과천시 창업지원센터 운영",
       "content": {
         "사업개요": "창업보육실 및 무상임대 사무실 제공 및 창업 전문 교육 제공",
         "지원내용": [
@@ -4852,9 +4883,9 @@
       }
     },
     {
-      "chapter_id": "82",
+      "chapter_id": "82-j",
       "chapter_title": "청년 지원 창업 사업",
-      "title": "• 충북 창업 스타티움 운영",
+      "title": "충북 창업 스타티움 운영",
       "content": {
         "사업개요": "청년 창업가들의 다양하게 어울릴 수 있는 코워킹스페이스 운영",
         "지원내용": [
@@ -4870,9 +4901,9 @@
       }
     },
     {
-      "chapter_id": "83",
+      "chapter_id": "83-j",
       "chapter_title": "청년 지원 창업 사업",
-      "title": "• 1인 창조기업 지원센터",
+      "title": "1인 창조기업 지원센터",
       "content": {
         "사업개요": "우수 아이디어, 기술보유 1인 창조기업 발굴 및 육성",
         "지원내용": [
@@ -4888,14 +4919,14 @@
       }
     },
     {
-      "chapter_id": "84",
+      "chapter_id": "84-j",
       "chapter_title": "중장년 창업 지원 사업",
-      "title": "· 충북 중장년 기술창업센터",
+      "title": "충북 중장년 기술창업센터 지원사업",
       "content": {
-        "사업개요": "중장년 예비 창업자를 대상으로 창업자 발굴, 네트워크 및 지원",
+        "사업개요": "중장년 예비 창업자를 대상으로 창업자 발굴, 네트워킹 창업교육 등 지원",
         "지원내용": [
           "시설·공간·보육",
-          "멘토링·컨설팅"
+          "멘토링·컨설팅·교육"
         ],
         "지원대상": "만 40세 이상 예비창업자",
         "예산(억원)": "1",
@@ -4906,9 +4937,9 @@
       }
     },
     {
-      "chapter_id": "85",
+      "chapter_id": "85-j",
       "chapter_title": "청년 지원 창업 사업",
-      "title": "· 충남 창업마루나비 운영",
+      "title": "충남 창업마루나비 운영",
       "content": {
         "사업개요": "(예비)창업가들이 머물며 혁신적인 아이디어를 생산해 낼 수 있는 공간을 제공하여 건실한 창업생태계 조성 기여",
         "지원내용": [
@@ -4923,9 +4954,9 @@
       }
     },
     {
-      "chapter_id": "86",
+      "chapter_id": "86-j",
       "chapter_title": "여성 창업 지원 사업",
-      "title": "• 여성창업 보육사업",
+      "title": "여성창업 보육사업",
       "content": {
         "사업개요": "여성 (예비)창업자 및 창업 초기 여성기업의 창업 보육, 마케팅, 판로개척 등 지원 통한 여성기업 경쟁력 강화를 위한 사업",
         "지원내용": [
@@ -4940,9 +4971,9 @@
       }
     },
     {
-      "chapter_id": "87",
+      "chapter_id": "87-j",
       "chapter_title": "창업 보육 지원 사업",
-      "title": "• 창업보육센터 및 기업 지원",
+      "title": "창업보육센터 및 기업 지원",
       "content": {
         "사업개요": "충남 도내 창업기업과 예비창업자에게 안정적인 사업수행 공간 제공 및 체계적인 보육·지원을 통한 창업 활성화를 위한 사업",
         "지원내용": [
@@ -4957,9 +4988,9 @@
       }
     },
     {
-      "chapter_id": "88",
+      "chapter_id": "88-j",
       "chapter_title": "창업 지원 사업",
-      "title": "• 그린스타트업 타운 지원",
+      "title": "그린스타트업 타운 지원",
       "content": {
         "사업개요": "도내 유망 스타트업 발굴 및 육성을 통한 지역 창업 생태계 활성화 지원",
         "지원내용": [
@@ -4974,9 +5005,9 @@
       }
     },
     {
-      "chapter_id": "89",
+      "chapter_id": "89-j",
       "chapter_title": "중장년 창업 지원 사업",
-      "title": "• 중장년 기술창업센터 지원",
+      "title": "중장년 기술창업센터 지원",
       "content": {
         "사업개요": "중장년의 창업역량 강화를 통해 기술창업·성장 지원 및 지역자원과 연계된 중장년 기술창업 지원 생태계 구축",
         "지원내용": [
@@ -4991,9 +5022,9 @@
       }
     },
     {
-      "chapter_id": "90",
+      "chapter_id": "90-j",
       "chapter_title": "청년 창업 지원 사업",
-      "title": "• 태안청년 창업지원",
+      "title": "태안청년 창업지원",
       "content": {
         "사업개요": "태안군 지역발전과 경제활성화를 위한 창업지원 정책을 통한 지역 내 청년 유치 및 이탈 방지",
         "지원내용": [
@@ -5008,15 +5039,15 @@
       }
     },
     {
-      "chapter_id": "91",
+      "chapter_id": "91-j",
       "chapter_title": "청년 창업 지원 사업",
       "title": "· 창업 청년 임대료 지원사업",
       "content": {
         "사업개요": "강진군에 창업한 청년들의 사업장 임대료 지원",
         "지원내용": [
-          "점포 사업장 임대료 1인당 월 30만원씩 12개"
+          "점포 사업장 임대료 1인당 월 30만원씩 12개월 지원(최대 360만원)"
         ],
-        "지원대상": "관내 창업하여 3개 2024.1.1. 이후 월 이상 경과, 점포",
+        "지원대상": "관내 창업하여 3개 2024.1.1. 이후 월 이상 경과, 점포 사업장 임대료를 납부하는 19~45세 강진에 주소를 둔 청년",
         "예산(억원)": "0.4",
         "사업공고일": "'25.3월",
         "소관부처": "강진군 (안구정책과)",
@@ -5025,7 +5056,7 @@
       }
     },
     {
-      "chapter_id": "92",
+      "chapter_id": "92-j",
       "chapter_title": "청년 지원 창업 사업",
       "title": "청년 창업아카데미 (G-Space@East) 운영",
       "content": {
@@ -5044,7 +5075,7 @@
       }
   },
   {
-      "chapter_id": "93",
+      "chapter_id": "93-j",
       "chapter_title": "청년 지원 창업 사업",
       "title": "경남 창업 수도 권거점 (G-Space@TIPS) 운영",
       "content": {
@@ -5061,7 +5092,7 @@
       }
   },
   {
-      "chapter_id": "94",
+      "chapter_id": "94-j",
       "chapter_title": "청년 지원 창업 사업",
       "title": "창원시 창업지원 센터",
       "content": {
@@ -5078,7 +5109,7 @@
       }
   },
   {
-      "chapter_id": "95",
+      "chapter_id": "95-j",
       "chapter_title": "청년 지원 창업 사업",
       "title": "창원시 1인 창조 기업지원센터",
       "content": {
@@ -5096,7 +5127,7 @@
       }
   },
   {
-    "chapter_id": "99",
+    "chapter_id": "99-j",
     "chapter_title": "중장년 창업 사업",
     "title": "진주형 1인창조기업 운영 사업",
     "content": {
@@ -5116,7 +5147,7 @@
     }
 },
 {
-    "chapter_id": "100",
+    "chapter_id": "100-j",
     "chapter_title": "중장년 창업 사업",
     "title": "중장년기술창업센터",
     "content": {
@@ -5136,7 +5167,7 @@
     }
 },
 {
-    "chapter_id": "101",
+    "chapter_id": "101-j",
     "chapter_title": "중장년 창업 사업",
     "title": "김해시1인 창조기업 지원센터 운영사업",
     "content": {
@@ -5155,7 +5186,7 @@
     }
 },
 {
-    "chapter_id": "102",
+    "chapter_id": "102-j",
     "chapter_title": "중장년 창업 사업",
     "title": "김해창업카페 및 메이커팩토리 운영",
     "content": {
@@ -5176,11 +5207,11 @@
     }
 },
 {
-    "chapter_id": "103",
+    "chapter_id": "103-j",
     "chapter_title": "중장년 창업 사업",
     "title": "창업보육센터 운영 지원사업",
     "content": {
-        "사업개요": "인제대·김해창업보육센터 입주기업의 운영지원을 통하여 창업 성공화 및 관내 기업의 경쟁력 강화",
+        "사업개요": "인제대·김해창업보육센터 입주기업의 운영지원을 통하여 창업 성공화 및 관내 기업의 경쟁력 강화를 위함",
         "지원내용": [
             "입주공간지원",
             "사업화지원",
@@ -5195,7 +5226,7 @@
     }
 },
 {
-  "chapter_id": "104",
+  "chapter_id": "104-j",
   "chapter_title": "청년 창업",
   "title": "거제시 청년창업공간(내꿈공간) 운영",
   "content": {
@@ -5212,7 +5243,7 @@
   }
 },
 {
-  "chapter_id": "105",
+  "chapter_id": "105-j",
   "chapter_title": "중장년 지원 창업 사업",
   "title": "창업보육센터 입주 기업 임차료 지원",
   "content": {
@@ -5229,7 +5260,7 @@
   }
 },
 {
-  "chapter_id": "106",
+  "chapter_id": "106-j",
   "chapter_title": "청년 지원 창업 사업",
   "title": "근화동396 청년 창업공간 운영",
   "content": {
@@ -5248,7 +5279,7 @@
   }
 },
 {
-  "chapter_id": "107",
+  "chapter_id": "107-j",
   "chapter_title": "중장년 지원 창업 사업",
   "title": "중장년기술창업 센터 운영",
   "content": {
@@ -5266,7 +5297,7 @@
   }
 },
 {
-  "chapter_id": "108",
+  "chapter_id": "108-j",
   "chapter_title": "중장년 지원 창업 사업",
   "title": "창업보육센터 활성화 지원사업",
   "content": {
@@ -5285,7 +5316,7 @@
   }
 },
 {
-  "chapter_id": "109",
+  "chapter_id": "109-j",
   "chapter_title": "청년 지원 창업 사업",
   "title": "청년뜰 (청년 창업센터) 운영 지원",
   "content": {
@@ -5304,7 +5335,7 @@
   }
 },
 {
-  "chapter_id": "110",
+  "chapter_id": "110-j",
   "chapter_title": "청년 지원 창업 사업",
   "title": "수제창작플랫폼 운영·지원사업",
   "content": {
@@ -5323,7 +5354,7 @@
   }
 },
 {
-  "chapter_id": "111",
+  "chapter_id": "111-j",
   "chapter_title": "청년 지원 창업 사업",
   "title": "청년창업플랫폼 (청춘미가)",
   "content": {
@@ -5341,7 +5372,7 @@
   }
 },
 {
-  "chapter_id": "112",
+  "chapter_id": "112-j",
   "chapter_title": "청년 지원 창업 사업",
   "title": "정읍시 청년 창업 챌린지숍 운영",
   "content": {
@@ -5358,7 +5389,7 @@
   }
 },
 {
-  "chapter_id": "113",
+  "chapter_id": "113-j",
   "chapter_title": "예비 창업자 창업 사업",
   "title": "정읍시 창업보육센터 지원사업",
   "content": {
@@ -5379,7 +5410,7 @@
   }
 },
 {
-  "chapter_id": "1",
+  "chapter_id": "1-k",
   "chapter_title": "청년 지원 창업 사업",
   "title": "서초창업스테이션 운영",
   "content": {
@@ -5396,7 +5427,7 @@
   }
 },
 {
-  "chapter_id": "2",
+  "chapter_id": "2-k",
   "chapter_title": "청년 지원 창업 사업",
   "title": "부산창업촉진지구지원사업",
   "content": {
@@ -5415,7 +5446,7 @@
   }
 },
 {
-  "chapter_id": "3",
+  "chapter_id": "3-k",
   "chapter_title": "청년 지원 창업 사업",
   "title": "금사 공업지역 기반 봉제기술 융합·혁신생태계 조성 프로젝트",
   "content": {
@@ -5434,7 +5465,7 @@
   }
 },
 {
-  "chapter_id": "4",
+  "chapter_id": "4-k",
   "chapter_title": "청년 지원 창업 사업",
   "title": "민간주도 스타트업 육성 지원사업",
   "content": {
@@ -5452,7 +5483,7 @@
   }
 },
 {
-  "chapter_id": "5",
+  "chapter_id": "5-k",
   "chapter_title": "청년 지원 창업 사업",
   "title": "지피지기 투자유치 지원사업",
   "content": {
@@ -5469,7 +5500,7 @@
   }
 },
 {
-  "chapter_id": "6",
+  "chapter_id": "6-k",
   "chapter_title": "청년 지원 창업 사업",
   "title": "신개념 세대융합 청년창업 지원",
   "content": {
@@ -5487,7 +5518,7 @@
   }
 },
 {
-  "chapter_id": "7",
+  "chapter_id": "7-k",
   "chapter_title": "청년 지원 창업 사업",
   "title": "창업카페 운영",
   "content": {
@@ -5505,7 +5536,7 @@
   }
 },
 {
-  "chapter_id": "8",
+  "chapter_id": "8-k",
   "chapter_title": "청년 지원 창업 사업",
   "title": "창업 소상공인 마케팅 지원",
   "content": {
@@ -5522,7 +5553,7 @@
   }
 },
 {
-  "chapter_id": "9",
+  "chapter_id": "9-k",
   "chapter_title": "청년 지원 창업 사업",
   "title": "재창업 희망 두드림 지원사업",
   "content": {
@@ -5540,7 +5571,7 @@
   }
 },
 {
-  "chapter_id": "10",
+  "chapter_id": "10-k",
   "chapter_title": "청년 지원 창업 사업",
   "title": "동구 맞춤형 경영컨설팅",
   "content": {
@@ -5557,7 +5588,7 @@
   }
 },
 {
-  "chapter_id": "11",
+  "chapter_id": "11-k",
   "chapter_title": "청년 지원 창업 사업",
   "title": "동구 창업스쿨",
   "content": {
@@ -5574,7 +5605,7 @@
   }
 },
 {
-  "chapter_id": "12",
+  "chapter_id": "12-k",
   "chapter_title": "청년 지원 창업 사업",
   "title": "창업보육 경쟁력 강화사업",
   "content": {
@@ -5591,7 +5622,7 @@
   }
 },
 {
-  "chapter_id": "13",
+  "chapter_id": "13-k",
   "chapter_title": "청년 지원 창업 사업",
   "title": "청년창업 지원사업",
   "content": {
@@ -5609,14 +5640,15 @@
   }
 },
 {
-  "chapter_id": "14",
+  "chapter_id": "14-k",
   "chapter_title": "청년 지원 창업 사업",
   "title": "세종 창업벤처 패키지",
   "content": {
       "사업개요": "공공(조달)시장 진출 및 판로기반 구축 지원",
       "지원내용": [
           "조달청 혁신제품 지정을 위한 1:1 맞춤형 컨설팅",
-          "사업아이템 공인(시험)인증"
+          "사업아이템 공인(시험)인증 지원",
+          "제품 선(先)보급 지원"
       ],
       "지원대상": "세종시에 본사를 두고 있는 업력 7년 이내 창업기업",
       "예산(억원)": "1.68",
@@ -5627,7 +5659,7 @@
   }
 },
 {
-  "chapter_id": "15",
+  "chapter_id": "15-k",
   "chapter_title": "여성 창업 지원 사업",
   "title": "세종 창업성장 투자지원",
   "content": {
@@ -5648,7 +5680,7 @@
   }
 },
 {
-  "chapter_id": "16",
+  "chapter_id": "16-k",
   "chapter_title": "스타트업 지원 사업",
   "title": "경기 스타트업 아카데미 운영",
   "content": {
@@ -5666,7 +5698,7 @@
   }
 },
 {
-  "chapter_id": "17",
+  "chapter_id": "17-k",
   "chapter_title": "여성 창업 지원 사업",
   "title": "여성창업플랫폼 운영",
   "content": {
@@ -5686,7 +5718,7 @@
   }
 },
 {
-  "chapter_id": "18",
+  "chapter_id": "18-k",
   "chapter_title": "사회적 경제 창업 지원",
   "title": "사회적경제 창업지원",
   "content": {
@@ -5704,16 +5736,16 @@
   }
 },
 {
-  "chapter_id": "19",
+  "chapter_id": "19-k",
   "chapter_title": "창업기업 역량강화 지원",
   "title": "창업기업 드림 키움 프로그램",
   "content": {
-    "사업개요": "관내 (예비)창업기업의 역량강화를 위한 사업계획서, 마케팅, 세무 등 교육",
+    "사업개요": "관내 (예비)창업기업의 역량강화를 위한 사업계획서, 마케팅, 세무 등 교육 지원",
     "지원내용": [
       "사업계획서 작성",
       "마케팅",
       "세무",
-      "IR자료 작성 등 교육"
+      "IR자료 작성 등 교육 지원"
     ],
     "지원대상": "예비 창업자 및 창업 7년 미만 창업기업",
     "예산(억원)": "0.59",
@@ -5724,7 +5756,7 @@
   }
 },
 {
-  "chapter_id": "20",
+  "chapter_id": "20-k",
   "chapter_title": "경기 지원 창업 사업",
   "title": "창업교육 패키지 사업",
   "content": {
@@ -5743,7 +5775,7 @@
   }
 },
 {
-  "chapter_id": "21",
+  "chapter_id": "21-k",
   "chapter_title": "경기 지원 창업 사업",
   "title": "실전 창업아카데미 교육 지원사업",
   "content": {
@@ -5760,7 +5792,7 @@
   }
 },
 {
-  "chapter_id": "22",
+  "chapter_id": "22-k",
   "chapter_title": "경기 지원 창업 사업",
   "title": "사회적경제 창업지원",
   "content": {
@@ -5779,7 +5811,7 @@
   }
 },
 {
-  "chapter_id": "23",
+  "chapter_id": "23-k",
   "chapter_title": "경기 지원 창업 사업",
   "title": "안성시 사회적 경제 창업교육",
   "content": {
@@ -5798,7 +5830,7 @@
   }
 },
 {
-  "chapter_id": "24",
+  "chapter_id": "24-k",
   "chapter_title": "충청권 창업 지원 사업",
   "title": "충청권 엔젤투자 허브 운영지원",
   "content": {
@@ -5814,11 +5846,11 @@
       "사업공고일": "'25.3월",
       "소관부처": "충청북도 (경제기업과)",
       "전담(주관)기관": "한국엔젤투자 협회",
-      "지역": "충청북도"
+      "지역": "충북"
   }
 },
 {
-  "chapter_id": "25",
+  "chapter_id": "25-k",
   "chapter_title": "충남 창업 지원 사업",
   "title": "메이커 스페이스 운영",
   "content": {
@@ -5833,28 +5865,28 @@
       "사업공고일": "연중 수시",
       "소관부처": "충청남도 (일자리 기업지원과)",
       "전담(주관)기관": "호서대학교 산학협력단",
-      "지역": "충청남도"
+      "지역": "충남"
   }
 },
 {
-  "chapter_id": "26",
+  "chapter_id": "26-k",
   "chapter_title": "전남 창업 지원 사업",
   "title": "전남으뜸창업 운영 사업",
   "content": {
-      "사업개요": "예비 또는 초기창업자에게 창업정보와 커뮤니티",
+      "사업개요": "예비 또는 초기창업자에게 창업정보와 커뮤니티 공간을 제공하고 상담을 통해 1:1전문가를 매칭하여 맞춤형 컨설팅 지원",
       "지원내용": [
-          "멘토링단 운영"
+          "멘토링단 운영하여 현장 또는 온라인 멘토링 지원 등"
       ],
       "지원대상": "전남 예비창업자 및 초기창업자",
       "예산(억원)": "3.46",
       "사업공고일": "'25.1월",
       "소관부처": "전라남도 (중소벤처)",
       "전담(주관)기관": "전남 창조경제혁신",
-      "지역": "전라남도"
+      "지역": "전남"
   }
 },
 {
-  "chapter_id": "27",
+  "chapter_id": "27-k",
   "chapter_title": "경남형 스타트업 액셀러레이팅",
   "title": "경남형 스타트업 액셀러레이팅",
   "content": {
@@ -5873,7 +5905,7 @@
   }
 },
 {
-  "chapter_id": "28",
+  "chapter_id": "28-k",
   "chapter_title": "G-콘텐츠 스타트업 액셀러레이팅",
   "title": "G-콘텐츠 스타트업 액셀러레이팅",
   "content": {
@@ -5893,7 +5925,7 @@
   }
 },
 {
-  "chapter_id": "29",
+  "chapter_id": "29-k",
   "chapter_title": "벤처기업 인증 획득 지원사업",
   "title": "벤처기업 인증 획득 지원사업",
   "content": {
@@ -5911,7 +5943,7 @@
   }
 },
 {
-  "chapter_id": "30",
+  "chapter_id": "30-k",
   "chapter_title": "스타트업 액셀러레이팅 지원",
   "title": "스타트업 액셀러레이팅 지원",
   "content": {
@@ -5929,11 +5961,11 @@
   }
 },
 {
-  "chapter_id": "31",
+  "chapter_id": "31-k",
   "chapter_title": "김해형 창업사관학교 운영사업",
   "title": "김해형 창업사관학교 운영사업",
   "content": {
-    "사업개요": "김해형 창업사관학교 입교/가입교 기업 대상 창업공간 제공 및 교육, 사업화 자금 지원을 통한 입주기업 보육",
+    "사업개요": "김해형 창업사관학교 입교/가입교 기업 대상 창업공간 제공 및 교육, 사업화 자금 지원을 통한 창업기업 도약 견인",
     "지원내용": [
       "입주-교육-사업화 자금",
       "투자 유치 지원 등 입주기업 보육"
@@ -5948,7 +5980,7 @@
   }
 },
 {
-  "chapter_id": "32",
+  "chapter_id": "32-k",
   "chapter_title": "선도기업 연계 스타트업 협업 지원사업",
   "title": "선도기업 연계 스타트업 협업 지원사업",
   "content": {
@@ -5967,7 +5999,7 @@
   }
 },
 {
-  "chapter_id": "33",
+  "chapter_id": "33-k",
   "chapter_title": "거제시 창업아카데미 운영",
   "title": "거제시 창업아카데미 운영",
   "content": {
@@ -5986,7 +6018,7 @@
   }
 },
 {
-  "chapter_id": "34",
+  "chapter_id": "34-k",
   "chapter_title": "강원 벤처펀드 투자생태계 조성사업",
   "title": "강원 벤처펀드 투자생태계 조성사업",
   "content": {
@@ -6006,7 +6038,7 @@
   }
 },
 {
-  "chapter_id": "35",
+  "chapter_id": "35-k",
   "chapter_title": "청년창업가 멘토링 운영",
   "title": "청년창업가 멘토링 운영",
   "content": {
@@ -6024,7 +6056,7 @@
   }
 },
 {
-  "chapter_id": "36",
+  "chapter_id": "36-k",
   "chapter_title": "창업허브 현장 배움 기술코칭 및 컨설팅",
   "title": "창업허브 현장 배움 기술코칭 및 컨설팅",
   "content": {
@@ -6042,7 +6074,7 @@
   }
 },
 {
-  "chapter_id": "37",
+  "chapter_id": "37-k",
   "chapter_title": "창업보육센터 입주기업 지원사업",
   "title": "창업보육센터 입주기업 지원사업",
   "content": {
@@ -6060,28 +6092,29 @@
   }
 },
 {
-  "chapter_id": "38",
+  "chapter_id": "38-k",
   "chapter_title": "창창한 창업스쿨",
   "title": "창창한 창업스쿨",
   "content": {
-    "사업개요": "혁신기술 아이디어를 보유한 도내 예비 창업자",
+    "사업개요": "혁신기술 아이디어를 보유한 도내 예비 창업자 대상으로 실효성이 높은 현장 중심의 실전 창업교육을 통해 창업 역량 강화",
     "지원내용": [
       "창업교육·멘토링",
-      "최소요건제품"
+      "최소요건제품(MVP) 제작 및 시장검증",
+      "후속 투자유치 지원"
     ],
     "지원대상": "전북특별자치도 소재 기술기반 예비 창업자",
     "예산(억원)": "1.15",
     "사업공고일": "'25.2~3월",
-    "소관부처": "전북특별자치도",
-    "전담(주관)기관": "주관기관 미정",
+    "소관부처": "전북특별자치도(창업지원과)",
+    "전담(주관)기관": "주관기관 미정(공모 예정)",
     "비고": "",
     "지역": "전북"
   }
 },
 {
-  "chapter_id": "39",
+  "chapter_id": "39-k",
   "chapter_title": "전북 민간투자주도형 기술창업 활성화 지원",
-  "title": "• 민간투자주도형 기술창업 활성화 지원",
+  "title": "민간투자주도형 기술창업 활성화 지원",
   "content": {
       "사업개요": "도내 창업기업 액셀러리팅 지원 및 TIPS추천",
       "지원내용": [
@@ -6098,9 +6131,9 @@
   }
 },
 {
-  "chapter_id": "40",
+  "chapter_id": "40-k",
   "chapter_title": "제주 탐나는 디지털 창작소 운영사업",
-  "title": "• 탐나는 디지털 창작소 운영사업",
+  "title": "탐나는 디지털 창작소 운영사업",
   "content": {
       "사업개요": "예비창업자 및 대학생들의 아이디어가 창업으로 이어질 수 있도록 창작 공간을 제공하여 3D프린터 등 디지털 장비 교육을 통한 지식 제조업 육성 기반 마련",
       "지원내용": [
@@ -6116,9 +6149,9 @@
   }
 },
 {
-  "chapter_id": "41",
+  "chapter_id": "41-k",
   "chapter_title": "제주 제주자원 활용형 창업지원사업",
-  "title": "· 제주자원 활용형 창업지원사업",
+  "title": "제주자원 활용형 창업지원사업",
   "content": {
       "사업개요": "지역자원 활용 예비창업자, 창업초기 기업을 위한 사업성검토, 창업절차 대행 등 창업컨설팅 지원으로 창업 활성화 및 중소기업 육성",
       "지원내용": [
@@ -6134,9 +6167,9 @@
   }
 },
 {
-  "chapter_id": "42",
+  "chapter_id": "42-k",
   "chapter_title": "제주 제주향토음식 창업요리교실 운영",
-  "title": "• 제주향토음식 창업요리교실 운영",
+  "title": "제주향토음식 창업요리교실 운영",
   "content": {
       "사업개요": "도 지정 제주향토음식 명인 지원 사업으로, 제주 향토음식 전문 요리사를 양성하고 전문 창업·취업을 통한 조리인력 배출로 지역 일자리 창출",
       "지원내용": [
@@ -6152,9 +6185,9 @@
   }
 },
 {
-  "chapter_id": "43",
+  "chapter_id": "43-k",
   "chapter_title": "제주 여성공동체 창업 인큐베이팅 지원",
-  "title": "• 여성공동체 창업 인큐베이팅 지원",
+  "title": "여성공동체 창업 인큐베이팅 지원",
   "content": {
       "사업개요": "도내 여성 창업 희망자의 창업 기초설계 및 컨설팅 등 지원",
       "지원내용": [
@@ -6172,9 +6205,9 @@
   }
 },
 {
-  "chapter_id": "44",
+  "chapter_id": "44-k",
   "chapter_title": "제주 (예비)사회적기업 창업인큐베이팅 지원사업",
-  "title": "• (예비)사회적기업 창업인큐베이팅 지원사업",
+  "title": "(예비)사회적기업 창업인큐베이팅 지원사업",
   "content": {
       "사업개요": "신규 사회적경제기업 육성을 위해 전문적인 교육·컨설팅 등 맞춤형 지원을 통한 기업 발굴로 사회서비스 확충",
       "지원내용": [
@@ -6190,9 +6223,9 @@
   }
 },
 {
-  "chapter_id": "1",
+  "chapter_id": "1-l",
   "chapter_title": "서울 Try Everything 2025",
-  "title": "· Try Everything 2025",
+  "title": "Try Everything 2025",
   "content": {
       "사업개요": "국내·외 유망 스타트업과 대·중견기업, 투자자, 엑셀러레이터 등 창업생태계 구성원들이 모여 교류하는 글로벌 스타트업 축제 'Try Everything 2025' 개최",
       "지원내용": [
@@ -6210,9 +6243,9 @@
   }
 },
 {
-  "chapter_id": "2",
+  "chapter_id": "2-l",
   "chapter_title": "부산 아시아 창업엑스포 FLY ASIA 2025",
-  "title": "• 아시아 창업엑스포 FLY ASIA 2025",
+  "title": "아시아 창업엑스포 FLY ASIA 2025",
   "content": {
       "사업개요": "(일시) '25.10월 중 (장소) 부산 벡스코 제1 전시장",
       "지원내용": [
@@ -6232,14 +6265,15 @@
   }
 },
 {
-  "chapter_id": "3",
+  "chapter_id": "3-l",
   "chapter_title": "대구 스타트업 리더스포럼",
-  "title": "• 대구 스타트업 리더스포럼",
+  "title": "대구 스타트업 리더스포럼",
   "content": {
       "사업개요": "스타트업 투자유치의 장, 매칭투자 지원",
       "지원내용": [
           "오픈트랙, 추천트랙을 통한 기업 발굴",
-          "참여기업 투 자유치 1:1"
+          "참여기업 투 자유치 1:1코칭",
+          "(행사운영)분기별 마지막 주 수요일"
       ],
       "지원대상": "7년 이내 스타트업 및 투자자(엔젤, VC, AC)",
       "예산(억원)": "2.5",
@@ -6251,9 +6285,9 @@
   }
 },
 {
-  "chapter_id": "4",
+  "chapter_id": "4-l",
   "chapter_title": "광주 2025 광주창업 페스티벌",
-  "title": "• 2025 광주창업 페스티벌",
+  "title": "2025 광주창업 페스티벌",
   "content": {
       "사업개요": "지역 스타트업들이 글로벌 창업생태계와 교류하고 해외로 진출하는 기회의 장을 제공",
       "지원내용": [
@@ -6272,9 +6306,9 @@
   }
 },
 {
-  "chapter_id": "5",
+  "chapter_id": "5-l",
   "chapter_title": "세종 세종 창업지원기관 협업 프로그램 운영",
-  "title": "• 세종 창업지원기관 협업 프로그램 운영",
+  "title": "세종 창업지원기관 협업 프로그램 운영",
   "content": {
       "사업개요": "세종시 창업지원기관 협의체인 ‘세종시 창업·벤처 기관협의회’를 통해 지역의 창업기반 마련 및, 미래 성장 분야 창업 트렌드 선도",
       "지원내용": [
@@ -6291,9 +6325,9 @@
   }
 },
 {
-  "chapter_id": "6",
+  "chapter_id": "6-l",
   "chapter_title": "세종 세종 기업형 로컬크리에이터 성장지원",
-  "title": "• 세종 기업형 로컬크리에이터 성장지원",
+  "title": "세종 기업형 로컬크리에이터 성장지원",
   "content": {
       "사업개요": "세종지역 지역혁신 창업가를 발굴하여 지역 고유 콘텐츠 제작, 행사 개최를 통한 스타트업 홍보 지원",
       "지원내용": [
@@ -6309,9 +6343,9 @@
   }
 },
 {
-  "chapter_id": "7",
+  "chapter_id": "7-l",
   "chapter_title": "경기 경기 창업 공모",
-  "title": "· 경기 창업 공모",
+  "title": "경기 창업 공모",
   "content": {
       "사업개요": "우수한 아이디어를 가진 창업자 대상 경연 및 포상 등을 통한 창업 분위기 확산",
       "지원내용": [
@@ -6328,13 +6362,15 @@
   }
 },
 {
-  "chapter_id": "8",
+  "chapter_id": "8-l",
   "chapter_title": "경기 경기도 공공데이터 활용 창업경진대회",
-  "title": "• 경기도 공공데이터 활용 창업경진대회",
+  "title": "경기도 공공데이터 활용 창업경진대회운영",
   "content": {
-      "사업개요": "경기도의 공공데이터포털 이용 활성화 및 공공 데이터를 활용한 창의적인 혁신 서비스 발굴 및 창업",
+      "사업개요": "경기도의 공공데이터포털 이용 활성화 및 공공 데이터를 활용한 창의적인 혁신 서비스 발굴 및 창업 컨설팅 지원",
       "지원내용": [
-          "수상작 시상금 및 경기도지사·경기도경제과학 진흥원장"
+          "수상작 시상금 및 경기도지사·경기도경제과학 진흥원장상 수여",
+          "창업역량 강화 컨설팅 및 투자유치 지원"
+
       ],
       "지원대상": "전 국민",
       "예산(억원)": "1.0",
@@ -6346,9 +6382,9 @@
   }
 },
 {
-  "chapter_id": "9",
+  "chapter_id": "9-l",
   "chapter_title": "경기 성남 창업경연 대회 (도전! S- 스타트업)",
-  "title": "• 성남 창업경연 대회 (도전! S- 스타트업)",
+  "title": "성남 창업경연 대회 (도전! S- 스타트업)",
   "content": {
       "사업개요": "우수한 창업 아이템을 보유한 예비/창업기업 발굴 및 사업화 지원을 통한 성공 창업 분위기 조성",
       "지원내용": [
@@ -6365,9 +6401,9 @@
   }
 },
 {
-  "chapter_id": "10",
+  "chapter_id": "10-l",
   "chapter_title": "경기 양주시 청년창업 경진대회",
-  "title": "• 양주시 청년창업 경진대회",
+  "title": "양주시 청년창업 경진대회",
   "content": {
       "사업개요": "우수한 창업아이템을 가진 청년 창업가 발굴·육성을 위한 창업 경진대회",
       "지원내용": [
@@ -6383,9 +6419,9 @@
   }
 },
 {
-  "chapter_id": "11",
+  "chapter_id": "11-l",
   "chapter_title": "충북 충북 노마드포럼 운영",
-  "title": "· 충북 노마드포럼 운영",
+  "title": "충북 노마드포럼 운영",
   "content": {
       "사업개요": "매월 스타트업-투자자-기관 간 교류의 장을 운영하여 충북 지역 창업 생태계 활성화 및 초기 투자 기반 조성",
       "지원내용": [
@@ -6403,9 +6439,9 @@
   }
 },
 {
-  "chapter_id": "12",
+  "chapter_id": "12-l",
   "chapter_title": "충북 충청북도 공공데이터 활용 창업경진대회",
-  "title": "• 충청북도 공공데이터 활용 창업경진대회",
+  "title": "충청북도 공공데이터 활용 창업경진대회",
   "content": {
       "사업개요": "공공데이터를 활용한 창업 아이디어 발굴 및 창업 컨설팅 지원",
       "지원내용": [
@@ -6422,9 +6458,9 @@
   }
 },
 {
-  "chapter_id": "13",
+  "chapter_id": "13-l",
   "chapter_title": "경남 CES 참가기업 지원",
-  "title": "• CES 참가기업 지원",
+  "title": "CES 참가기업 지원",
   "content": {
       "사업개요": "CES 참가기업 지원을 통한 지역 스타트업의 혁신 기술 홍보 및 해외시장 판로 개척",
       "지원내용": [
@@ -6440,11 +6476,11 @@
   }
 },
 {
-  "chapter_id": "14",
+  "chapter_id": "14-l",
   "chapter_title": "경남 스타트업 테크쇼",
-  "title": "• 스타트업 테크쇼",
+  "title": "스타트업 테크쇼",
   "content": {
-      "사업개요": "스타트업 투자 및 네트워킹 지원의 장 마련",
+      "사업개요": "스타트업 투자 및 네트워킹 지원의 장 마련 및 스타트업 컨퍼런스, 투자IR대회, 기술창업 아이디어 경진대회, 기업홍보관 운영 등",
       "지원내용": [
           "투자유치 지원"
       ],
@@ -6452,15 +6488,15 @@
       "예산(억원)": "0.5",
       "사업공고일": "'25.7월",
       "소관부처": "창원시 (미래 신산업과)",
-      "전담(주관)기관": "(재)창원산업 진흥원",
+      "전담(주관)기관": "(재)창원산업 진흥원(창업인재양성팀)",
       "비고": "",
       "지역": "경남"
   }
 },
 {
-  "chapter_id": "15",
+  "chapter_id": "15-l",
   "chapter_title": "경남 기술창업 아이디어 경진대회",
-  "title": "· 기술창업 아이디어 경진대회",
+  "title": "기술창업 아이디어 경진대회",
   "content": {
       "사업개요": "청년창업가 및 우수기업 발굴 창업단계별 IR발표 및 시상",
       "지원내용": [
@@ -6476,9 +6512,9 @@
   }
 },
 {
-  "chapter_id": "16",
+  "chapter_id": "16-l",
   "chapter_title": "경남 기술창업 포럼",
-  "title": "• 기술창업 포럼",
+  "title": "기술창업 포럼",
   "content": {
       "사업개요": "지역 창업생태계 발전방안 논의 포럼 발제 및 창업토크쇼 개최",
       "지원내용": [
@@ -6494,9 +6530,9 @@
   }
 },
 {
-  "chapter_id": "17",
+  "chapter_id": "17-l",
   "chapter_title": "경남 김해창업혁신센터 운영사업",
-  "title": "• 김해창업혁신센터 운영사업",
+  "title": "김해창업혁신센터 운영사업",
   "content": {
       "사업개요": "창업기업의 투자유치 애로를 해결하기 위해 투자 유치(IR) 역량강화를 확보하고 기업 간 정보교류 및 창업기업 애로해결을 위한 플랫폼 역할",
       "지원내용": [
@@ -6512,9 +6548,9 @@
   }
 },
 {
-  "chapter_id": "18",
+  "chapter_id": "18-l",
   "chapter_title": "경남 김해형 액셀러레이팅 지원사업",
-  "title": "• 김해형 액셀러레이팅 지원사업",
+  "title": "김해형 액셀러레이팅 지원사업",
   "content": {
       "사업개요": "지역 특색에 맞는 기업을 발굴 및 육성하여 관내 창업 생태계를 활성화하고 기업 성장을 위한 지원 체계 구축",
       "지원내용": [
@@ -6532,9 +6568,9 @@
   }
 },
 {
-  "chapter_id": "19",
+  "chapter_id": "19-l",
   "chapter_title": "경남 김해스타트업 포럼",
-  "title": "• 김해스타트업 포럼",
+  "title": "김해스타트업 포럼",
   "content": {
       "사업개요": "관내 스타트업 대표 및 유관기관 관계자들의 네트워크 형성 및 정보공유, 정책 제안을 위한 거버넌스 구축",
       "지원내용": [
@@ -6552,27 +6588,27 @@
   }
 },
 {
-  "chapter_id": "20",
+  "chapter_id": "20-l",
   "chapter_title": "강원 청년의 날 행사 (청년마르쉐)",
-  "title": "• 청년의 날 행사 (청년마르쉐)",
+  "title": "청년의 날 행사 (청년마르쉐)",
   "content": {
-      "사업개요": "청년기본법의 법정기념일을 기념하고, 청년 문제에 대해 인식하고 해결 방안을 모색하는 행사",
+      "사업개요": "청년기본법의 법정기념일을 기념하고, 청년 문제에 대한 전 세대의 사회적 공감대 형성과 다채로운 행사를 통해 해당 기념일의 의의를 높이고자 함",
       "지원내용": [
           "행사·네트워크"
       ],
-      "지원대상": "행사 부스 운영 : 18세 이상 39세",
+      "지원대상": ["행사 부스 운영 : 18세 이상 39세이하", "행사 참여 : 연령제한 없음"],
       "예산(억원)": "1.4",
       "사업공고일": "'25.5월",
-      "소관부처": "강원특별 자치도",
+      "소관부처": "강원특별 자치도 영월군(일자리청년과)",
       "전담(주관)기관": "영월청년포럼",
-      "비고": "청년 지원",
+      "비고": "청년 지원 창업 사업업",
       "지역": "강원"
   }
 },
 {
-  "chapter_id": "21",
+  "chapter_id": "21-l",
   "chapter_title": "창업보육센터 입주기업 지원사업",
-  "title": "· 창업보육센터 입주기업 지원사업",
+  "title": "창업보육센터 입주기업 지원사업",
   "content": {
       "사업개요": "입주기업의 성과공유 및 입주기업 간 정보교류 및 성장 시너지 확보",
       "지원내용": ["행사·네트워크"],
@@ -6585,9 +6621,9 @@
   }
 },
 {
-  "chapter_id": "22",
+  "chapter_id": "22-l",
   "chapter_title": "제3회 춘천 창업엑스포 개최",
-  "title": "• 제3회 춘천 창업엑스포 개최",
+  "title": "제3회 춘천 창업엑스포 개최",
   "content": {
       "사업개요": "우수창업기업 및 창업인 프라를 홍보하고 창업문화를 확산하기 위한 스타트업 행사",
       "지원내용": ["IR, 강연 및 포럼", "우수기업 홍보 및 전시", "네트워킹 등"],
@@ -6600,9 +6636,9 @@
   }
 },
 {
-  "chapter_id": "23",
+  "chapter_id": "23-l",
   "chapter_title": "청년창업 토크 콘서트",
-  "title": "· 청년창업 토크 콘서트",
+  "title": "청년창업 토크 콘서트",
   "content": {
       "사업개요": "관내 기업·창업가의 업무 현장이야기 및 노하우 공유 및 네트워크 형성(4회)",
       "지원내용": ["행사·네트워크"],
@@ -6615,9 +6651,9 @@
   }
 },
 {
-  "chapter_id": "24",
+  "chapter_id": "24-l",
   "chapter_title": "전북특별자치도 청년 창업 박람회",
-  "title": "• 전북특별자치도 청년 창업 박람회",
+  "title": "전북특별자치도 청년 창업 박람회",
   "content": {
       "사업개요": "전북 청년 창업가 아이디어 제품 전시·홍보·판매를 통해 판로를 개척하고, 네트워킹의 장을 마련하여 성장 발판 마련",
       "지원내용": ["전시·판매 부스 미대 상담부스 운영 지원", "네트워킹 지원 (투자사·선배 창업가 등)"],
@@ -6630,9 +6666,9 @@
   }
 },
 {
-  "chapter_id": "25",
+  "chapter_id": "25-l",
   "chapter_title": "기후테크 창업 기업 성장지원",
-  "title": "• 기후테크 창업 기업 성장지원",
+  "title": "기후테크 창업 기업 성장지원",
   "content": {
       "사업개요": "기후테크 창업기업 경진대회 및 대중견기업 협력 POC 자금지원 등",
       "지원내용": ["경진대회 개최 및 상금", "POC 지원 등"],
@@ -6645,9 +6681,9 @@
   }
 },
 {
-  "chapter_id": "26",
+  "chapter_id": "26-l",
   "chapter_title": "전주시 창업 경진대회",
-  "title": "• 전주시 창업 경진대회",
+  "title": "전주시 창업 경진대회",
   "content": {
       "사업개요": "우수 창업 아이디어 보유한 유망 스타트업 발굴 및 사업화 자금, 성장 프로그램, 멘토링, 네트워킹 등 지원",
       "지원내용": ["시상 및 상금", "프로그램 지원", "투자유치 연계"],
@@ -6660,9 +6696,9 @@
   }
 },
 {
-  "chapter_id": "1",
+  "chapter_id": "1-m",
   "chapter_title": "청년창업 특례보증",
-  "title": "• 청년창업 특례보증",
+  "title": "청년창업 특례보증",
   "content": {
       "사업개요": "자금이 부족한 청년창업 가에 대한 보증 및 이자 지원",
       "지원내용": ["보증지원", "이자지원"],
@@ -6675,9 +6711,9 @@
   }
 },
 {
-  "chapter_id": "2",
+  "chapter_id": "2-m",
   "chapter_title": "거제시 소상공인 육성자금 융자지원",
-  "title": "• 거제시 소상공인 육성자금 융자지원",
+  "title": "거제시 소상공인 육성자금 융자지원",
   "content": {
       "사업개요": "소상공인들의 안정적인 경영환경 조성 및 지역경제 활성화 도모를 위한 융자 지원",
       "지원내용": ["3%이자 차액 지원", "보증 수수료 지원 (1% 이내)"],
@@ -6690,9 +6726,9 @@
   }
 },
 {
-  "chapter_id": "3",
+  "chapter_id": "3-m",
   "chapter_title": "양산시 소상공인 육성자금 지원",
-  "title": "• 양산시 소상공인 육성자금 지원",
+  "title": "양산시 소상공인 육성자금 지원",
   "content": {
       "사업개요": "관내 소상공인에게 최대 5천만원~7천만원 융자지원을 통한 창업지원 및 안정적인 경영환경 조성",
       "지원내용": ["2.5%~3% 이자지원", "신용보증수수료 1년분 전액 지원"],
@@ -6705,9 +6741,9 @@
   }
 },
 {
-  "chapter_id": "4",
+  "chapter_id": "4-m",
   "chapter_title": "중소기업육성자금 융자지원 (기술창업기업자금)",
-  "title": "• 중소기업육성자금 융자지원 (기술창업기업자금)",
+  "title": "중소기업육성자금 융자지원 (기술창업기업자금)",
   "content": {
       "사업개요": "관내 기술기반 창업·벤처 기업의 안정적인 자금확보, 금융비용 부담 경감을 위해 기술보증기금 우대보증 및 지자체에서 이자 지원",
       "지원내용": ["우대보증 및 이자지원"],
@@ -6720,9 +6756,9 @@
   }
 },
 {
-  "chapter_id": "5",
+  "chapter_id": "5-m",
   "chapter_title": "청년 창업자금 무이자 대출 지원",
-  "title": "• 청년 창업자금 무이자 대출 지원",
+  "title": "청년 창업자금 무이자 대출 지원",
   "content": {
       "사업개요": "성장 가능성은 있으나 자금력이 부족한 청년들에게 대출과 이자를 지원함으로써 청년 창업 활성화에 기여",
       "지원내용": ["대출 및 이자 지원"],
@@ -6735,24 +6771,24 @@
   }
 },
 {
-  "chapter_id": "6",
+  "chapter_id": "6-m",
   "chapter_title": "중소기업 창업 지원",
-  "title": "· 중소기업 창업 지원",
+  "title": "· 중소기업 창업 지원자금 지원",
   "content": {
-      "사업개요": "기술력과 신용을 보유한 창업자들을 위한 창업 지원",
-      "지원내용": ["2% 이자 지원"],
-      "지원대상": "창업 7년 이내",
+      "사업개요": "기술력과 신용을 보유한 창업 기업에게 은행•보증기관과 연계한 저금리 대출(운전 자금)을 통하여 금융비용 부담 완화",
+      "지원내용": ["1. 이자지원 : 2%(이차보전)", "보증료 지원 : 연1.2%이내"],
+      "지원대상": "창업 7년 이내 중소기업",
       "예산(억원)": "1",
       "사업공고일": "'25.1월",
-      "소관부처": "강원특별자치도",
+      "소관부처": "강원특별자치도 원주시(기업지원일자리과)",
       "전담(주관)기관": "-",
       "지역": "강원"
   }
 },
 {
-  "chapter_id": "7",
+  "chapter_id": "7-m",
   "chapter_title": "군산 STAY 창업가 주거지원사업",
-  "title": "• 군산 STAY 창업가 주거지원사업",
+  "title": "군산 STAY 창업가 주거지원사업",
   "content": {
       "사업개요": "(예비)창업자 및 창업기업의 직원에게 안정적인 주거 공간을 제공",
       "지원내용": ["LH 보유 원룸", "보증금 최대 3,500천원", "월임대료 최대 100천원"],
@@ -6765,9 +6801,9 @@
   }
 },
 {
-  "chapter_id": "8",
+  "chapter_id": "8-m",
   "chapter_title": "청년농업인 영농정착지원사업",
-  "title": "• 청년농업인 영농정착지원사업",
+  "title": "청년농업인 영농정착지원사업",
   "content": {
       "사업개요": "영농정착지원금, 창업자금, 기술·경영 교육과 컨설팅, 농지은행 사업(임대·매매 등) 등을 연계 지원",
       "지원내용": ["융자"],
@@ -6780,9 +6816,9 @@
   }
 },
 {
-  "chapter_id": "9",
+  "chapter_id": "9-m",
   "chapter_title": "창업 두드림 특별보증",
-  "title": "· 창업 두드림 특별보증",
+  "title": "창업 두드림 특별보증",
   "content": {
       "사업개요": "담보력 부족 등 자금사정이 어려운 도내 창업기업에 대한 저금리 신용보증 융자지원을 통해 고용 창출 및 경영 안정화 도모",
       "지원내용": ["담보력 부족 등 자금사정이 어려운 창업기업 특별보증 지원 (300억원 규모)", "업체당 최대 5천만원 이내"],
@@ -6795,9 +6831,9 @@
   }
 },
 {
-  "chapter_id": "10",
+  "chapter_id": "10-m",
   "chapter_title": "청년기업 창업 두드림 보증료 제로사업",
-  "title": "• 청년기업 창업 두드림 보증료 제로사업",
+  "title": "청년기업 창업 두드림 보증료 제로사업",
   "content": {
       "사업개요": "고금리·고물가·고환율 3중 고로 인한 청년 사업자의 금융비용 부담과 신용위험의 증가에 따라 도내 청년 창업기업의 준비된 창업 육성 지원",
       "지원내용": ["청년기업에 대한 창업 두드림 특별 보증시 최초 1회 보증료 전액 지원"],
@@ -6810,9 +6846,9 @@
   }
 },
 {
-  "chapter_id": "1",
+  "chapter_id": "11-m",
   "chapter_title": "우수인재 유치 및 우수경력자 인건비 지원",
-  "title": "• 우수인재 유치 및 우수경력자 인건비 지원",
+  "title": "우수인재 유치 및 우수경력자 인건비 지원",
   "content": {
       "사업개요": "우수인재 유치 및 우수경력자 인건비 지원을 통한 창업기업 성장 지원",
       "지원내용": ["인건비", "역외 인재 체제비"],
@@ -6825,12 +6861,12 @@
   }
 },
 {
-  "chapter_id": "2",
+  "chapter_id": "12-m",
   "chapter_title": "창업기업신규고용인력보조금 지원사업",
-  "title": "· 창업기업신규고용인력보조금 지원사업",
+  "title": "창업기업신규고용인력보조금 지원사업",
   "content": {
       "사업개요": "기업의 투자 및 고용확대를 도모하고 지역경제 활성화에 기여",
-      "지원내용": ["1인건비 지원", "신규투자(5천만원)를 통한 신규고용 창출 시 1인당 최대 300만원 지원(기업당 5명 한도)"],
+      "지원내용": ["1. 인건비 지원", "신규투자(5천만원)를 통한 신규고용 창출 시 1인당 최대 300만원 지원(기업당 5명 한도)"],
       "지원대상": "공고일 현재 경남 도내 (본점, 연구소 경남소재)에서 창업 7년 미만 중소·벤처기업, 신규고용 인원(대표자 제외)",
       "예산(억원)": "2.34",
       "사업공고일": "'25.2월",
@@ -6840,9 +6876,9 @@
   }
 },
 {
-  "chapter_id": "1",
+  "chapter_id": "1-n",
   "chapter_title": "스타트업 글로벌 진출 지원",
-  "title": "• 스타트업 글로벌 진출 지원",
+  "title": "스타트업 글로벌 진출 지원",
   "content": {
       "사업개요": "국내외 기관과 협력을 통해 해외진출을 희망하는 스타트업을 대상으로 현지 시장조사, 마케팅, 법인설립 등 글로벌 진출 지원",
       "지원내용": ["현지 시장 조사", "컨설팅", "민간기관 협력 현지 액셀러레이팅 프로그램"],
@@ -6855,9 +6891,9 @@
   }
 },
 {
-  "chapter_id": "2",
+  "chapter_id": "2-n",
   "chapter_title": "글로벌 교류·투자 유치 지원사업",
-  "title": "• 글로벌 교류·투자 유치 지원사업",
+  "title": "글로벌 교류·투자 유치 지원사업",
   "content": {
       "사업개요": "지역기업의 글로벌 진출을 위한 컨설팅, 해외전시 참가 등을 지원하고, 해외 우수 기업 등의 유입을 위한 인바운드 프로그램 운영",
       "지원내용": ["프로그램 지원"],
@@ -6870,9 +6906,9 @@
   }
 },
 {
-  "chapter_id": "3",
+  "chapter_id": "3-n",
   "chapter_title": "G-유니콘 육성 지원",
-  "title": "• G-유니콘 육성 지원",
+  "title": "G-유니콘 육성 지원",
   "content": {
       "사업개요": "글로벌 유니콘 기업으로 성장 가능한 유망 창업기업 발굴 및 육성 지원 등",
       "지원내용": ["사업화자금", "투자유치 지원", "해외전시박람회 참가지원 등"],
@@ -6885,9 +6921,9 @@
   }
 },
 {
-  "chapter_id": "4",
+  "chapter_id": "4-n",
   "chapter_title": "경기 스타트업 글로벌 성장지원",
-  "title": "· 경기 스타트업 글로벌 성장지원",
+  "title": "경기 스타트업 글로벌 성장지원",
   "content": {
       "사업개요": "청년창업가의 해외전시회 참관을 통한 창업경험, 네트워크 형성 및 스타트업의 해외 투자유치 확대 등 글로벌 경쟁력 제고를 통한 질적성장 기업 육성",
       "지원내용": ["전시참관", "교육", "투자유치 지원"],
@@ -6900,9 +6936,9 @@
   }
 },
 {
-  "chapter_id": "5",
+  "chapter_id": "5-n",
   "chapter_title": "글로벌 스타트업 이륙작전",
-  "title": "• 글로벌 스타트업 이륙작전",
+  "title": "글로벌 스타트업 이륙작전",
   "content": {
       "사업개요": "관내 창업기업의 글로벌 역량 제고를 위해 해외 진출에 필요한 전방위 솔루션을 지원하고 글로벌 혁신기업으로의 성장을 촉진",
       "지원내용": ["사업화 자금", "프로그램 지원", "직간접 투자 지원"],
@@ -6915,9 +6951,9 @@
   }
 },
 {
-  "chapter_id": "6",
+  "chapter_id": "6-n",
   "chapter_title": "바이오 글로벌 파트너링",
-  "title": "· 바이오 글로벌 파트너링",
+  "title": "바이오 글로벌 파트너링",
   "content": {
       "사업개요": "글로벌 시장 개척을 위한 유럽 최대 규모의 제약·바이오 파트너링 행사 BIO-Europe 참가 지원",
       "지원내용": ["글로벌 파트너링 사전 전략수립 지원"],
@@ -6930,9 +6966,9 @@
   }
 },
 {
-  "chapter_id": "7",
+  "chapter_id": "7-n",
   "chapter_title": "의료기기 글로벌 진출지원",
-  "title": "· 의료기기 글로벌 진출지원",
+  "title": "의료기기 글로벌 진출지원",
   "content": {
       "사업개요": "의료기기 유망 창업기업의 글로벌 시장진출을 위한 컨설팅 및 해외 전시회 참가지원",
       "지원내용": ["액셀러레이팅 실증지원 프로그램"],
@@ -6945,9 +6981,9 @@
   }
 },
 {
-  "chapter_id": "8",
+  "chapter_id": "8-n",
   "chapter_title": "뷰티글로벌지원",
-  "title": "• 뷰티글로벌지원",
+  "title": "뷰티글로벌지원",
   "content": {
       "사업개요": "완제품 및 브랜드를 보유한 충북도내 스타트업의 글로벌 시장 진출을 위한 프로그램",
       "지원내용": ["글로벌 진출 컨설팅", "제품인증 (CPNP) 지원 등"],
