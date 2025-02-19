@@ -1,5 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
+import * as echarts from "echarts"; // npm install echarts
+import { mockPersonCountData } from "../mocks/mockPersonCountData_02_18";
 
 function Dashboard() {
   const location = useLocation();
@@ -31,6 +33,333 @@ function Dashboard() {
   const handleNextChart = () => {
     setChartIndex((prev) => (prev + 1) % chartModes.length);
   };
+
+  const [stats, setStats] = useState({
+    totalVisitors: 0,
+    peakTime: "00:00-01:00",
+    mainAgeRange: "N/A",
+    mainGender: "N/A",
+  });
+
+  // 가상의 API 호출 예시
+  const fetchMockData = async () => {
+    try {
+      // 실제 API 호출 대신 간단한 Mock 예시
+      // (selectedPeriod, currentChart 등을 고려해 데이터를 달리 할 수도 있음)
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      return mockPersonCountData;
+    } catch (error) {
+      console.error("통계 데이터 불러오기 실패:", error);
+    }
+  };
+
+  // 오늘 날짜만 필터링하는 함수 (selectedPerid == "Today" 일때 사용)
+  const filterTodayData = (data) => {
+    const now = new Date(); // 예: 2025-02-18 09:xx
+    const startOfToday = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      0,
+      0,
+      0
+    );
+    const endOfToday = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      23,
+      59,
+      59
+    );
+
+    return data.filter((row) => {
+      const rowDate = new Date(row.timestamp);
+      return rowDate >= startOfToday && rowDate <= endOfToday;
+    });
+  };
+
+  // 어제 날짜만 필터링하는 함수 (selectedPerid == "Yesterday" 일때 사용)
+  const filterYesterdayData = (data) => {
+    const now = new Date(); // 예: 2025-02-18 09:xx
+    const startOfYesterday = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate() - 1,
+      0,
+      0,
+      0
+    );
+    const endOfYesterday = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate() - 1,
+      23,
+      59,
+      59
+    );
+
+    return data.filter((row) => {
+      const rowDate = new Date(row.timestamp);
+      return rowDate >= startOfYesterday && rowDate <= endOfYesterday;
+    });
+  };
+
+  //일주일 날짜만 필터링하는 함수 (selectedPerid == "1주일" 일때 사용)
+  const filterWeekdayData = (data) => {
+    const now = new Date(); // 예: 2025-02-18 09:xx
+    const startOfWeekday = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate() - 7,
+      0,
+      0,
+      0
+    );
+    const endOfWeekday = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      23,
+      59,
+      59
+    );
+
+    return data.filter((row) => {
+      const rowDate = new Date(row.timestamp);
+      return rowDate >= startOfWeekday && rowDate <= endOfWeekday;
+    });
+  };
+
+  //한달 날짜만 필터링하는 함수 (selectedPerid == "1달" 일때 사용)
+  const filterMonthData = (data) => {
+    const now = new Date();
+    const startOfMonth = new Date(
+      now.getFullYear(),
+      // 여기서 now.getMonth() -1을 해줄지, get.Date() -30을 해줄지 고민!!
+      now.getMonth() - 1,
+      now.getDate(),
+      0,
+      0,
+      0
+    );
+    const endOfMonth = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      23,
+      59,
+      59
+    );
+
+    return data.filter((row) => {
+      const rowDate = new Date(row.timestamp);
+      return rowDate >= startOfMonth && rowDate <= endOfMonth;
+    });
+  };
+
+  const calculateStats = (data) => {
+    let total = 0;
+    let peakCount = 0;
+    let peakHour = "";
+    let sumMale = 0;
+    let sumFemale = 0;
+    let sumYoung = 0; // 20~39
+    let sumMiddle = 0; // 40~59
+    let sumMinor = 0; // 0~19
+
+    data.forEach((row) => {
+      const hourTotal =
+        row.male_young_adult +
+        row.female_young_adult +
+        row.male_middle_aged +
+        row.female_middle_aged +
+        row.male_minor +
+        row.female_minor;
+
+      // 총합
+      total += hourTotal;
+
+      // 피크 시간대
+      if (hourTotal > peakCount) {
+        peakCount = hourTotal;
+
+        const dateObj = new Date(row.timestamp);
+        const hour = dateObj.getHours(); // 15
+        const hourStr = String(hour).padStart(2, "0");
+        const nextHourStr = String((hour + 1) % 24).padStart(2, "0");
+
+        peakHour = `${hourStr}:00 - ${nextHourStr}:00`;
+      }
+
+      // 성별 합
+      sumMale += row.male_young_adult + row.male_middle_aged + row.male_minor;
+      sumFemale +=
+        row.female_young_adult + row.female_middle_aged + row.female_minor;
+
+      // 연령대 합
+      sumYoung += row.male_young_adult + row.female_young_adult;
+      sumMiddle += row.male_middle_aged + row.female_middle_aged;
+      sumMinor += row.male_minor + row.female_minor;
+    });
+
+    // 주요 성별
+    const mainGender = sumMale > sumFemale ? "남성" : "여성";
+
+    // 주요 연령대
+    let mainAgeRange = "N/A";
+    if (sumYoung >= sumMiddle && sumYoung >= sumMinor) {
+      mainAgeRange = "20~39";
+    } else if (sumMiddle >= sumYoung && sumMiddle >= sumMinor) {
+      mainAgeRange = "40~59";
+    } else {
+      mainAgeRange = "0~19";
+    }
+
+    return {
+      totalVisitors: total,
+      peakTime: peakHour,
+      mainAgeRange,
+      mainGender,
+    };
+  };
+
+  useEffect(() => {
+    const loadData = async () => {
+      const data = await fetchMockData();
+      let filteredData = data;
+
+      if (selectedPeriod === "오늘") {
+        filteredData = filterTodayData(data);
+      } else if (selectedPeriod === "어제") {
+        filteredData = filterYesterdayData(data);
+      } else if (selectedPeriod == "1주일") {
+        filteredData = filterWeekdayData(data);
+      } else if (selectedPeriod == "1달") {
+        filteredData = filterMonthData(data);
+      }
+
+      const result = calculateStats(filteredData);
+      setStats(result);
+    };
+    loadData();
+  }, [selectedCCTV, selectedPeriod]);
+
+  const chartRef = useRef(null);
+
+  useEffect(() => {
+    if (!chartRef.current) return;
+
+    const myChart = echarts.init(chartRef.current);
+
+    let xAxisData = ["08시", "10시", "12시", "14시", "16시", "18시", "20시"];
+
+    // 만약 selectedPeriod가 "1주일"이면 월~일로 표시
+    if (selectedPeriod === "1주일") {
+      xAxisData = ["월", "화", "수", "목", "금", "토", "일"];
+    }
+
+    // 공통 옵션
+    const baseOption = {
+      animation: false,
+      tooltip: {
+        trigger: "axis",
+        formatter: function (params) {
+          let result = params[0].axisValue + "<br/>";
+          params.forEach((param) => {
+            result += param.seriesName + ": " + param.value + "명<br/>";
+          });
+          return result;
+        },
+      },
+      legend: {
+        show: true,
+      },
+      grid: {
+        left: "3%",
+        right: "4%",
+        bottom: "3%",
+        containLabel: true,
+      },
+      xAxis: {
+        type: "category",
+        boundaryGap: false,
+        data: xAxisData,
+      },
+      yAxis: {
+        type: "value",
+      },
+      series: [],
+    };
+
+    // currentChart에 따라 시리즈 데이터 분기
+    if (currentChart === "time") {
+      // 시간대별 방문자
+      baseOption.series = [
+        {
+          name: "총 방문자",
+          type: "line",
+          smooth: true,
+          // 예시 데이터 (시간대 vs 요일에 따라 값이 달라지도록 할 수도 있음)
+          data:
+            selectedPeriod === "1주일"
+              ? [320, 280, 330, 300, 380, 220, 160] // 월~일 예시
+              : [120, 180, 230, 200, 180, 220, 160], // 시간대 예시
+          itemStyle: { color: "#4A90E2" },
+        },
+        {
+          name: "남성",
+          type: "line",
+          smooth: true,
+          data:
+            selectedPeriod === "1주일"
+              ? [165, 95, 220, 110, 190, 115, 85]
+              : [65, 95, 120, 110, 90, 115, 85],
+          itemStyle: { color: "#2ECC71" },
+        },
+        {
+          name: "여성",
+          type: "line",
+          smooth: true,
+          data:
+            selectedPeriod === "1주일"
+              ? [155, 185, 110, 190, 190, 105, 175]
+              : [55, 85, 110, 90, 90, 105, 75],
+          itemStyle: { color: "#F1C40F" },
+        },
+      ];
+    } else {
+      // gender 모드 (남성, 여성만 표시)
+      baseOption.series = [
+        {
+          name: "남성",
+          type: "line",
+          smooth: true,
+          data:
+            selectedPeriod === "1주일"
+              ? [165, 95, 220, 110, 190, 115, 85]
+              : [65, 95, 120, 110, 90, 115, 85],
+          itemStyle: { color: "#2ECC71" },
+        },
+        {
+          name: "여성",
+          type: "line",
+          smooth: true,
+          data:
+            selectedPeriod === "1주일"
+              ? [155, 185, 110, 190, 190, 105, 175]
+              : [55, 85, 110, 90, 90, 105, 75],
+          itemStyle: { color: "#F1C40F" },
+        },
+      ];
+    }
+
+    myChart.setOption(baseOption);
+
+    return () => {
+      myChart.dispose();
+    };
+  }, [currentChart, selectedPeriod]);
 
   return (
     <div className="bg-gray-50">
@@ -247,16 +576,7 @@ function Dashboard() {
                         총 방문자 수
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-base text-gray-800">
-                        {/* 예시 데이터 */}
-                        {selectedPeriod === "오늘" ? "1,234명" : "데이터 예시"}
-                      </td>
-                    </tr>
-                    <tr>
-                      <td className="px-6 py-4 whitespace-nowrap text-base font-medium text-gray-800">
-                        평균 체류 시간
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-base text-gray-800">
-                        32분
+                        {stats.totalVisitors}명
                       </td>
                     </tr>
                     <tr>
@@ -264,22 +584,30 @@ function Dashboard() {
                         피크 시간대
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-base text-gray-800">
-                        12:00-13:00
+                        {stats.peakTime}
                       </td>
                     </tr>
                     <tr>
                       <td className="px-6 py-4 whitespace-nowrap text-base font-medium text-gray-800">
-                        주요 소지품
+                        주요 연령대
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-base text-gray-800">
-                        가방(45%), 핸드폰(38%)
+                        {stats.mainAgeRange}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="px-6 py-4 whitespace-nowrap text-base font-medium text-gray-800">
+                        주요 성별
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-base text-gray-800">
+                        {stats.mainGender}
                       </td>
                     </tr>
                   </tbody>
                 </table>
               </div>
 
-              {/* 오른쪽: 차트 영역 */}
+              {/* 차트 영역 (ECharts) */}
               <div className="bg-white shadow rounded-lg p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-lg font-semibold text-gray-900">
@@ -287,7 +615,6 @@ function Dashboard() {
                       ? "시간대별 방문자 통계"
                       : "성별 비율"}
                   </h2>
-                  {/* 화살표 아이콘 */}
                   <div className="space-x-3">
                     <button
                       className="p-2 rounded-full hover:bg-gray-100 border border-gray-200"
@@ -303,26 +630,18 @@ function Dashboard() {
                     </button>
                   </div>
                 </div>
-                <div className="mt-4 flex justify-center">
-                  {/* 예시로 chartType 별로 다른 이미지/그래프를 표시 */}
-                  {currentChart === "time" ? (
-                    <img
-                      src="/통계2.png"
-                      alt="시간대별 방문자 통계"
-                      className="w-full h-[360px] object-contain border border-gray-200"
-                    />
-                  ) : (
-                    <img
-                      src="/통계_gender.png"
-                      alt="성별 비율 통계 (예시)"
-                      className="w-full h-[360px] object-contain border border-gray-200"
-                    />
-                  )}
-                </div>
+
+                {/* 실제 차트가 그려질 영역 */}
+                <div
+                  ref={chartRef}
+                  style={{
+                    width: "100%",
+                    height: "360px",
+                    border: "1px solid #e5e7eb",
+                  }}
+                />
               </div>
             </div>
-
-            {/* (현황 통계 및 최근 인사이트 제거) */}
           </div>
         </main>
       </div>
