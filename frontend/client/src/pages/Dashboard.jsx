@@ -17,8 +17,10 @@ function Dashboard() {
   const [selectedCCTV, setSelectedCCTV] = useState("CCTV 1");
   const [selectedPeriod, setSelectedPeriod] = useState("오늘");
 
-  // 버튼 목록(예시)
-  const cctvList = ["CCTV 1", "CCTV 2", "CCTV 3"];
+  // 버튼 목록
+  //cctvList는 현재 웹 캠만 구현되므로 null 값으로 함.
+  //추가로 cctv가 구현되면 cctvList에 추가할 예정.
+  const cctvList = [];
   const periodList = ["오늘", "어제", "1주일", "1달"];
 
   // 차트 전환(시간대별, 성별 비율, etc.)
@@ -136,7 +138,6 @@ function Dashboard() {
     const now = new Date();
     const startOfMonth = new Date(
       now.getFullYear(),
-      // 여기서 now.getMonth() -1을 해줄지, get.Date() -30을 해줄지 고민!!
       now.getMonth() - 1,
       now.getDate(),
       0,
@@ -224,6 +225,17 @@ function Dashboard() {
     };
   };
 
+  //Echarts 차트
+  const chartRef = useRef(null);
+  const [chartInstance, setChartInstance] = useState(null);
+
+  useEffect(() => {
+    if (chartRef.current) {
+      const instance = echarts.init(chartRef.current);
+      setChartInstance(instance);
+    }
+  }, []);
+
   useEffect(() => {
     const loadData = async () => {
       const data = await fetchMockData();
@@ -242,28 +254,116 @@ function Dashboard() {
       const result = calculateStats(filteredData);
       setStats(result);
 
-      updatePieChart(filteredData);
+      //차트 모드에 따라 라인 or 파이
+      if (!chartInstance) return;
+
+      if (currentChart === "time") {
+        // 시간대별 방문자 통계
+        updateLineChart(filteredData);
+      } else {
+        updatePieChart(filteredData);
+      }
     };
     loadData();
-  }, [selectedCCTV, selectedPeriod]);
+  }, [selectedCCTV, selectedPeriod, currentChart, chartInstance]);
 
-  const chartRef = useRef(null);
-  const [chartInstance, setChartInstance] = useState(null);
+  //시간대별 방문자 통계
+  const updateLineChart = (filteredData) => {
+    const hours = Array.from({ length: 24 }, (_, i) => i);
 
-  useEffect(() => {
-    if (chartRef.current) {
-      const instance = echarts.init(chartRef.current);
-      setChartInstance(instance);
-    }
-  }, []);
+    const totalArr = new Array(24).fill(0);
+    const teenArr = new Array(24).fill(0); // 0~19
+    const adultArr = new Array(24).fill(0); // 20~39
+    const seniorArr = new Array(24).fill(0); // 40 이상
+
+    filteredData.forEach((row) => {
+      const dateObj = new Date(row.timestamp);
+      const h = dateObj.getHours();
+      const minor = row.male_minor + row.female_minor; // 0~19
+      const young = row.male_young_adult + row.female_young_adult; // 20~39
+      const middle = row.male_middle_aged + row.female_middle_aged; // 40~59
+
+      const sum = minor + young + middle;
+
+      if (h >= 0 && h < 24) {
+        totalArr[h] += sum;
+        teenArr[h] += minor;
+        adultArr[h] += young;
+        seniorArr[h] += middle;
+      }
+    });
+
+    // 3) X축 레이블:
+    const xAxisData = hours.map((h) => String(h).padStart(4) + "시");
+
+    // 4) ECharts 옵션
+    const option = {
+      tooltip: {
+        trigger: "axis",
+        formatter: (params) => {
+          let result = params[0].axisValue + "<br/>";
+          params.forEach((param) => {
+            result += `${param.seriesName}: ${param.value}명<br/>`;
+          });
+          return result;
+        },
+      },
+      legend: {
+        show: true,
+        orient: "horizontal",
+        top: 20,
+        left: "center",
+        data: ["총 방문자", "청소년층", "청년층", "어르신층"],
+      },
+      xAxis: {
+        type: "category",
+        data: xAxisData,
+      },
+      yAxis: {
+        type: "value",
+      },
+      series: [
+        {
+          name: "총 방문자",
+          type: "line",
+          data: totalArr,
+          color: "#5470c6",
+          smooth: true,
+        },
+        {
+          name: "청소년층",
+          type: "line",
+          data: teenArr,
+          color: "#ee6666",
+          smooth: true,
+        },
+        {
+          name: "청년층",
+          type: "line",
+          data: adultArr,
+          color: "#73c0de",
+          smooth: true,
+        },
+        {
+          name: "어르신층",
+          type: "line",
+          data: seniorArr,
+          color: "#3ba272",
+          smooth: true,
+        },
+      ],
+    };
+    chartInstance.setOption(option);
+  };
 
   // 원형 차트로 표시
   const updatePieChart = (filteredData) => {
-    if (!chartInstance) return;
+    chartInstance.clear();
 
     // 남성/여성 합계
     let sumMale = 0;
     let sumFemale = 0;
+
     filteredData.forEach((row) => {
       const maleCount =
         row.male_young_adult + row.male_middle_aged + row.male_minor;
@@ -286,7 +386,8 @@ function Dashboard() {
       },
       legend: {
         orient: "vertical",
-        left: "left",
+        top: 20,
+        left: 20,
         data: [`남성 ${malePercent}%`, `여성 ${femalePercent}%`],
       },
       series: [
