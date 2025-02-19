@@ -2,6 +2,7 @@ from ultralytics import YOLO
 from datetime import datetime
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
+from aiohttp import FormData
  
 import os
 import torch
@@ -225,31 +226,43 @@ class PersonTracker:
  
     # Send analysis results to the backend server
     # 분석 결과를 백엔드 서버로 전송
-    async def send_data_to_server(self, obj_id, gender, age, cctv_id, full_frame_path):
-        """백엔드 서버로 분석 결과 전송"""
+    async def send_data_to_server(self, obj_id, gender, age, cctv_id, image_path=None):
+        """
+        obj_id, gender, age 등 텍스트 필드,
+        image_path가 있다면 이미지 파일을 multipart/form-data로 전송.
+        """
         url = "https://msteam5iseeu.ddns.net/api/cctv_data"
 
-        # 이미지 파일을 base64로 인코딩
-        with open(full_frame_path, "rb") as image_file:
-            encoded_image = base64.b64encode(image_file.read()).decode('utf-8')
+        # 1) FormData 생성
+        form = FormData()
+        form.add_field("cctv_id", str(cctv_id))
+        form.add_field("detected_time", datetime.now().isoformat())
+        form.add_field("person_label", str(obj_id))
+        form.add_field("gender", gender)
+        form.add_field("age", age)
 
-        data = {
-            "cctv_id": cctv_id,
-            "detected_time": datetime.now().isoformat(),
-            "person_label": str(obj_id),
-            "gender": gender,
-            "age": age,
-            "image_file": encoded_image
-        }
+        # 2) 이미지 파일이 있다면 파일을 비동기적으로 읽어 추가
+        if image_path:
+            try:
+                async with aiohttp.ClientSession() as session:
+                    with open(image_path, "rb") as f:
+                        image_data = f.read()
+                    
+                    form.add_field(
+                        "image_file",
+                        image_data,
+                        filename="myimage.jpg",  # 원하는 파일명
+                        content_type="image/jpeg"  # 혹은 "image/png"
+                    )
 
-        session = aiohttp.ClientSession()
-        try:
-            async with session.post(url, json=data) as response:
-                print(await response.json())
-        except aiohttp.ClientError as e:
-            print(f"⚠️ Failed to connect to server: {e}")
-        finally:
-            await session.close()
+                    # 3) multipart/form-data로 POST 요청
+                    async with session.post(url, data=form) as response:
+                        res_json = await response.json()
+                        print(res_json)
+            except aiohttp.ClientError as e:
+                print(f"[ERROR] Failed to send data: {e}")
+            finally:
+                await session.close()
  
     # Save cropped image of detected person
     # 감지된 사람의 크롭된 이미지 저장    
@@ -332,26 +345,26 @@ class PersonTracker:
 Test code 할때는 __name__ == "__main__"으로 실행 (detect_people 함수는 주석 처리)
 웹으로 호출해서 실제 cctv에서 실행할때는 detect_people로 실행 (__name__ == "__main__" 주석 처리)
 '''
-# # 웹으로 호출되는 함수
-# @app.post("/detect") 
-# async def detect_people(request: DetectionRequest):
-#     try:
-#         tracker = PersonTracker(
-#             model_path='FootTrafficReport/people-detection/model/yolo11n-pose.pt'
-#         )
-#         result = await tracker.detect_and_track(source=request.cctv_url, cctv_id=request.cctv_id)
-#         return result
+# 웹으로 호출되는 함수
+@app.post("/detect") 
+async def detect_people(request: DetectionRequest):
+    try:
+        tracker = PersonTracker(
+            model_path='FootTrafficReport/people-detection/model/yolo11n-pose.pt'
+        )
+        result = await tracker.detect_and_track(source=request.cctv_url, cctv_id=request.cctv_id)
+        return result
     
-#     except Exception as e:
-#         raise HTTPException(status_code=500, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
-# if __name__ == "__main__":
-#     import uvicorn
-#     uvicorn.run(app, host="0.0.0.0", port=8500)
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8500)
 
 
-#Test할때 하는 작업 (cctv_id는 임의로 설정)
-if __name__ == '__main__':
-    source = "../data/videos/05_seoul.mp4"
-    tracker = PersonTracker(model_path='../model/yolo11n-pose.pt')
-    asyncio.run(tracker.detect_and_track(source=source, cctv_id=1))
+# #Test할때 하는 작업 (cctv_id는 임의로 설정)
+# if __name__ == '__main__':
+#     source = "../data/videos/05_seoul.mp4"
+#     tracker = PersonTracker(model_path='../model/yolo11n-pose.pt')
+#     asyncio.run(tracker.detect_and_track(source=source, cctv_id=1))
