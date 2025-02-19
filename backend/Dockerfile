@@ -15,8 +15,12 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
-# 런타임에 필요한 시스템 의존성 설치
+# 1) 시스템 패키지 업데이트
 RUN apt-get update && apt-get install -y libpq-dev && apt-get clean
+
+# 2) 사용자/그룹 생성
+RUN groupadd -g 1000 mygroup && \
+    useradd -u 1000 -g mygroup -m myuser
 
 # Builder 단계에서 설치된 파이썬 패키지를 복사
 COPY --from=builder /usr/local/bin /usr/local/bin
@@ -24,6 +28,9 @@ COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/pytho
 
 # 전체 소스 코드 복사
 COPY . .
+
+# USER 설정 -> 이후 실행되는 프로세스는 myuser 권한
+USER myuser:mygroup
 
 EXPOSE 8000
 
