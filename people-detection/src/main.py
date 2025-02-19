@@ -165,9 +165,11 @@ class PersonTracker:
 
                 if obj_id not in self.detected_ids:
                     self.detected_ids.add(obj_id)
-                    cropped_path, full_frame_path = self.save_cropped_person(original_frame, x1, y1, x2, y2, obj_id)  # 원본 프레임에서 크롭
+                    face_area = self.estimate_face_area(kpts, [x1, y1, x2, y2])
+                    cropped_path, full_frame_path = self.save_cropped_person(original_frame, x1, y1, x2, y2, obj_id, face_area)
                     tasks.append(self.process_person(obj_id, cropped_path, cctv_id, full_frame_path))
                     new_object_detected = True
+
 
                 face_area = self.estimate_face_area(kpts, [x1, y1, x2, y2])
                 if face_area:
@@ -197,7 +199,7 @@ class PersonTracker:
 
         cv2.destroyAllWindows()
         await self.azure_api.close()
-        self.save_blurred_video_prompt()
+        # self.save_blurred_video_prompt()
  
     # Process detected person using Azure API
     # Azure API를 사용하여 감지된 사람 처리
@@ -251,7 +253,7 @@ class PersonTracker:
  
     # Save cropped image of detected person
     # 감지된 사람의 크롭된 이미지 저장    
-    def save_cropped_person(self, frame, x1, y1, x2, y2, obj_id, save_dir="../outputs/"):
+    def save_cropped_person(self, frame, x1, y1, x2, y2, obj_id, face_area, save_dir="../outputs/"):
         os.makedirs(save_dir + "cropped_people/", exist_ok=True)
         os.makedirs(save_dir + "full_frames/", exist_ok=True)
         
@@ -259,53 +261,72 @@ class PersonTracker:
         cropped_file_name = f"{save_dir}cropped_people/person_{obj_id}.jpg"
         cv2.imwrite(cropped_file_name, frame[y1:y2, x1:x2])
         
-        # 풀 프레임에 바운딩 박스 그리기
+        # 풀 프레임 처리
         full_frame = frame.copy()
-        cv2.rectangle(full_frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
+        
+        # 바운딩 박스 외부 블러 처리
+        mask = np.zeros(full_frame.shape[:2], dtype=np.uint8)
+        cv2.rectangle(mask, (x1, y1), (x2, y2), 255, -1)
+        blurred = cv2.GaussianBlur(full_frame, (55, 55), 0)
+        full_frame = np.where(mask[:,:,None] == 255, full_frame, blurred)
+
+         # 바운딩 박스 그리기
+        color = self.generate_color(obj_id)
+        cv2.rectangle(full_frame, (x1, y1), (x2, y2), color, 2)
+        cv2.putText(full_frame, f"ID: {obj_id}", (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
+            
+        # 얼굴 블러 처리
+        if face_area:
+            fx1, fy1, fx2, fy2 = face_area
+            face_roi = full_frame[fy1:fy2, fx1:fx2]
+            blurred_face = cv2.GaussianBlur(face_roi, (25, 25), 0)
+            full_frame[fy1:fy2, fx1:fx2] = blurred_face
         
         # 풀 프레임 저장
         timestamp = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
         full_frame_file_name = f"{save_dir}full_frames/{timestamp}_ID{obj_id}.jpg"
         cv2.imwrite(full_frame_file_name, full_frame)
         
-        print(f"[INFO] Cropped image and full frame saved for ID {obj_id}")
         return cropped_file_name, full_frame_file_name
 
-   
-    # Prompt user to save blurred video
-    # 사용자에게 블러 처리된 비디오 저장 여부 묻기
-    def save_blurred_video_prompt(self):
-        save_input = input("Do you want to save the blurred video? (y/n): ").strip().lower()
-        if save_input == 'y':
-            self.save_blurred_video()
-        elif save_input == 'n':
-            print("Video not saved.")
-        else:
-            print("Invalid input. Please enter 'y' or 'n'.")
-            self.save_blurred_video_prompt()
+#-----------------영상 후 블러 처리 코드-----------------
+
+    # # Prompt user to save blurred video
+    # # 사용자에게 블러 처리된 비디오 저장 여부 묻기
+    # def save_blurred_video_prompt(self):
+    #     save_input = input("Do you want to save the blurred video? (y/n): ").strip().lower()
+    #     if save_input == 'y':
+    #         self.save_blurred_video()
+    #     elif save_input == 'n':
+    #         print("Video not saved.")
+    #     else:
+    #         print("Invalid input. Please enter 'y' or 'n'.")
+    #         self.save_blurred_video_prompt()
  
-    # Save video with blurred faces
-    # 얼굴이 블러 처리된 비디오 저장
-    def save_blurred_video(self):
-        os.makedirs(self.output_dir, exist_ok=True)
-        video_name = datetime.now().strftime("%Y-%m-%d-%H-%M-%S") + "_blurred.webm"
-        output_path = os.path.join(self.output_dir, video_name)
+    # # Save video with blurred faces
+    # # 얼굴이 블러 처리된 비디오 저장
+    # def save_blurred_video(self):
+    #     os.makedirs(self.output_dir, exist_ok=True)
+    #     video_name = datetime.now().strftime("%Y-%m-%d-%H-%M-%S") + "_blurred.webm"
+    #     output_path = os.path.join(self.output_dir, video_name)
        
-        fourcc = cv2.VideoWriter_fourcc(*'VP80')
-        height, width, _ = self.frames[0].shape
-        out = cv2.VideoWriter(output_path, fourcc, 30, (width, height))
+    #     fourcc = cv2.VideoWriter_fourcc(*'VP80')
+    #     height, width, _ = self.frames[0].shape
+    #     out = cv2.VideoWriter(output_path, fourcc, 30, (width, height))
        
-        for frame, boxes in zip(self.frames, self.boxes):
-            for box in boxes:
-                x1, y1, x2, y2 = map(int, box.xyxy[0].tolist())
-                roi = frame[y1:y2, x1:x2]
-                blurred_roi = cv2.GaussianBlur(roi, (15, 15), 0)
-                frame[y1:y2, x1:x2] = blurred_roi
+    #     for frame, boxes in zip(self.frames, self.boxes):
+    #         for box in boxes:
+    #             x1, y1, x2, y2 = map(int, box.xyxy[0].tolist())
+    #             roi = frame[y1:y2, x1:x2]
+    #             blurred_roi = cv2.GaussianBlur(roi, (15, 15), 0)
+    #             frame[y1:y2, x1:x2] = blurred_roi
  
-            out.write(frame)
+    #         out.write(frame)
  
-        out.release()
-        print(f"Blurred video saved at {output_path}")
+    #     out.release()
+    #     print(f"Blurred video saved at {output_path}")
+
+#-----------------영상 후 블러 처리 코드-----------------
 
 '''
 Test code 할때는 __name__ == "__main__"으로 실행 (detect_people 함수는 주석 처리)
