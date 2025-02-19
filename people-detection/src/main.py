@@ -3,6 +3,7 @@ from datetime import datetime
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from aiohttp import FormData
+from dotenv import load_dotenv
  
 import os
 import torch
@@ -24,9 +25,10 @@ class DetectionRequest(BaseModel):
 # Azure API 연결 세부 정보 초기화
 class AzureAPI:
     def __init__(self):
-        self.url = "https://ai-services123.cognitiveservices.azure.com/customvision/v3.0/Prediction/e2185b3d-d764-4aeb-a672-5c2480425c05/classify/iterations/Iteration1/image"
+        load_dotenv()  # .env 파일 로드
+        self.url = os.getenv("AZURE_API_URL")
         self.headers = {
-            "Prediction-Key": "GEbnMihAUjSdLaPRMRkMyioJBnQLV45TnpV66sh1tD0BxUO9Nkl9JQQJ99BAACYeBjFXJ3w3AAAEACOG0gLQ",
+            "Prediction-Key": os.getenv("AZURE_PREDICTION_KEY"),
             "Content-Type": "application/octet-stream"
         }
         self.session = None
