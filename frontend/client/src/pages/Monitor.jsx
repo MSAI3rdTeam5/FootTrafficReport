@@ -55,6 +55,7 @@ function Monitor() {
   const isMonitorActive = location.pathname === "/monitor";
   const isDashboardActive = location.pathname === "/dashboard";
   const isAiInsightActive = location.pathname === "/ai-insight";
+  const isChatbotActive = location.pathname === "/chatbot";
   const isGuideActive = location.pathname === "/guide";
 
   // === 장치등록 모달 함수 ===
@@ -107,18 +108,6 @@ function Monitor() {
     closeDeviceModal();
   };
 
-  // 탭 강조 로직
-  const isMonitorActive = location.pathname === "/monitor";
-  const isDashboardActive = location.pathname === "/dashboard";
-  const isAiInsightActive = location.pathname === "/ai-insight";
-  const isChatbotActive = location.pathname === "/chatbot";
-  const isGuideActive = location.pathname === "/guide";
-
-  // 개인정보법 안내 오버레이 상태
-  const [privacyOpen, setPrivacyOpen] = useState(false);
-  const openPrivacy = () => setPrivacyOpen(true);
-  const closePrivacy = () => setPrivacyOpen(false);
-
   // -----------------------------------------------------
   // SFU & mediasoup 관련: socket과 device를 useRef로 관리
   // -----------------------------------------------------
@@ -145,7 +134,6 @@ function Monitor() {
     detectionBoxesRef.current = detectionBoxes;
   }, [detectionBoxes]);
 
-
   // CV 서비스 API를 주기적으로 호출하여 감지 결과 업데이트 (예시: 1초마다)
   useEffect(() => {
     const interval = setInterval(async () => {
@@ -170,7 +158,9 @@ function Monitor() {
   const handleOpenWebcamSelect = async () => {
     console.log("[DBG] handleOpenWebcamSelect start");
     try {
-      const tempStream = await navigator.mediaDevices.getUserMedia({ video: true });
+      const tempStream = await navigator.mediaDevices.getUserMedia({
+        video: true,
+      });
       console.log("[DBG] 임시 스트림 획득:", tempStream.getTracks());
       tempStream.getTracks().forEach((t) => t.stop());
       const devices = await navigator.mediaDevices.enumerateDevices();
@@ -185,20 +175,27 @@ function Monitor() {
       setWebcamModalOpen(true);
     } catch (err) {
       console.error("[ERR] handleOpenWebcamSelect => getUserMedia error:", err);
-      alert("카메라 권한이 거부되었거나 접근할 수 없습니다.\n브라우저/OS 설정에서 카메라 허용을 확인해 주세요.");
+      alert(
+        "카메라 권한이 거부되었거나 접근할 수 없습니다.\n브라우저/OS 설정에서 카메라 허용을 확인해 주세요."
+      );
     }
   };
 
   // (B) "웹캠 선택" 후 "확인" – 선택한 장치로 SFU 연결 및 스트림 전송
   const handleConfirmWebcamSelection = async () => {
-    console.log("[DBG] handleConfirmWebcamSelection. selectedDeviceId=", selectedDeviceId);
+    console.log(
+      "[DBG] handleConfirmWebcamSelection. selectedDeviceId=",
+      selectedDeviceId
+    );
     if (!selectedDeviceId) {
       alert("카메라를 선택하세요!");
       return;
     }
     setWebcamModalOpen(false);
     if (!socketRef.current || !deviceRef.current) {
-      console.log("[DBG] SFU 미연결 또는 device 미로드 => handleConnectSFUAndProduce 호출");
+      console.log(
+        "[DBG] SFU 미연결 또는 device 미로드 => handleConnectSFUAndProduce 호출"
+      );
       await handleConnectSFUAndProduce(selectedDeviceId);
     } else {
       console.log("[DBG] SFU 이미 연결됨 => 바로 produce 실행");
@@ -229,7 +226,10 @@ function Monitor() {
     const dev = new Device();
     await dev.load({ routerRtpCapabilities: routerCaps });
     deviceRef.current = dev;
-    console.log("Mediasoup Device loaded. canProduceVideo =", dev.canProduce("video"));
+    console.log(
+      "Mediasoup Device loaded. canProduceVideo =",
+      dev.canProduce("video")
+    );
     console.log("[DBG] handleConnectSFU 완료");
     await handleStartWebcamWithDevice(deviceId);
   }
@@ -294,7 +294,9 @@ function Monitor() {
     const pixelation = 16; // 값이 클수록 모자이크 효과 강함
     const videoElem = document.createElement("video");
     videoElem.srcObject = rawStream;
-    videoElem.play().catch((err) => console.warn("videoElem play() error:", err));
+    videoElem
+      .play()
+      .catch((err) => console.warn("videoElem play() error:", err));
 
     processingIntervalRef.current = setInterval(() => {
       // 전체 원본 영상 그리기
@@ -308,9 +310,29 @@ function Monitor() {
         tempCanvas.width = w / pixelation;
         tempCanvas.height = h / pixelation;
         const tempCtx = tempCanvas.getContext("2d");
-        tempCtx.drawImage(canvas, x, y, w, h, 0, 0, tempCanvas.width, tempCanvas.height);
+        tempCtx.drawImage(
+          canvas,
+          x,
+          y,
+          w,
+          h,
+          0,
+          0,
+          tempCanvas.width,
+          tempCanvas.height
+        );
         ctx.imageSmoothingEnabled = false;
-        ctx.drawImage(tempCanvas, 0, 0, tempCanvas.width, tempCanvas.height, x, y, w, h);
+        ctx.drawImage(
+          tempCanvas,
+          0,
+          0,
+          tempCanvas.width,
+          tempCanvas.height,
+          x,
+          y,
+          w,
+          h
+        );
       });
     }, 33); // 약 30fps
 
@@ -321,25 +343,31 @@ function Monitor() {
     // (4) 로컬 미리보기에 processedStream 표시
     if (localVideoRef.current) {
       localVideoRef.current.srcObject = mosaicStream;
-      localVideoRef.current.play().catch((err) =>
-        console.warn("localVideo play() error:", err)
-      );
+      localVideoRef.current
+        .play()
+        .catch((err) => console.warn("localVideo play() error:", err));
     }
 
     // (5) SFU 전송: 모자이크 처리된 스트림 사용
     const transportParams = await createTransport(sock, "send");
     const transport = dev.createSendTransport(transportParams);
     transport.on("connect", ({ dtlsParameters }, callback, errback) => {
-      sock.emit("connectTransport", { transportId: transport.id, dtlsParameters }, (res) => {
-        if (!res.success) {
-          errback(res.error);
-        } else {
-          callback();
+      sock.emit(
+        "connectTransport",
+        { transportId: transport.id, dtlsParameters },
+        (res) => {
+          if (!res.success) {
+            errback(res.error);
+          } else {
+            callback();
+          }
         }
-      });
+      );
     });
     transport.on("produce", (produceParams, callback, errback) => {
-      sock.emit("produce", {
+      sock.emit(
+        "produce",
+        {
           transportId: transport.id,
           kind: produceParams.kind,
           rtpParameters: produceParams.rtpParameters,
@@ -356,7 +384,9 @@ function Monitor() {
     setSendTransport(transport);
     console.log("SendTransport 생성됨, id=", transport.id);
     try {
-      const producer = await transport.produce({ track: mosaicStream.getVideoTracks()[0] });
+      const producer = await transport.produce({
+        track: mosaicStream.getVideoTracks()[0],
+      });
       console.log("Producer 생성됨, id =", producer.id);
     } catch (err) {
       console.error("produce 오류:", err);
@@ -389,7 +419,8 @@ function Monitor() {
     setRemoteStream(null);
     if (localVideoRef.current) localVideoRef.current.srcObject = null;
     if (remoteVideoRef.current) remoteVideoRef.current.srcObject = null;
-    if (processingIntervalRef.current) clearInterval(processingIntervalRef.current);
+    if (processingIntervalRef.current)
+      clearInterval(processingIntervalRef.current);
     if (sendTransport) {
       sendTransport.close();
       setSendTransport(null);
@@ -412,7 +443,11 @@ function Monitor() {
               <div className="flex space-x-3">
                 <Link
                   to="/monitor"
-                  className={`inline-flex items-center px-1 pt-1 nav-link ${isMonitorActive ? "bg-black text-white font-medium" : "text-gray-500 hover:text-black"}`}
+                  className={`inline-flex items-center px-1 pt-1 nav-link ${
+                    isMonitorActive
+                      ? "bg-black text-white font-medium"
+                      : "text-gray-500 hover:text-black"
+                  }`}
                   style={{
                     padding: "0.5rem 1rem",
                     borderRadius: "0.375rem",
@@ -425,7 +460,11 @@ function Monitor() {
                 </Link>
                 <Link
                   to="/dashboard"
-                  className={`inline-flex items-center px-1 pt-1 nav-link ${isDashboardActive ? "bg-black text-white font-medium" : "text-gray-500 hover:text-black"}`}
+                  className={`inline-flex items-center px-1 pt-1 nav-link ${
+                    isDashboardActive
+                      ? "bg-black text-white font-medium"
+                      : "text-gray-500 hover:text-black"
+                  }`}
                   style={{
                     padding: "0.5rem 1rem",
                     borderRadius: "0.375rem",
@@ -438,7 +477,11 @@ function Monitor() {
                 </Link>
                 <Link
                   to="/ai-insight"
-                  className={`inline-flex items-center px-1 pt-1 nav-link ${isAiInsightActive ? "bg-black text-white font-medium" : "text-gray-500 hover:text-black"}`}
+                  className={`inline-flex items-center px-1 pt-1 nav-link ${
+                    isAiInsightActive
+                      ? "bg-black text-white font-medium"
+                      : "text-gray-500 hover:text-black"
+                  }`}
                   style={{
                     padding: "0.5rem 1rem",
                     borderRadius: "0.375rem",
@@ -473,7 +516,11 @@ function Monitor() {
 
                 <Link
                   to="/guide"
-                  className={`inline-flex items-center px-1 pt-1 nav-link ${isGuideActive ? "bg-black text-white font-medium" : "text-gray-500 hover:text-black"}`}
+                  className={`inline-flex items-center px-1 pt-1 nav-link ${
+                    isGuideActive
+                      ? "bg-black text-white font-medium"
+                      : "text-gray-500 hover:text-black"
+                  }`}
                   style={{
                     padding: "0.5rem 1rem",
                     borderRadius: "0.375rem",
@@ -509,8 +556,14 @@ function Monitor() {
                 <i className="fas fa-cog text-gray-600"></i>
               </button>
               <div className="ml-4 flex items-center">
-                <img className="h-8 w-8 rounded-full" src="/기본프로필.png" alt="사용자 프로필" />
-                <span className="ml-2 text-sm font-medium text-gray-700">{displayName}</span>
+                <img
+                  className="h-8 w-8 rounded-full"
+                  src="/기본프로필.png"
+                  alt="사용자 프로필"
+                />
+                <span className="ml-2 text-sm font-medium text-gray-700">
+                  {displayName}
+                </span>
               </div>
             </div>
           </div>
@@ -565,12 +618,28 @@ function Monitor() {
         {/* 웹캠 영상 미리보기 (모자이크 처리된 영상 송출) */}
         {(processedStream || remoteStream) && (
           <div className="bg-white p-4 rounded-lg border mb-6">
-            <h2 className="text-lg font-semibold mb-2">웹캠 실시간 미리보기 (모자이크 처리됨)</h2>
+            <h2 className="text-lg font-semibold mb-2">
+              웹캠 실시간 미리보기 (모자이크 처리됨)
+            </h2>
             <div className="flex space-x-4">
-              <video ref={localVideoRef} autoPlay playsInline muted style={{ width: "320px", background: "#000" }} />
-              <video ref={remoteVideoRef} autoPlay playsInline style={{ width: "320px", background: "#333" }} />
+              <video
+                ref={localVideoRef}
+                autoPlay
+                playsInline
+                muted
+                style={{ width: "320px", background: "#000" }}
+              />
+              <video
+                ref={remoteVideoRef}
+                autoPlay
+                playsInline
+                style={{ width: "320px", background: "#333" }}
+              />
             </div>
-            <button onClick={handleWebcamDisconnect} className="mt-4 px-4 py-2 bg-red-500 text-white rounded">
+            <button
+              onClick={handleWebcamDisconnect}
+              className="mt-4 px-4 py-2 bg-red-500 text-white rounded"
+            >
               웹캠 연결 종료
             </button>
           </div>
@@ -581,7 +650,9 @@ function Monitor() {
 
       <footer className="bg-white border-t border-gray-200 mt-8">
         <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="text-center text-sm text-gray-500">© 2024 I See U. All rights reserved.</div>
+          <div className="text-center text-sm text-gray-500">
+            © 2024 I See U. All rights reserved.
+          </div>
         </div>
       </footer>
 
@@ -600,7 +671,10 @@ function Monitor() {
       {deviceModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
           <div className="bg-white w-full max-w-md p-6 rounded-lg relative">
-            <button onClick={closeDeviceModal} className="absolute top-4 right-4 text-gray-400 hover:text-custom">
+            <button
+              onClick={closeDeviceModal}
+              className="absolute top-4 right-4 text-gray-400 hover:text-custom"
+            >
               <i className="fas fa-times text-xl"></i>
             </button>
             <h2 className="text-xl font-bold mb-4">
@@ -608,7 +682,9 @@ function Monitor() {
             </h2>
             <form onSubmit={handleSubmitDevice}>
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700">장치 이름</label>
+                <label className="block text-sm font-medium text-gray-700">
+                  장치 이름
+                </label>
                 <input
                   type="text"
                   value={deviceName}
@@ -618,7 +694,9 @@ function Monitor() {
                 />
               </div>
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700">IP</label>
+                <label className="block text-sm font-medium text-gray-700">
+                  IP
+                </label>
                 <input
                   type="text"
                   value={deviceIP}
@@ -628,7 +706,9 @@ function Monitor() {
                 />
               </div>
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700">Port</label>
+                <label className="block text-sm font-medium text-gray-700">
+                  Port
+                </label>
                 <input
                   type="text"
                   value={devicePort}
@@ -638,10 +718,17 @@ function Monitor() {
                 />
               </div>
               <div className="flex justify-end space-x-2 mt-6">
-                <button type="button" onClick={closeDeviceModal} className="border border-gray-300 px-4 py-2 rounded">
+                <button
+                  type="button"
+                  onClick={closeDeviceModal}
+                  className="border border-gray-300 px-4 py-2 rounded"
+                >
                   취소
                 </button>
-                <button type="submit" className="bg-black text-white px-4 py-2 rounded">
+                <button
+                  type="submit"
+                  className="bg-black text-white px-4 py-2 rounded"
+                >
                   등록
                 </button>
               </div>
@@ -654,7 +741,10 @@ function Monitor() {
       {webcamModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
           <div className="bg-white w-full max-w-md p-6 rounded-lg relative">
-            <button onClick={() => setWebcamModalOpen(false)} className="absolute top-4 right-4 text-gray-400 hover:text-custom">
+            <button
+              onClick={() => setWebcamModalOpen(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-custom"
+            >
               <i className="fas fa-times text-xl"></i>
             </button>
             <h2 className="text-xl font-bold mb-4">웹캠 선택</h2>
@@ -699,7 +789,9 @@ function Monitor() {
       )}
 
       {/* 개인정보법 안내 오버레이 */}
-      {privacyOpen && <PrivacyOverlay open={privacyOpen} onClose={closePrivacy} />}
+      {privacyOpen && (
+        <PrivacyOverlay open={privacyOpen} onClose={closePrivacy} />
+      )}
     </div>
   );
 }
@@ -717,7 +809,9 @@ function ConnectedDevices({ cameraList }) {
             {cameraList.map((cam) => (
               <li key={cam.cameraId} className="p-2 bg-gray-50 rounded">
                 <div className="flex justify-between items-center">
-                  <span className="font-medium text-gray-700">{cam.cameraId}</span>
+                  <span className="font-medium text-gray-700">
+                    {cam.cameraId}
+                  </span>
                   <span className="text-xs text-gray-400">{cam.hlsUrl}</span>
                 </div>
               </li>
