@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
 import * as echarts from "echarts"; // npm install echarts
-import { mockPersonCountData } from "../mocks/mockPersonCountData_02_18";
+//import { mockPersonCountData } from "../mocks/mockPersonCountData_02_18";
 
 function Dashboard() {
   const location = useLocation();
@@ -38,22 +38,40 @@ function Dashboard() {
 
   const [stats, setStats] = useState({
     totalVisitors: 0,
-    peakTime: "00:00-01:00",
+    peakTime: "00:00-00:00",
     mainAgeRange: "N/A",
     mainGender: "N/A",
   });
 
-  // 가상의 API 호출 예시
-  const fetchMockData = async () => {
+  const fetchPersonCounts = async () => {
     try {
-      // 실제 API 호출 대신 간단한 Mock 예시
-      // (selectedPeriod, currentChart 등을 고려해 데이터를 달리 할 수도 있음)
-      await new Promise((resolve) => setTimeout(resolve, 100));
-      return mockPersonCountData;
+      // url : https://msteam5iseeu.ddns.net/api/person_count/cctv_id(변수)
+      // cctv_id의 경우 cctv_id=1을 가져오는 경우
+      const response = await fetch(
+        "https://msteam5iseeu.ddns.net/api/person_count/1"
+      );
+      if (!response.ok) {
+        throw new Error("Failed to fetch person count data");
+      }
+      const data = await response.json();
+      console.log("PersonCount 목록:", data);
+      return data;
     } catch (error) {
-      console.error("통계 데이터 불러오기 실패:", error);
+      console.error("에러 발생:", error);
+      return null;
     }
   };
+
+  // const fetchMockData = async () => {
+  //   try {
+  //     // 실제 API 호출 대신 간단한 Mock 예시
+  //     // (selectedPeriod, currentChart 등을 고려해 데이터를 달리 할 수도 있음)
+  //     await new Promise((resolve) => setTimeout(resolve, 100));
+  //     return mockPersonCountData;
+  //   } catch (error) {
+  //     console.error("통계 데이터 불러오기 실패:", error);
+  //   }
+  // };
 
   // 오늘 날짜만 필터링하는 함수 (selectedPerid == "Today" 일때 사용)
   const filterTodayData = (data) => {
@@ -236,9 +254,14 @@ function Dashboard() {
     }
   }, []);
 
+  //데이터 로드 및 차트 업데이트
   useEffect(() => {
     const loadData = async () => {
-      const data = await fetchMockData();
+      const data = await fetchPersonCounts();
+      if (!data) return;
+
+      //const data = await fetchMockData();
+
       let filteredData = data;
 
       if (selectedPeriod === "오늘") {
@@ -483,7 +506,7 @@ function Dashboard() {
                 <Link
                   to="/chatbot"
                   className={`inline-flex items-center px-1 pt-1 nav-link ${
-                    isAiInsightActive
+                    isChatbotActive
                       ? "bg-black text-white font-medium"
                       : "text-gray-500 hover:text-black"
                   }`}
@@ -491,8 +514,8 @@ function Dashboard() {
                     padding: "0.5rem 1rem",
                     borderRadius: "0.375rem",
                     transition: "all 0.3s ease",
-                    backgroundColor: isAiInsightActive ? "#000000" : "#f3f4f6",
-                    color: isAiInsightActive ? "#ffffff" : "#000000",
+                    backgroundColor: isChatbotActive ? "#000000" : "#f3f4f6",
+                    color: isChatbotActive ? "#ffffff" : "#000000",
                   }}
                 >
                   챗봇
