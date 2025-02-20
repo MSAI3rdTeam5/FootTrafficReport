@@ -73,6 +73,7 @@ function Monitor() {
   const isMonitorActive = location.pathname === "/monitor";
   const isDashboardActive = location.pathname === "/dashboard";
   const isAiInsightActive = location.pathname === "/ai-insight";
+  const isChatbotActive = location.pathname === "/chatbot";
   const isGuideActive = location.pathname === "/guide";
 
   // 개인정보법 안내 오버레이 상태
@@ -191,7 +192,7 @@ function Monitor() {
                 <Link
                   to="/chatbot"
                   className={`inline-flex items-center px-1 pt-1 nav-link ${
-                    isAiInsightActive
+                    isChatbotActive
                       ? "bg-black text-white font-medium"
                       : "text-gray-500 hover:text-black"
                   }`}
@@ -199,8 +200,8 @@ function Monitor() {
                     padding: "0.5rem 1rem",
                     borderRadius: "0.375rem",
                     transition: "all 0.3s ease",
-                    backgroundColor: isAiInsightActive ? "#000000" : "#f3f4f6",
-                    color: isAiInsightActive ? "#ffffff" : "#000000",
+                    backgroundColor: isChatbotActive ? "#000000" : "#f3f4f6",
+                    color: isChatbotActive ? "#ffffff" : "#000000",
                   }}
                 >
                   챗봇
