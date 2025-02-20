@@ -4,6 +4,9 @@ from azure.core.credentials import AzureKeyCredential
 from azure.search.documents import SearchClient
 from dotenv import load_dotenv
 import re
+from fastapi import FastAPI
+
+app = FastAPI()
 
 # .env 파일 로드
 load_dotenv()
@@ -119,6 +122,7 @@ def get_answer_from_openai(question, context):
         return f"Error occurred while generating response: {str(e)}"
 
 # 🧠 챗봇 응답 함수
+@app.post("/chatbot")
 def chatbot_response(question):
     context = search_in_ai_search(question)
     if context == "No relevant information found.":
@@ -127,11 +131,13 @@ def chatbot_response(question):
 
 # 🚀 챗봇 실행
 if __name__ == "__main__":
-    print("Welcome to the chatbot! Type 'exit' to quit.")
-    while True:
-        user_input = input("Ask a question: ")
-        if user_input.lower() == 'exit':
-            print("Goodbye!")
-            break
-        response = chatbot_response(user_input)
-        print("\n🤖 Bot Answer:", response)
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8700)
+    # print("Welcome to the chatbot! Type 'exit' to quit.")
+    # while True:
+    #     user_input = input("Ask a question: ")
+    #     if user_input.lower() == 'exit':
+    #         print("Goodbye!")
+    #         break
+    #     response = chatbot_response(user_input)
+    #     print("\n🤖 Bot Answer:", response)

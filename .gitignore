@@ -4,6 +4,9 @@ people-detection/outputs/
 # Report-generation 관련 민감정보
 report-generation/.env
 
+# chatbot 관련 민감정보
+chatbot/.env
+
 # Backend 관련 파일
 docker-compose.yml
 
