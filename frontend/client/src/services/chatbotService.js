@@ -1,29 +1,26 @@
-/**
- * 챗봇 API를 호출하거나, 챗봇 응답을 생성하는 함수
- * @param {string} userQuestion 사용자가 입력한 질문
- * @returns {Promise<string>} 챗봇의 응답 텍스트
- */
-
-export async function chatbot_recall(userQuestion) {
+export async function getChatbotResponse(userQuestion) {
   try {
-    // const response = await fetch("https://your-backend.com/api/chatbot", {
-    //   method: "POST",
-    //   headers: {
-    //     "Content-Type": "application/json",
-    //   },
-    //   body: JSON.stringify({ question: userQuestion }),
-    // });
-    // const data = await response.json();
-    // return data.answer; // 서버에서 받은 답변 필드
-
-    // 예시로 1초 뒤에 가짜 응답을 돌려주는 모의(mock) 함수
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve(`챗봇 응답: [${userQuestion}]에 대한 답변입니다.`);
-      }, 1000);
+    const response = await fetch("https://msteam5iseeu.ddns.net/chatbot/ask", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ question: userQuestion }), // 사용자 질문 전송
     });
+
+    const data = await response.json(); // 응답 JSON 파싱
+
+    // 챗봇이 정보를 찾지 못한 경우 처리
+    if (
+      data ===
+      "제가 해당 질문에 대한 정보를 찾지 못했습니다. 다른 질문을 시도해 주세요!"
+    ) {
+      return "죄송합니다. 관련 정보를 찾을 수 없습니다. 다른 질문을 해주세요!";
+    }
+
+    return data; // 정상적인 챗봇 응답 반환
   } catch (error) {
-    console.error("챗봇 API 호출 실패:", error);
-    throw error;
+    console.error("Chatbot API 호출 중 오류 발생:", error);
+    return "오류가 발생했습니다. 잠시 후 다시 시도해 주세요.";
   }
 }

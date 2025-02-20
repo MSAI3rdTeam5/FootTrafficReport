@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { chatbot_recall } from "../services/chatbotService";
+import { getChatbotResponse } from "../services/chatbotService";
 
 function ChatbotPage() {
   const location = useLocation();
@@ -16,12 +16,9 @@ function ChatbotPage() {
   const isChatbotActive = location.pathname === "/chatbot";
   const isGuideActive = location.pathname === "/guide";
 
-  // 대화 목록
+  // 대화 목록 및 메시지 상태
   const [conversations, setConversations] = useState([]);
   const [activeConversationId, setActiveConversationId] = useState(null);
-
-  // 메시지 입력
-  const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState("");
 
   // 목록 표시/숨기기 상태
@@ -104,25 +101,20 @@ function ChatbotPage() {
 
     try {
       // 실제 백엔드 API 호출
-      const answer = await chatbot_recall(currentQuestion);
+      const answer = await getChatbotResponse(inputMessage);
 
-      // 타이핑 메시지 제거 후 실제 응답 메시지 추가
+      // "타이핑 중..." 메시지 삭제 후 응답 추가
       setConversations((prev) =>
-        prev.map((conv) => {
-          if (conv.id === activeConversationId) {
-            return {
-              ...conv,
-              messages: conv.messages
-                .filter((msg) => msg.id !== typingMsgId)
-                .concat({
-                  id: Date.now(),
-                  sender: "bot",
-                  text: answer,
-                }),
-            };
-          }
-          return conv;
-        })
+        prev.map((conv) =>
+          conv.id === activeConversationId
+            ? {
+                ...conv,
+                messages: conv.messages
+                  .filter((msg) => msg.id !== typingMsgId)
+                  .concat({ id: Date.now(), sender: "bot", text: answer }),
+              }
+            : conv
+        )
       );
     } catch (error) {
       console.error("챗봇 응답 에러:", error);
