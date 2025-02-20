@@ -5,6 +5,8 @@ import "plyr/dist/plyr.css";
 const CCTVMonitoring = ({ selectedCamera, onClose }) => {
   const [currentTime, setCurrentTime] = useState("");
   const [logs, setLogs] = useState([]);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     const player = new Plyr("#player", {
@@ -21,11 +23,11 @@ const CCTVMonitoring = ({ selectedCamera, onClose }) => {
 
     const fetchLogs = async () => {
       try {
-        const response = await fetch('https://msteam5iseeu.ddns.net/api/cctv_logs');
+        const response = await fetch("/api/cctv_data");
         const data = await response.json();
-        setLogs(prevLogs => [...data, ...prevLogs].slice(0, 50)); // 최근 50개 로그만 유지
+        setLogs((prevLogs) => [...data, ...prevLogs].slice(0, 50));
       } catch (error) {
-        console.error('로그 데이터 가져오기 실패:', error);
+        console.error("로그 데이터 가져오기 실패:", error);
       }
     };
 
@@ -39,8 +41,31 @@ const CCTVMonitoring = ({ selectedCamera, onClose }) => {
   }, []);
 
   const getLogMessage = (log) => {
-    return `${log.cctv_id}에서 ${log.person_label}, ${log.gender}, ${log.age}의 사람이 감지되었습니다.`;
+    return `카메라 #${log.cctv_id}에서 ID_${log.person_label}, ${log.gender}, ${log.age}의 사람이 감지되었습니다.`;
   };
+
+  const handleImageClick = (image_url) => {
+    setSelectedImage(image_url);
+    setIsModalOpen(true);
+  };
+
+  const ImageModal = ({ image_url, onClose }) => (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white p-4 rounded-lg max-w-3xl max-h-3xl">
+        <img
+          src={image_url}
+          alt="확대된 이미지"
+          className="max-w-full max-h-full"
+        />
+        <button
+          onClick={onClose}
+          className="mt-4 bg-red-500 text-white px-4 py-2 rounded"
+        >
+          닫기
+        </button>
+      </div>
+    </div>
+  );
 
   return (
     <div className="fixed inset-0 flex bg-gray-100 font-sans">
@@ -135,10 +160,25 @@ const CCTVMonitoring = ({ selectedCamera, onClose }) => {
                 </span>
               </div>
               <p className="mt-1 text-sm">{getLogMessage(log)}</p>
+              {log.image_url && (
+                <button
+                  onClick={() => handleImageClick(log.image_url)}
+                  className="mt-2 text-blue-600 hover:underline"
+                >
+                  감지된 이미지 보기
+                </button>
+              )}
             </div>
           ))}
         </div>
       </div>
+
+      {isModalOpen && (
+        <ImageModal
+          image_url={selectedImage}
+          onClose={() => setIsModalOpen(false)}
+        />
+      )}
     </div>
   );
 };
