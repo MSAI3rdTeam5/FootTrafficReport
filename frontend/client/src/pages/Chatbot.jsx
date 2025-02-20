@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { getChatbotResponse } from "../services/chatbotService";
+import { getChatbotResponse } from "../utils/api";
 
 function ChatbotPage() {
   const location = useLocation();
