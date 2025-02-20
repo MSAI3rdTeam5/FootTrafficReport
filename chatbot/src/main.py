@@ -110,16 +110,13 @@ def chatbot_response(question):
 
 # 🚀 챗봇 실행
 if __name__ == "__main__":
-   # import uvicorn
-    #uvicorn.run(app, host="0.0.0.0", port=8700)
-
-    print("Welcome to the chatbot! Type 'exit' to quit.")
-
-    while True:
-        user_input = input("안녕하세요 무엇이 궁금하신가요? ")
-        if user_input.lower() == 'exit':
-            print("Goodbye!")
-            break
-
-        response = chatbot_response(user_input)
-        print("\n🤖 Bot Answer:", response)
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8700)
+    # print("Welcome to the chatbot! Type 'exit' to quit.")
+    # while True:
+    #     user_input = input("Ask a question: ")
+    #     if user_input.lower() == 'exit':
+    #         print("Goodbye!")
+    #         break
+    #     response = chatbot_response(user_input)
+    #     print("\n🤖 Bot Answer:", response)
