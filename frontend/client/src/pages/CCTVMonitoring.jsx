@@ -4,6 +4,7 @@ import "plyr/dist/plyr.css";
 
 const CCTVMonitoring = ({ selectedCamera, onClose }) => {
   const [currentTime, setCurrentTime] = useState("");
+  const [logs, setLogs] = useState([]);
 
   useEffect(() => {
     const player = new Plyr("#player", {
@@ -18,8 +19,28 @@ const CCTVMonitoring = ({ selectedCamera, onClose }) => {
     const interval = setInterval(updateTime, 1000);
     updateTime();
 
-    return () => clearInterval(interval);
+    const fetchLogs = async () => {
+      try {
+        const response = await fetch('https://msteam5iseeu.ddns.net/api/cctv_logs');
+        const data = await response.json();
+        setLogs(prevLogs => [...data, ...prevLogs].slice(0, 50)); // 최근 50개 로그만 유지
+      } catch (error) {
+        console.error('로그 데이터 가져오기 실패:', error);
+      }
+    };
+
+    fetchLogs(); // 초기 로드
+    const logInterval = setInterval(fetchLogs, 5000); // 5초마다 업데이트
+
+    return () => {
+      clearInterval(interval);
+      clearInterval(logInterval);
+    };
   }, []);
+
+  const getLogMessage = (log) => {
+    return `${log.cctv_id}에서 ${log.person_label}, ${log.gender}, ${log.age}의 사람이 감지되었습니다.`;
+  };
 
   return (
     <div className="fixed inset-0 flex bg-gray-100 font-sans">
@@ -103,35 +124,19 @@ const CCTVMonitoring = ({ selectedCamera, onClose }) => {
         </div>
 
         <div className="flex-1 overflow-y-auto space-y-3">
-          <div className="bg-gray-50 p-3 rounded-lg">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-500">14:32:15</span>
-              <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
-                움직임 감지
-              </span>
+          {logs.map((log, index) => (
+            <div key={index} className="bg-gray-50 p-3 rounded-lg">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-500">
+                  {new Date(log.detected_time).toLocaleTimeString()}
+                </span>
+                <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
+                  감지
+                </span>
+              </div>
+              <p className="mt-1 text-sm">{getLogMessage(log)}</p>
             </div>
-            <p className="mt-1 text-sm">
-              북쪽 출입구에서 움직임이 감지되었습니다.
-            </p>
-          </div>
-          <div className="bg-gray-50 p-3 rounded-lg">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-500">14:30:22</span>
-              <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">
-                알림
-              </span>
-            </div>
-            <p className="mt-1 text-sm">시스템 점검이 완료되었습니다.</p>
-          </div>
-          <div className="bg-gray-50 p-3 rounded-lg">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-500">14:28:05</span>
-              <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
-                정상
-              </span>
-            </div>
-            <p className="mt-1 text-sm">카메라 1 스트리밍이 시작되었습니다.</p>
-          </div>
+          ))}
         </div>
       </div>
     </div>
