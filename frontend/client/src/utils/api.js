@@ -1,5 +1,8 @@
-// src/utils/api.js
-
+/**
+ * 사람 감지 API 호출
+ * - Nginx 리버스 프록시를 통해 people-detection 서비스의 /detect 엔드포인트로 요청합니다.
+ * - 프론트엔드에서 전달한 cctv_url과 cctv_id를 payload에 포함합니다.
+ */
 export async function callPeopleDetection(cctv_url, cctv_id) {
   try {
     // 요청 URL: Nginx 리버스 프록시를 통해 people-detection 서비스로 요청
