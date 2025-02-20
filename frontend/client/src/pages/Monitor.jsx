@@ -7,8 +7,6 @@ import PrivacyOverlay from "./PrivacyOverlay";
 // Socket.io + mediasoup-client
 import { io } from "socket.io-client";
 import { Device } from "mediasoup-client";
-// (선택) CV 서비스 API
-// import { callPeopleDetection } from "../utils/api";
 
 // (A) SRS WebRTC 플레이어
 import { startSrsWebrtcPlayer, stopSrsWebrtcPlayer } from "../utils/srswebrtc";
@@ -114,43 +112,23 @@ function Monitor() {
   const canvasRef = useRef(null);
   const processingIntervalRef = useRef(null);
 
-  // (선택) CV 검출 결과
-  const [detectionBoxes, setDetectionBoxes] = useState([]);
-  const detectionBoxesRef = useRef([]);
-  useEffect(() => {
-    detectionBoxesRef.current = detectionBoxes;
-  }, [detectionBoxes]);
-
-  // (선택) CV 주기적 호출 => 주석
-  /*
-  useEffect(() => {
-    const interval = setInterval(async () => {
-      try {
-        // const result = await callPeopleDetection("dummy_url", "dummy_id");
-        // setDetectionBoxes(result.detectionBoxes || []);
-      } catch (error) {
-        console.error("Error in detection polling:", error);
-      }
-    }, 1000);
-    return () => clearInterval(interval);
-  }, []);
-  */
-
   // === 웹캠(Mediasoup) ===
   const [webcamModalOpen, setWebcamModalOpen] = useState(false);
   const [videoDevices, setVideoDevices] = useState([]);
   const [selectedDeviceId, setSelectedDeviceId] = useState("");
 
-  // (A) 웹캠 연결 버튼
+  // (A) "웹캠 연결" 버튼
   const handleOpenWebcamSelect = async () => {
     console.log("[DBG] handleOpenWebcamSelect start");
     try {
       const tempStream = await navigator.mediaDevices.getUserMedia({ video: true });
       console.log("[DBG] 임시 스트림 획득:", tempStream.getTracks());
       tempStream.getTracks().forEach((t) => t.stop());
+
       const devices = await navigator.mediaDevices.enumerateDevices();
       const videoInputs = devices.filter((d) => d.kind === "videoinput");
       console.log("[DBG] Found video inputs =>", videoInputs);
+
       if (videoInputs.length > 0) {
         setSelectedDeviceId(videoInputs[0].deviceId);
       } else {
@@ -164,7 +142,7 @@ function Monitor() {
     }
   };
 
-  // (B) 웹캠 장치 선택 -> 확인
+  // (B) "웹캠 선택" -> "확인"
   const handleConfirmWebcamSelection = async () => {
     console.log("[DBG] handleConfirmWebcamSelection. selectedDeviceId=", selectedDeviceId);
     if (!selectedDeviceId) {
@@ -172,6 +150,7 @@ function Monitor() {
       return;
     }
     setWebcamModalOpen(false);
+
     if (!socketRef.current || !deviceRef.current) {
       console.log("[DBG] SFU 미연결 => handleConnectSFUAndProduce 호출");
       await handleConnectSFUAndProduce(selectedDeviceId);
@@ -181,7 +160,7 @@ function Monitor() {
     }
   };
 
-  // (C) SFU + device load + produce
+  // (C) SFU 연결 + device load + produce
   async function handleConnectSFUAndProduce(deviceId) {
     console.log("[DBG] handleConnectSFU 시작...");
     const s = io("https://msteam5iseeu.ddns.net", {
@@ -189,6 +168,7 @@ function Monitor() {
       transports: ["websocket", "polling"],
     });
     socketRef.current = s;
+
     await new Promise((resolve, reject) => {
       s.on("connect", () => {
         console.log("[SFU] socket connected:", s.id);
@@ -199,13 +179,17 @@ function Monitor() {
         reject(err);
       });
     });
+
     const routerCaps = await getRouterCaps(s);
     console.log("[DBG] routerCaps 획득:", routerCaps);
+
     const dev = new Device();
     await dev.load({ routerRtpCapabilities: routerCaps });
     deviceRef.current = dev;
+
     console.log("Mediasoup Device loaded. canProduceVideo =", dev.canProduce("video"));
     console.log("[DBG] handleConnectSFU 완료");
+
     await handleStartWebcamWithDevice(deviceId);
   }
 
@@ -231,6 +215,7 @@ function Monitor() {
       console.warn("[WARN] SFU 관련 정보 부족");
       return;
     }
+
     const constraints = {
       video: {
         deviceId: { exact: deviceId },
@@ -241,6 +226,7 @@ function Monitor() {
       audio: false,
     };
     console.log("[DBG] getUserMedia constraints=", constraints);
+
     let rawStream;
     try {
       rawStream = await navigator.mediaDevices.getUserMedia(constraints);
@@ -253,7 +239,7 @@ function Monitor() {
 
     setLocalStream(rawStream);
 
-    // 모자이크
+    // (1) 모자이크
     const videoTrack = rawStream.getVideoTracks()[0];
     const settings = videoTrack.getSettings();
     const width = settings.width || 640;
@@ -271,32 +257,31 @@ function Monitor() {
 
     processingIntervalRef.current = setInterval(() => {
       ctx.drawImage(videoElem, 0, 0, width, height);
+      // 모자이크 영역(사람 얼굴 등) : detectionBoxesRef.current
+      // 여기서는 간단히 주석 처리
+      /*
       detectionBoxesRef.current.forEach((box) => {
         const { x, y, width: w, height: h } = box;
-        const tempCanvas = document.createElement("canvas");
-        tempCanvas.width = w / pixelation;
-        tempCanvas.height = h / pixelation;
-        const tempCtx = tempCanvas.getContext("2d");
-        tempCtx.drawImage(canvas, x, y, w, h, 0, 0, tempCanvas.width, tempCanvas.height);
-        ctx.imageSmoothingEnabled = false;
-        ctx.drawImage(tempCanvas, 0, 0, tempCanvas.width, tempCanvas.height, x, y, w, h);
+        // ...
       });
+      */
     }, 33);
 
     const mosaicStream = canvas.captureStream(30);
     setProcessedStream(mosaicStream);
 
-    // 로컬 미리보기
+    // (2) 로컬 미리보기
     if (localVideoRef.current) {
       localVideoRef.current.srcObject = mosaicStream;
-      localVideoRef.current.play().catch((err) =>
-        console.warn("localVideo play() error:", err)
-      );
+      localVideoRef.current.play().catch((err) => {
+        console.warn("localVideo play() error:", err);
+      });
     }
 
-    // SFU 전송
+    // (3) SFU 전송
     const transportParams = await createTransport(sock, "send");
     const transport = dev.createSendTransport(transportParams);
+
     transport.on("connect", ({ dtlsParameters }, callback, errback) => {
       sock.emit("connectTransport", { transportId: transport.id, dtlsParameters }, (res) => {
         if (!res.success) {
@@ -306,6 +291,7 @@ function Monitor() {
         }
       });
     });
+
     transport.on("produce", (produceParams, callback, errback) => {
       sock.emit(
         "produce",
@@ -323,8 +309,10 @@ function Monitor() {
         }
       );
     });
+
     setSendTransport(transport);
     console.log("SendTransport 생성됨, id=", transport.id);
+
     try {
       const producer = await transport.produce({ track: mosaicStream.getVideoTracks()[0] });
       console.log("Producer 생성됨, id =", producer.id);
@@ -357,9 +345,12 @@ function Monitor() {
     setLocalStream(null);
     setProcessedStream(null);
     setRemoteStream(null);
+
     if (localVideoRef.current) localVideoRef.current.srcObject = null;
-    if (remoteVideoRef.current) localVideoRef.current.srcObject = null;
+    if (remoteVideoRef.current) remoteVideoRef.current.srcObject = null;
+
     if (processingIntervalRef.current) clearInterval(processingIntervalRef.current);
+
     if (sendTransport) {
       sendTransport.close();
       setSendTransport(null);
@@ -374,21 +365,26 @@ function Monitor() {
   // ----------------------------------------------------------------------------------
   // (추가) FFmpeg 모자이크 영상 (WebRTC만 사용)
   // ----------------------------------------------------------------------------------
-
   const [playerRef, setPlayerRef] = useState(null);
 
-  // (1) WebRTC 재생 (디버깅)
+  // (1) WebRTC 재생 (디버깅 추가)
   const handlePlaySrsWebrtc = async () => {
-    // 1) **반드시** 문자열 형태이어야 함
-    // 예: "webrtc://msteam5iseeu.ddns.net:1985/live/mosaic_webrtc"
-    // 절대 객체 형태 { url: "..."}로 넘기면 안 됨
-    const webrtcUrl ="webrtc://msteam5iseeu.ddns.net:1985/live/mosaic_webrtc";
+    // 하드코딩된 문자열
+    // ex) "webrtc://msteam5iseeu.ddns.net:1985/live/mosaic_webrtc"
+    const webrtcUrl = "webrtc://msteam5iseeu.ddns.net:1985/live/mosaic_webrtc";
 
-    // 2) 추가 디버깅
-    console.log("=== Debug webrtcUrl =>", typeof webrtcUrl, webrtcUrl);
+    // 추가 디버깅
+    console.log("=== Debug typeof webrtcUrl =>", typeof webrtcUrl);
+    console.log("=== Debug raw webrtcUrl =>", webrtcUrl);
+    console.log(
+      "=== Debug codepoints =>",
+      [...webrtcUrl].map((c) => c.charCodeAt(0))
+    );
+
+    // 전역 window 객체의 SrsRtcPlayerAsync 상태도 확인
+    console.log("=== Additional Debug: window.SrsRtcPlayerAsync is", window.SrsRtcPlayerAsync);
 
     try {
-      // 여기서 webrtcUrl이 문자열인지 꼭 확인!
       const p = await startSrsWebrtcPlayer(webrtcUrl, "srsWebrtcVideo");
       setPlayerRef(p);
     } catch (err) {
@@ -538,7 +534,7 @@ function Monitor() {
           </div>
           <div
             className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 flex flex-col items-center justify-center min-h-[200px] cursor-pointer hover:border-custom"
-            onClick={handleOpenWebcamSelect} // 기존 mediasoup
+            onClick={handleOpenWebcamSelect}
           >
             <i className="fas fa-webcam text-4xl text-custom mb-4"></i>
             <span className="text-gray-700">웹캠 연결</span>
@@ -589,11 +585,11 @@ function Monitor() {
           </div>
         )}
 
-        {/* (2) FFmpeg + SRS 모자이크 영상 (웹캠 or pipeline) => WebRTC */}
+        {/* (2) FFmpeg + SRS 모자이크 영상 (WebRTC) */}
         <div className="bg-white p-4 rounded-lg border mb-6">
           <h2 className="text-lg font-semibold mb-2">모자이크 영상 (WebRTC)</h2>
           <p className="text-sm text-gray-500 mb-2">
-            FFmpeg(또는 webcam_pipeline.py) → SRS → WebRTC 재생
+            FFmpeg or webcam_pipeline.py → SRS → WebRTC 재생
           </p>
           <div className="mt-4">
             <button
@@ -618,7 +614,8 @@ function Monitor() {
               />
             </div>
             <p className="text-xs text-gray-400 mt-2">
-              ※ <strong>주의</strong>: webrtc://msteam5iseeu.ddns.net:1985/live/mosaic_webrtc (문자열)인지 확인
+              ※ <strong>주의</strong>: webrtc://msteam5iseeu.ddns.net:1985/live/mosaic_webrtc{" "}
+              (반드시 문자열)
             </p>
           </div>
         </div>
