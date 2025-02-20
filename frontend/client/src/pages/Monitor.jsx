@@ -72,8 +72,22 @@ function Monitor() {
 
   const handleSubmitDevice = async (e) => {
     e.preventDefault();
+    console.log("[장치 등록]", {
+      deviceType,
+      deviceName,
+      deviceIP,
+      devicePort,
+      deviceUser,
+      devicePass,
+    });
+
+    // 예: cameraId = deviceName, rtspUrl = "rtsp://IP:Port"
+    // 실제로는 deviceUser/devicePass를 rtsp URL에 포함하거나,
+    // 다른 방식으로 전달할 수도 있음
     const cameraId = deviceName || `cam-${Date.now()}`;
-    const rtspUrl = `rtsp://${deviceIP || "192.168.0.10"}:${devicePort || "554"}`;
+    const rtspUrl = `rtsp://${deviceIP || "192.168.0.10"}:${
+      devicePort || "554"
+    }`;
 
     try {
       const res = await fetch("/api/cameras", {
@@ -92,6 +106,18 @@ function Monitor() {
     }
     closeDeviceModal();
   };
+
+  // 탭 강조 로직
+  const isMonitorActive = location.pathname === "/monitor";
+  const isDashboardActive = location.pathname === "/dashboard";
+  const isAiInsightActive = location.pathname === "/ai-insight";
+  const isChatbotActive = location.pathname === "/chatbot";
+  const isGuideActive = location.pathname === "/guide";
+
+  // 개인정보법 안내 오버레이 상태
+  const [privacyOpen, setPrivacyOpen] = useState(false);
+  const openPrivacy = () => setPrivacyOpen(true);
+  const closePrivacy = () => setPrivacyOpen(false);
 
   // -----------------------------------------------------
   // SFU & mediasoup 관련: socket과 device를 useRef로 관리
@@ -118,6 +144,7 @@ function Monitor() {
   useEffect(() => {
     detectionBoxesRef.current = detectionBoxes;
   }, [detectionBoxes]);
+
 
   // CV 서비스 API를 주기적으로 호출하여 감지 결과 업데이트 (예시: 1초마다)
   useEffect(() => {
@@ -422,6 +449,28 @@ function Monitor() {
                 >
                   AI 인사이트
                 </Link>
+
+                {/* 챗봇 */}
+                <Link
+                  to="/chatbot"
+                  className={`inline-flex items-center px-1 pt-1 nav-link ${
+                    isChatbotActive
+                      ? "bg-black text-white font-medium"
+                      : "text-gray-500 hover:text-black"
+                  }`}
+                  style={{
+                    padding: "0.5rem 1rem",
+                    borderRadius: "0.375rem",
+                    transition: "all 0.3s ease",
+                    backgroundColor: isChatbotActive ? "#000000" : "#f3f4f6",
+                    color: isChatbotActive ? "#ffffff" : "#000000",
+                  }}
+                >
+                  챗봇
+                </Link>
+
+                {/* 사용 방법 */}
+
                 <Link
                   to="/guide"
                   className={`inline-flex items-center px-1 pt-1 nav-link ${isGuideActive ? "bg-black text-white font-medium" : "text-gray-500 hover:text-black"}`}
@@ -472,8 +521,11 @@ function Monitor() {
       <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-2xl font-bold text-gray-900">CCTV 모니터링</h1>
-          <button onClick={() => openDeviceModal("CCTV")} className="rounded-button bg-black text-white px-4 py-2 flex items-center">
-            <i className="fas fa-plus mr-2"></i> 새 장치 연결
+          <button
+            onClick={() => openDeviceModal("CCTV")} // 새 장치 연결(예시)
+            className="rounded-button bg-black text-white px-4 py-2 flex items-center"
+          >
+            <i className="fas fa-plus mr-2"></i>새 장치 연결
           </button>
         </div>
         <div className="mb-4 text-gray-600">

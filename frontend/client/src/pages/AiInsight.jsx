@@ -82,6 +82,22 @@ function AiInsight() {
                 >
                   AI 인사이트
                 </Link>
+
+                {/* 챗봇 */}
+                <Link
+                  to="/chatbot"
+                  className="inline-flex items-center px-1 pt-1 nav-link text-gray-500 hover:text-black"
+                  style={{
+                    padding: "0.5rem 1rem",
+                    borderRadius: "0.375rem",
+                    transition: "all 0.3s ease",
+                    backgroundColor: "#f3f4f6",
+                    color: "#000000",
+                  }}
+                >
+                  챗봇
+                </Link>
+
                 {/* 사용 방법 */}
                 <Link
                   to="/guide"
@@ -278,9 +294,8 @@ function AiInsight() {
                 <strong>주요 키워드:</strong> #혼잡도 #매출예측 #직장인유동인구
               </p>
               <p className="mt-2 text-sm text-gray-600">
-                <strong>간단 요약:</strong>{" "}
-                이번 주말 저녁 시간대에 20대~30대 방문자 증가가 예상되며, 매출
-                상승 기회가 높습니다.
+                <strong>간단 요약:</strong> 이번 주말 저녁 시간대에 20대~30대
+                방문자 증가가 예상되며, 매출 상승 기회가 높습니다.
               </p>
             </div>
 
@@ -292,8 +307,7 @@ function AiInsight() {
                 • 평균 체류 시간: 40분
                 <br />
                 • 예상 매출: 3,000,000원
-                <br />
-                • 프로모션 제안: 20대 직장인을 위한 SNS 이벤트
+                <br />• 프로모션 제안: 20대 직장인을 위한 SNS 이벤트
               </p>
             </div>
 

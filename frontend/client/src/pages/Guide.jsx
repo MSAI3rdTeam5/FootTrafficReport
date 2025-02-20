@@ -11,6 +11,7 @@ function Guide() {
   const isMonitorActive = location.pathname === "/monitor";
   const isDashboardActive = location.pathname === "/dashboard";
   const isAiInsightActive = location.pathname === "/ai-insight";
+  const isChatbotActive = location.pathname === "/chatbot";
   const isGuideActive = location.pathname === "/guide";
   // 개인정보법 안내는 버튼/링크/오버레이 방식에 따라 추가 로직 가능
 
@@ -84,6 +85,25 @@ function Guide() {
                   }}
                 >
                   AI 인사이트
+                </Link>
+
+                {/* 챗봇 */}
+                <Link
+                  to="/chatbot"
+                  className={`inline-flex items-center px-1 pt-1 nav-link ${
+                    isChatbotActive
+                      ? "bg-black text-white font-medium"
+                      : "text-gray-500 hover:text-black"
+                  }`}
+                  style={{
+                    padding: "0.5rem 1rem",
+                    borderRadius: "0.375rem",
+                    transition: "all 0.3s ease",
+                    backgroundColor: isChatbotActive ? "#000000" : "#f3f4f6",
+                    color: isChatbotActive ? "#ffffff" : "#000000",
+                  }}
+                >
+                  챗봇
                 </Link>
 
                 {/* 사용 방법 (현재 화면) */}
@@ -216,22 +236,25 @@ function Guide() {
               <h2 className="text-2xl font-bold mb-6">1. 앱 소개</h2>
               <div className="bg-white rounded-lg shadow p-6">
                 <p className="text-gray-700 mb-6">
-                  I See U는 다양한 디바이스(CCTV, 블랙박스, 웹캠, 스마트폰 등)로부터
-                  실시간 영상을 모니터링하고, 방문자 통계·분석 자료를 한눈에
-                  확인할 수 있는 솔루션입니다.
+                  I See U는 다양한 디바이스(CCTV, 블랙박스, 웹캠, 스마트폰
+                  등)로부터 실시간 영상을 모니터링하고, 방문자 통계·분석 자료를
+                  한눈에 확인할 수 있는 솔루션입니다.
                 </p>
                 <div className="grid grid-cols-2 gap-6">
                   <div className="bg-gray-50 rounded-lg p-6">
                     <h3 className="font-bold mb-4">주요 대상</h3>
                     <ul className="space-y-2">
                       <li className="flex items-center">
-                        <i className="fas fa-store text-custom mr-3"></i>매장 관리자
+                        <i className="fas fa-store text-custom mr-3"></i>매장
+                        관리자
                       </li>
                       <li className="flex items-center">
-                        <i className="fas fa-shield-alt text-custom mr-3"></i>보안 담당자
+                        <i className="fas fa-shield-alt text-custom mr-3"></i>
+                        보안 담당자
                       </li>
                       <li className="flex items-center">
-                        <i className="fas fa-microscope text-custom mr-3"></i>연구원
+                        <i className="fas fa-microscope text-custom mr-3"></i>
+                        연구원
                       </li>
                     </ul>
                   </div>
@@ -239,19 +262,20 @@ function Guide() {
                     <h3 className="font-bold mb-4">핵심 기능</h3>
                     <ul className="space-y-2">
                       <li className="flex items-center">
-                        <i className="fas fa-video text-custom mr-3"></i>실시간 모니터링
+                        <i className="fas fa-video text-custom mr-3"></i>실시간
+                        모니터링
                       </li>
                       <li className="flex items-center">
                         <i className="fas fa-chart-line text-custom mr-3"></i>
                         시간대별 방문자 통계
                       </li>
                       <li className="flex items-center">
-                        <i className="fas fa-clock text-custom mr-3"></i>피크 시간대·체류
-                        시간 분석
+                        <i className="fas fa-clock text-custom mr-3"></i>피크
+                        시간대·체류 시간 분석
                       </li>
                       <li className="flex items-center">
-                        <i className="fas fa-file-download text-custom mr-3"></i>보고서
-                        다운로드
+                        <i className="fas fa-file-download text-custom mr-3"></i>
+                        보고서 다운로드
                       </li>
                     </ul>
                   </div>
@@ -265,7 +289,9 @@ function Guide() {
               <div className="bg-white rounded-lg shadow p-6">
                 <div className="space-y-8">
                   <div>
-                    <h3 className="text-lg font-bold mb-4">2.1. 새 장치 연결</h3>
+                    <h3 className="text-lg font-bold mb-4">
+                      2.1. 새 장치 연결
+                    </h3>
                     <ol className="list-decimal list-inside space-y-2 ml-4">
                       <li>"새 장치 연결" 버튼을 클릭합니다.</li>
                       <li>
@@ -279,9 +305,12 @@ function Guide() {
                     </h3>
                     <ul className="space-y-2 ml-4">
                       <li>
-                        IP/도메인 + 포트 + 계정/비밀번호 입력 후 등록 (ONVIF·RTSP 등)
+                        IP/도메인 + 포트 + 계정/비밀번호 입력 후 등록
+                        (ONVIF·RTSP 등)
                       </li>
-                      <li>포트포워딩, 공유기 설정 등 네트워크 환경 세팅 필요</li>
+                      <li>
+                        포트포워딩, 공유기 설정 등 네트워크 환경 세팅 필요
+                      </li>
                     </ul>
                   </div>
                   <div>
@@ -291,7 +320,9 @@ function Guide() {
                     <ul className="space-y-2 ml-4">
                       <li>"QR 코드 스캔" 화면을 열고,</li>
                       <li>모바일·웹캠 카메라로 QR 코드를 촬영하면 자동 연결</li>
-                      <li>장치가 정상 등록되면, 실시간 모니터링 화면에 추가됨</li>
+                      <li>
+                        장치가 정상 등록되면, 실시간 모니터링 화면에 추가됨
+                      </li>
                     </ul>
                   </div>
                 </div>
@@ -320,12 +351,15 @@ function Guide() {
                     원하는 화면을 클릭해 체크박스를 선택할 수 있습니다. 선택된
                     화면은 하단 목록에 표시됩니다.
                   </p>
-                  <p>"새 장치 연결" 버튼을 통해 다른 디바이스도 지속해서 추가 가능.</p>
+                  <p>
+                    "새 장치 연결" 버튼을 통해 다른 디바이스도 지속해서 추가
+                    가능.
+                  </p>
                   <div className="bg-blue-50 border-l-4 border-black p-4 mt-4">
                     <p className="text-sm">
                       <i className="fas fa-info-circle text-black mr-2"></i>TIP:
-                      네트워크 상태가 불안정하면 영상이 끊길 수 있습니다. 가능하면
-                      유선 LAN 또는 안정된 Wi-Fi를 이용해주세요.
+                      네트워크 상태가 불안정하면 영상이 끊길 수 있습니다.
+                      가능하면 유선 LAN 또는 안정된 Wi-Fi를 이용해주세요.
                     </p>
                   </div>
                 </div>
@@ -372,7 +406,9 @@ function Guide() {
                   <div className="space-y-4">
                     <div className="border border-gray-200 rounded-lg p-4">
                       <div className="flex justify-between items-center">
-                        <span className="font-medium">점심 시간대 피크 분석</span>
+                        <span className="font-medium">
+                          점심 시간대 피크 분석
+                        </span>
                         <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">
                           완료
                         </span>
@@ -410,13 +446,15 @@ function Guide() {
                       </span>
                     </summary>
                     <p className="mt-4 text-gray-600">
-                      외부에서 내부망 CCTV에 접속하려면 공유기 설정(포트포워딩)이
-                      필요합니다.
+                      외부에서 내부망 CCTV에 접속하려면 공유기
+                      설정(포트포워딩)이 필요합니다.
                     </p>
                   </details>
                   <details className="p-6 group">
                     <summary className="flex justify-between items-center cursor-pointer">
-                      <span className="font-medium">RTSP 프로토콜이 안 보입니다.</span>
+                      <span className="font-medium">
+                        RTSP 프로토콜이 안 보입니다.
+                      </span>
                       <span className="transition group-open:rotate-180">
                         <i className="fas fa-chevron-down"></i>
                       </span>
@@ -428,7 +466,9 @@ function Guide() {
                   </details>
                   <details className="p-6 group">
                     <summary className="flex justify-between items-center cursor-pointer">
-                      <span className="font-medium">QR 코드 스캔이 실패합니다.</span>
+                      <span className="font-medium">
+                        QR 코드 스캔이 실패합니다.
+                      </span>
                       <span className="transition group-open:rotate-180">
                         <i className="fas fa-chevron-down"></i>
                       </span>
