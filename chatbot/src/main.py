@@ -122,7 +122,7 @@ def get_answer_from_openai(question, context):
         return f"Error occurred while generating response: {str(e)}"
 
 # 🧠 챗봇 응답 함수
-@app.post("/chatbot")
+@app.post("/ask")
 def chatbot_response(question):
     context = search_in_ai_search(question)
     if context == "No relevant information found.":
