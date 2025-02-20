@@ -369,26 +369,60 @@ function Monitor() {
 
   // (1) WebRTC 재생 (디버깅 추가)
   const handlePlaySrsWebrtc = async () => {
-    // 하드코딩된 문자열
-    // ex) "webrtc://msteam5iseeu.ddns.net:1985/live/mosaic_webrtc"
-    const webrtcUrl = "webrtc://msteam5iseeu.ddns.net:1985/live/mosaic_webrtc";
-
-    // 추가 디버깅
-    console.log("=== Debug typeof webrtcUrl =>", typeof webrtcUrl);
-    console.log("=== Debug raw webrtcUrl =>", webrtcUrl);
-    console.log(
-      "=== Debug codepoints =>",
-      [...webrtcUrl].map((c) => c.charCodeAt(0))
-    );
-
-    // 전역 window 객체의 SrsRtcPlayerAsync 상태도 확인
-    console.log("=== Additional Debug: window.SrsRtcPlayerAsync is", window.SrsRtcPlayerAsync);
-
+    // 예: webrtc://{도메인}:{포트}/{app}/{stream}
+    // 포트 1985는 SRS 기본 WebRTC 포트 중 하나 (또는 443/1985 등)
+    // app=live, stream=mosaic_webrtc 는 예시값
+    const webrtcUrl = "webrtc://msteam5iseeu.ddns.net/live/mosaic_webrtc";
+  
+    // 1) URL 디버깅
+    console.log("[DEBUG] typeof webrtcUrl =>", typeof webrtcUrl);
+    console.log("[DEBUG] webrtcUrl =>", webrtcUrl);
+  
+    // 혹시 URL이 잘못된 객체/undefined가 아닌지 확인
+    if (typeof webrtcUrl !== "string") {
+      console.error("[ERROR] webrtcUrl is NOT a string!", webrtcUrl);
+      return; // 함수 종료
+    }
+  
+    // 2) SRS SDK 로드 여부
+    if (!window.SrsRtcPlayerAsync) {
+      console.error("[ERROR] SRS SDK (SrsRtcPlayerAsync) not found in window.");
+      return;
+    }
+    console.log("[DEBUG] SRS SDK found ->", window.SrsRtcPlayerAsync);
+  
+    // 3) video 요소 존재 여부
+    const videoId = "srsWebrtcVideo"; // DOM 상에 <video id="srsWebrtcVideo"></video>가 있어야 함
+    const videoEl = document.getElementById(videoId);
+    if (!videoEl) {
+      console.error(`[ERROR] <video id="${videoId}"> not found in DOM.`);
+      return;
+    }
+    console.log(`[DEBUG] Found video element with id="${videoId}".`);
+  
+    // 4) WebRTC 플레이어 초기화 및 재생
     try {
-      const p = await startSrsWebrtcPlayer(webrtcUrl, "srsWebrtcVideo");
-      setPlayerRef(p);
+      console.log("[SRSWebRTC] Starting WebRTC play for url =", webrtcUrl);
+      // SRS SDK 옛날 버전
+      // const player = new window.SrsRtcPlayerAsync({
+      //   url: webrtcUrl,
+      //   video: videoEl,
+      // });
+      // console.log("[DEBUG] player config =>", player.__internal?.config ?? player.config);
+      // await player.play();
+
+      // SRS SDK 신 버전
+      const player = new window.SrsRtcPlayerAsync({
+        video: videoEl
+      });
+      await player.play(webrtcUrl);
+  
+      console.log("[SRSWebRTC] WebRTC play success.");
+  
+      // 필요 시, setPlayerRef(player);
     } catch (err) {
-      console.error("[SRSWebRTC] play error:", err);
+      // "URL must be a string" 에러가 나면 이 catch 블록에서 확인됨
+      console.error("[SRSWebRTC] play() error:", err);
     }
   };
 

@@ -22,8 +22,6 @@
     <!-- (1) webrtc-adapter를 먼저 로드 -->
     <script src="/adapter/adapter.js"></script>
 
-    <!-- (2) Janus.js (기존 코드) -->
-    <script src="/janus/janus.js"></script>
 
     <!-- (2.5) SRS SDK: 전역 스크립트로 로드 (중요) -->
     <!-- 
@@ -32,11 +30,12 @@
     -->
     <script src="/srs.sdk.js"></script>
 
+    
     <!-- (3) Vite main script (React/Vue) -->
     <script type="module" src="/src/main.jsx"></script>
 
     <!-- (4) Socket.io 클라이언트 (전역) -->
-    <script src="/socket.io/socket.io.js"></script>
+    <script src="/socket.io/socket.io.js" data-no-bundle></script>
     <script>
       (function() {
         // Socket.io 초기화 예시
