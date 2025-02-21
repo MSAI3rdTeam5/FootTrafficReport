@@ -1,8 +1,14 @@
-import React, { useEffect, useState, useCallback, useMemo, useRef } from "react";
+import React, {
+  useEffect,
+  useState,
+  useCallback,
+  useMemo,
+  useRef,
+} from "react";
 import Plyr from "plyr";
 import "plyr/dist/plyr.css";
 
-const CCTVMonitoring = ({ selectedCamera, onClose }) => {
+const CCTVMonitoring = ({ selectedCamera, onClose, onSwitchDevice }) => {
   const [currentTime, setCurrentTime] = useState("");
   const [logs, setLogs] = useState([]);
   const [selectedImage, setSelectedImage] = useState(null);
@@ -15,11 +21,10 @@ const CCTVMonitoring = ({ selectedCamera, onClose }) => {
 
   // 연결된 장치 목록 및 현재 선택된 장치 인덱스
   const [devices] = useState(["cam1", "cam2"]); // 연결된 장치 목록
-  const [currentDeviceIndex, setCurrentDeviceIndex] = useState(0); 
+  const [currentDeviceIndex, setCurrentDeviceIndex] = useState(0);
 
   // 현재 선택된 장치
   const currentDevice = devices[currentDeviceIndex];
-
 
   const fetchLogs = useCallback(async () => {
     try {
@@ -28,30 +33,37 @@ const CCTVMonitoring = ({ selectedCamera, onClose }) => {
       console.log("Fetched logs:", data);
       setLogs((prevLogs) => {
         const newLogs = [...data, ...prevLogs];
+        // 중복 로그 제거
+        const uniqueLogs = newLogs.filter(
+          (log, index, self) => index === self.findIndex((t) => t.id === log.id)
+        );
         // 로그를 내림차순으로 정렬
-        newLogs.sort((a, b) => new Date(b.detected_time) - new Date(a.detected_time));
-        return newLogs.slice(0, 50); // 최신 50개 로그만 유지
+        uniqueLogs.sort(
+          (a, b) => new Date(b.detected_time) - new Date(a.detected_time)
+        );
+        return uniqueLogs.slice(0, 50); // 최신 50개 로그만 유지
       });
     } catch (error) {
       console.error("로그 데이터 가져오기 실패:", error);
     }
   }, []);
 
-  const switchCamera = (direction) => {
-    const totalCameras = selectedCamera.totalCameras || 1; // 총 카메라 수, 실제 값으로 대체해야 함
+  const switchDevice = (direction) => {
     let newIndex;
-    if (direction === 'next') {
-      newIndex = (currentCameraIndex + 1) % totalCameras;
-    } else {
-      newIndex = (currentCameraIndex - 1 + totalCameras) % totalCameras;
+    if (direction === "next") {
+      newIndex = (currentDeviceIndex + 1) % devices.length;
+    } else if (direction === "prev") {
+      newIndex = (currentDeviceIndex - 1 + devices.length) % devices.length;
     }
-    setCurrentCameraIndex(newIndex);
-    // 여기에 새 카메라로 전환하는 로직 추가
-    // 예: selectedCamera.switchToCamera(newIndex);
+    setCurrentDeviceIndex(newIndex);
+    onSwitchDevice(newIndex);
   };
-  
 
   useEffect(() => {
+    if (playerRef.current) {
+      playerRef.current.destroy();
+    }
+
     playerRef.current = new Plyr("#player", {
       controls: ["play", "progress", "current-time", "volume", "settings"],
     });
@@ -74,18 +86,25 @@ const CCTVMonitoring = ({ selectedCamera, onClose }) => {
         playerRef.current.destroy();
       }
     };
-  }, [fetchLogs]);
+  }, [fetchLogs, selectedCamera]);
 
-  // 다음/이전 장치 전환 함수
-  const switchDevice = (direction) => {
-    if (direction === "next") {
-      setCurrentDeviceIndex((prevIndex) => (prevIndex + 1) % devices.length);
-    } else if (direction === "prev") {
-      setCurrentDeviceIndex((prevIndex) =>
-        (prevIndex - 1 + devices.length) % devices.length
-      );
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.src = selectedCamera.videoSrc;
+      videoRef.current.load();
+      if (playerRef.current) {
+        playerRef.current.source = {
+          type: "video",
+          sources: [
+            {
+              src: selectedCamera.videoSrc,
+              type: "video/mp4",
+            },
+          ],
+        };
+      }
     }
-  };
+  }, [selectedCamera]);
 
   const getLogMessage = useCallback((log) => {
     return `카메라 #${log.cctv_id}에서 ID_${log.person_label}, ${log.gender}, ${log.age}의 사람이 감지되었습니다.`;
@@ -111,7 +130,20 @@ const CCTVMonitoring = ({ selectedCamera, onClose }) => {
   };
 
   const startRecording = () => {
-    const stream = videoRef.current.captureStream();
+    const video = videoRef.current;
+    const canvas = document.createElement("canvas");
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const context = canvas.getContext("2d");
+
+    const drawFrame = () => {
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+      requestAnimationFrame(drawFrame);
+    };
+
+    drawFrame();
+
+    const stream = canvas.captureStream();
     const recorder = new MediaRecorder(stream, {
       mimeType: "video/webm;codecs=vp9,opus",
     });
@@ -125,6 +157,7 @@ const CCTVMonitoring = ({ selectedCamera, onClose }) => {
 
     recorder.start();
   };
+
   const stopRecording = () => {
     mediaRecorder.stop();
     setTimeout(() => {
@@ -145,7 +178,13 @@ const CCTVMonitoring = ({ selectedCamera, onClose }) => {
     const canvas = document.createElement("canvas");
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
-    canvas.getContext("2d").drawImage(video, 0, 0, canvas.width, canvas.height);
+    const context = canvas.getContext("2d");
+
+    // 비디오 요소의 현재 프레임을 캔버스에 그립니다.
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    // 캔버스의 내용을 이미지 데이터 URL로 변환합니다.
+    const dataURL = canvas.toDataURL("image/png");
 
     const flash = document.createElement("div");
     flash.style.position = "fixed";
@@ -169,7 +208,7 @@ const CCTVMonitoring = ({ selectedCamera, onClose }) => {
     }, 0);
 
     const link = document.createElement("a");
-    link.href = canvas.toDataURL("image/png");
+    link.href = dataURL;
     link.download = "snapshot.png";
     link.click();
   };
@@ -225,7 +264,7 @@ const CCTVMonitoring = ({ selectedCamera, onClose }) => {
                 <button
                   onClick={handleRecordToggle}
                   className={`rounded ${
-                    isRecording ? "bg-red-600" : "bg-blue-600"
+                    isRecording ? "bg-blue-600" : "bg-red-600"
                   } hover:bg-opacity-80 px-4 py-2`}
                 >
                   <i
@@ -263,18 +302,18 @@ const CCTVMonitoring = ({ selectedCamera, onClose }) => {
             </button>
           </div>
           <div className="flex space-x-2">
-          <button
-            onClick={() => switchDevice("prev")}
-            className="rounded bg-gray-600 hover:bg-gray-700 text-white px-4 py-2"
-          >
-            <i className="fas fa-chevron-left mr-2"></i>이전 카메라
-          </button>
-          <button
-            onClick={() => switchDevice("next")}
-            className="rounded bg-gray-600 hover:bg-gray-700 text-white px-4 py-2"
-          >
-            다음 카메라<i className="fas fa-chevron-right ml-2"></i>
-          </button>
+            <button
+              onClick={() => switchDevice("prev")}
+              className="rounded bg-gray-600 hover:bg-gray-700 text-white px-4 py-2"
+            >
+              <i className="fas fa-chevron-left mr-2"></i>이전 카메라
+            </button>
+            <button
+              onClick={() => switchDevice("next")}
+              className="rounded bg-gray-600 hover:bg-gray-700 text-white px-4 py-2"
+            >
+              다음 카메라<i className="fas fa-chevron-right ml-2"></i>
+            </button>
           </div>
         </div>
       </div>

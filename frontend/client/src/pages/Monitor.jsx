@@ -34,12 +34,12 @@ function Monitor() {
     {
       cameraId: "cam1",
       name: "카메라 #1 - 명동 중앙거리",
-      videoSrc: "../../public/videos/05_seoul.mp4",
+      videoSrc: "/videos/05_seoul.mp4",
     },
     {
       cameraId: "cam2",
       name: "카메라 #2 - 에스컬레이터",
-      videoSrc: "../../public/videos/01_에스컬레이터.mp4",
+      videoSrc: "/videos/01_에스컬레이터.mp4",
     },
   ]);
 
@@ -59,6 +59,11 @@ function Monitor() {
     setOverlayVisible(false); // 오버레이 닫기
   };
 
+  const handleSwitchDevice = (newIndex) => {
+    const newCamera = cameraList[newIndex];
+    setSelectedCamera(newCamera);
+  };
+
   // [수정점] 실제 등록 함수
   const handleSubmitDevice = async (e) => {
     e.preventDefault();
@@ -70,6 +75,7 @@ function Monitor() {
       deviceUser,
       devicePass,
     });
+
 
     // 예: cameraId = deviceName, rtspUrl = "rtsp://IP:Port"
     // 실제로는 deviceUser/devicePass를 rtsp URL에 포함하거나,
@@ -361,6 +367,7 @@ function Monitor() {
         <CCTVMonitoring
           selectedCamera={selectedCamera}
           onClose={closeOverlay}
+          onSwitchDevice={handleSwitchDevice}
         />
       )}
 
