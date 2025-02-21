@@ -76,7 +76,6 @@ function Monitor() {
       devicePass,
     });
 
-
     // 예: cameraId = deviceName, rtspUrl = "rtsp://IP:Port"
     // 실제로는 deviceUser/devicePass를 rtsp URL에 포함하거나,
     // 다른 방식으로 전달할 수도 있음
@@ -579,23 +578,61 @@ function ConnectedDevices({ cameraList, onDeviceClick }) {
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden mb-6">
       <div className="p-6">
-        <h2 className="text-xl font-bold text-gray-900 mb-4">연결된 장치</h2>
+        <h2 className="text-xl font-bold text-gray-900 mb-4">
+          연결된 장치{" "}
+          <span className="text-sm text-gray-500">
+            (총 {cameraList.length}대)
+          </span>
+        </h2>
         {cameraList.length === 0 ? (
           <p className="text-gray-500">아직 등록된 카메라가 없습니다.</p>
         ) : (
-          <ul className="space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
             {cameraList.map((cam) => (
-              <li
+              <div
                 key={cam.cameraId}
-                className="p-4 bg-gray-50 rounded cursor-pointer hover:bg-gray-100"
-                onClick={() => onDeviceClick(cam)} // 클릭 시 상위로 전달
+                className="relative bg-black rounded-lg overflow-hidden shadow cursor-pointer min-h-[200px]"
+                onClick={() => onDeviceClick(cam)}
               >
-                <span className="font-medium text-gray-700">
-                  {cam.cameraId}
-                </span>
-              </li>
+                {/* 카메라 화면 */}
+                <div className="aspect-w-16 aspect-h-9">
+                  <img
+                    src={
+                      cam.cameraId === "cam1"
+                        ? cam.thumbnail || "../dist/정문.png"
+                        : cam.thumbnail || "../dist/주차장.png"
+                    } // 카메라 ID에 따라 기본 이미지 설정
+                    alt={cam.name}
+                    className="object-contain w-full h-full"
+                  />
+                </div>
+
+                {/* 정보 오버레이 */}
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <h3 className="text-white font-medium">{cam.name}</h3>
+                      <p className="text-gray-300 text-sm">상태: 정상</p>
+                    </div>
+                    <div className="flex space-x-2">
+                      {/* 확장 버튼 */}
+                      <button className="rounded-full bg-white/20 hover:bg-white/30 p-2">
+                        <i className="fas fa-expand text-white"></i>
+                      </button>
+                      {/* 설정 버튼 */}
+                      <button className="rounded-full bg-white/20 hover:bg-white/30 p-2">
+                        <i className="fas fa-cog text-white"></i>
+                      </button>
+                      {/* 녹화 버튼 */}
+                      <button className="rounded-full bg-red-500 hover:bg-red-600 p-2">
+                        <i className="fas fa-circle text-white"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
             ))}
-          </ul>
+          </div>
         )}
       </div>
     </div>
