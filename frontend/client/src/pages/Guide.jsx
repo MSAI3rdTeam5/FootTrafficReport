@@ -1,6 +1,5 @@
 // src/pages/Guide.jsx
-
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
 // 만약 개인정보법 안내를 오버레이로 쓰신다면 import PrivacyOverlay from "./PrivacyOverlay";
 
@@ -13,6 +12,46 @@ function Guide() {
   const isAiInsightActive = location.pathname === "/ai-insight";
   const isChatbotActive = location.pathname === "/chatbot";
   const isGuideActive = location.pathname === "/guide";
+  const isPrivacyActive = location.pathname === "/privacy";
+
+  //사이드바 확장
+  const sidebarRef = useRef(null);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollTop =
+        window.pageYOffset || document.documentElement.scrollTop;
+
+      if (sidebarRef.current) {
+        sidebarRef.current.style.height = `${window.innerHeight}px`;
+        sidebarRef.current.style.top = scrollTop > 64 ? "0" : "64px";
+      }
+    };
+
+    const handleResize = () => {
+      if (sidebarRef.current) {
+        sidebarRef.current.style.height = `${window.innerHeight}px`;
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
+  //회원 탈퇴 확인 창
+  const [showWithdrawModal, setShowWithdrawModal] = useState(false);
+  const handleWithdrawClick = () => {
+    setShowWithdrawModal(true);
+  };
+  const handleCloseModal = () => {
+    setShowWithdrawModal(false);
+  };
+
   // 개인정보법 안내는 버튼/링크/오버레이 방식에 따라 추가 로직 가능
 
   // 예: 개인정보법 안내 오버레이
@@ -28,7 +67,12 @@ function Guide() {
           <div className="flex justify-between h-16 items-center">
             {/* 왼쪽: "I See U" + 탭 */}
             <div className="flex items-center space-x-8">
-              <span className="text-xl font-bold text-black">I See U</span>
+              <Link
+                to="/monitor"
+                className="text-xl font-bold text-black hover:text-gray-700"
+              >
+                I See U
+              </Link>
               <div className="flex space-x-3">
                 {/* 내 모니터링 */}
                 <Link
@@ -91,7 +135,7 @@ function Guide() {
                 <Link
                   to="/chatbot"
                   className={`inline-flex items-center px-1 pt-1 nav-link ${
-                    isChatbotActive
+                    isAiInsightActive
                       ? "bg-black text-white font-medium"
                       : "text-gray-500 hover:text-black"
                   }`}
@@ -99,8 +143,8 @@ function Guide() {
                     padding: "0.5rem 1rem",
                     borderRadius: "0.375rem",
                     transition: "all 0.3s ease",
-                    backgroundColor: isChatbotActive ? "#000000" : "#f3f4f6",
-                    color: isChatbotActive ? "#ffffff" : "#000000",
+                    backgroundColor: isAiInsightActive ? "#000000" : "#f3f4f6",
+                    color: isAiInsightActive ? "#ffffff" : "#000000",
                   }}
                 >
                   챗봇
@@ -125,21 +169,24 @@ function Guide() {
                   사용 방법
                 </Link>
 
-                {/* 개인정보법 안내 (버튼/링크 예시) */}
-                <button
-                  type="button"
-                  className="inline-flex items-center px-1 pt-1 text-gray-500 hover:text-black nav-link"
+                {/* 개인정보법 안내 */}
+                <Link
+                  to="/privacy"
+                  className={`inline-flex items-center px-1 pt-1 nav-link ${
+                    isPrivacyActive
+                      ? "bg-black text-white font-medium"
+                      : "text-gray-500 hover:text-white"
+                  }`}
                   style={{
                     padding: "0.5rem 1rem",
                     borderRadius: "0.375rem",
                     transition: "all 0.3s ease",
-                    backgroundColor: "#f3f4f6",
-                    color: "#000000",
+                    backgroundColor: isPrivacyActive ? "#000000" : "#f3f4f6",
+                    color: isPrivacyActive ? "#ffffff" : "#000000",
                   }}
-                  // onClick={openPrivacy}
                 >
                   개인정보법 안내
-                </button>
+                </Link>
               </div>
             </div>
 
@@ -170,9 +217,11 @@ function Guide() {
       {/* 메인 레이아웃 */}
       <div className="min-h-screen flex">
         {/* 좌측 사이드바 (앵커) */}
-        <aside className="w-64 bg-white border-r border-gray-200 fixed h-full overflow-y-auto">
+        <aside
+          ref={sidebarRef}
+          className="w-64 bg-white border-r border-gray-200 fixed h-full overflow-y-auto transition-all duration-300"
+        >
           <div className="p-6">
-            <div className="text-xl font-bold text-custom mb-8">I See U</div>
             <nav>
               <ul className="space-y-2">
                 <li>
@@ -525,6 +574,51 @@ function Guide() {
                   </div>
                 </div>
               </div>
+              <div class="mt-8 text-center">
+                <button
+                  class="!rounded-button bg-red-50 text-red-600 px-6 py-3 hover:bg-red-100 transition-colors"
+                  onClick={handleWithdrawClick}
+                >
+                  {" "}
+                  회원 탈퇴
+                </button>
+              </div>
+
+              {showWithdrawModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                  <div className="bg-white rounded-lg p-8 max-w-sm w-full mx-4 flex flex-col items-center">
+                    <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-6">
+                      <i className="fas fa-trash-alt text-red-600 text-2xl"></i>
+                    </div>
+
+                    <h2 className="text-xl font-semibold text-gray-900 mb-2 text-center">
+                      정말 탈퇴하시겠어요?
+                    </h2>
+
+                    <p className="text-gray-500 text-center mb-8">
+                      계정은 삭제되어 복구되지 않습니다.
+                    </p>
+
+                    <div className="flex flex-col w-full gap-3">
+                      <button
+                        className="w-full py-3 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors"
+                        onClick={() => {
+                          alert("회원 탈퇴가 완료되었습니다.");
+                          handleCloseModal();
+                        }}
+                      >
+                        탈퇴
+                      </button>
+                      <button
+                        className="w-full py-3 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition-colors"
+                        onClick={handleCloseModal}
+                      >
+                        취소
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </section>
           </div>
         </main>
