@@ -17,9 +17,7 @@ function Dashboard() {
   const [selectedPeriod, setSelectedPeriod] = useState("오늘");
 
   // 버튼 목록
-  //cctvList는 현재 웹 캠만 구현되므로 null 값으로 함.
-  //추가로 cctv가 구현되면 cctvList에 추가할 예정.
-  const cctvList = [];
+  const [cctvList, setCctvList] = useState([]);
   const periodList = ["오늘", "어제", "1주일", "1달"];
 
   // 차트 전환(시간대별, 성별 비율, etc.)
@@ -42,11 +40,10 @@ function Dashboard() {
     mainGender: "N/A",
   });
 
+  //API 호출 함수
   const fetchPersonCounts = async () => {
     try {
       const response = await fetch("/api/person_count/1");
-
-      // JSON 응답 처리
       const data = await response.json();
       console.log("PersonCount 목록:", data);
       return data;
@@ -166,8 +163,8 @@ function Dashboard() {
     let peakHour = "";
     let sumMale = 0;
     let sumFemale = 0;
-    let sumYoung = 0; // 20~39
-    let sumMiddle = 0; // 40~59
+    let sumYoung = 0; // 20~59
+    let sumMiddle = 0; // 60 이상
     let sumMinor = 0; // 0~19
 
     data.forEach((row) => {
@@ -221,11 +218,11 @@ function Dashboard() {
     // 주요 연령대
     let mainAgeRange = "N/A";
     if (sumYoung >= sumMiddle && sumYoung >= sumMinor) {
-      mainAgeRange = "20~39";
+      mainAgeRange = "성인층 (20세~59세)";
     } else if (sumMiddle >= sumYoung && sumMiddle >= sumMinor) {
-      mainAgeRange = "40~59";
+      mainAgeRange = "노인층 (60세 이상)";
     } else {
-      mainAgeRange = "0~19";
+      mainAgeRange = "청소년층(19세 이하)";
     }
 
     return {
@@ -253,16 +250,24 @@ function Dashboard() {
       const data = await fetchPersonCounts();
       if (!data) return;
 
-      let filteredData = data;
+      // CCTV 목록 업데이트: 데이터에서 고유한 cctv_id 추출 후, "CCTV {id}" 형식으로 변환
+      const uniqueCctvIds = Array.from(
+        new Set(data.map((item) => item.cctv_id))
+      );
+      const formattedCctvList = uniqueCctvIds.map((id) => `CCTV ${id}`);
+      setCctvList(formattedCctvList);
+
+      const cctvNumber = parseInt(selectedCCTV.replace("CCTV ", ""), 10);
+      let filteredData = data.filter((row) => row.cctv_id === cctvNumber);
 
       if (selectedPeriod === "오늘") {
-        filteredData = filterTodayData(data);
+        filteredData = filterTodayData(filteredData);
       } else if (selectedPeriod === "어제") {
-        filteredData = filterYesterdayData(data);
+        filteredData = filterYesterdayData(filteredData);
       } else if (selectedPeriod == "1주일") {
-        filteredData = filterWeekdayData(data);
+        filteredData = filterWeekdayData(filteredData);
       } else if (selectedPeriod == "1달") {
-        filteredData = filterMonthData(data);
+        filteredData = filterMonthData(filteredData);
       }
 
       const result = calculateStats(filteredData);
@@ -272,13 +277,13 @@ function Dashboard() {
       if (!chartInstance) return;
 
       if (currentChart === "time") {
-        // 시간대별 방문자 통계
         updateLineChart(filteredData);
       } else {
         updatePieChart(filteredData);
       }
     };
     loadData();
+    //여기 수정함
   }, [selectedCCTV, selectedPeriod, currentChart, chartInstance]);
 
   //시간대별 방문자 통계
@@ -287,15 +292,15 @@ function Dashboard() {
 
     const totalArr = new Array(24).fill(0);
     const teenArr = new Array(24).fill(0); // 0~19
-    const adultArr = new Array(24).fill(0); // 20~39
-    const seniorArr = new Array(24).fill(0); // 40 이상
+    const adultArr = new Array(24).fill(0); // 20~59
+    const seniorArr = new Array(24).fill(0); // 60 이상
 
     filteredData.forEach((row) => {
       const dateObj = new Date(row.timestamp);
       const h = dateObj.getHours();
       const minor = row.male_minor + row.female_minor; // 0~19
-      const young = row.male_young_adult + row.female_young_adult; // 20~39
-      const middle = row.male_middle_aged + row.female_middle_aged; // 40~59
+      const young = row.male_young_adult + row.female_young_adult; // 20~59
+      const middle = row.male_middle_aged + row.female_middle_aged; // 60 이상
 
       const sum = minor + young + middle;
 
@@ -327,7 +332,7 @@ function Dashboard() {
         orient: "horizontal",
         top: 20,
         left: "center",
-        data: ["총 방문자", "청소년층", "청년층", "어르신층"],
+        data: ["총 방문자", "청소년층", "성인층", "노년층"],
       },
       xAxis: {
         type: "category",
@@ -352,14 +357,14 @@ function Dashboard() {
           smooth: true,
         },
         {
-          name: "청년층",
+          name: "성인층",
           type: "line",
           data: adultArr,
           color: "#73c0de",
           smooth: true,
         },
         {
-          name: "어르신층",
+          name: "노년층",
           type: "line",
           data: seniorArr,
           color: "#3ba272",
