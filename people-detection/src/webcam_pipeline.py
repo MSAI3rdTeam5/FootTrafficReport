@@ -29,8 +29,7 @@ FPS = 25
 async def process_webcam(rtmp_url: str, cctv_id="webcam"):
     """
     웹캠 -> 모자이크(YOLO) -> FFmpeg RTMP(SRS)
-    :param rtmp_url: 예) "rtmp://<SRS_IP>/live/mosaic_webrtc"
-                     SRS에서 이 스트림을 WebRTC로 재출력 가능.
+    :param rtmp_url: 예) "rtmp://srs:1935/live/mosaic_webrtc"
     :param cctv_id:  백엔드 전송 시 식별자 (Azure 분석 포함)
     """
 
@@ -65,7 +64,7 @@ async def process_webcam(rtmp_url: str, cctv_id="webcam"):
         "-c:v", "libx264",
         "-preset", "veryfast",
         "-f", "flv",
-        rtmp_url  # 예: rtmp://<SRS_IP>/live/mosaic_webrtc
+        rtmp_url  # 예: rtmp://srs:1935/live/mosaic_webrtc
     ]
     ffmpeg_proc = subprocess.Popen(ffmpeg_cmd, stdin=subprocess.PIPE)
 
@@ -102,7 +101,7 @@ async def process_webcam(rtmp_url: str, cctv_id="webcam"):
                     blurred_roi = cv2.GaussianBlur(roi, (25, 25), 0)
                     frame[y1:y2, x1:x2] = blurred_roi
 
-                    # (선택) 30프레임마다 Azure 분석 => 원치 않으면 주석 처리
+                    # (선택) 예시: 30프레임마다 Azure 분석
                     # if frame_count % 30 == 0:
                     #     with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as tmp:
                     #         cropped_path = tmp.name
@@ -137,7 +136,6 @@ async def process_webcam(rtmp_url: str, cctv_id="webcam"):
         cv2.destroyAllWindows()
         print("[INFO] Webcam pipeline finished.")
 
-
 # -----------------------------------------------------------------------
 if __name__ == "__main__":
     """
@@ -152,7 +150,8 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         rtmp_url = sys.argv[1]
     else:
-        rtmp_url = os.getenv("RTMP_URL", "rtmp://127.0.0.1/live/mosaic_webrtc")
+        # 기본값을 srs 컨테이너로 설정 (docker-compose)
+        rtmp_url = os.getenv("RTMP_URL", "rtmp://srs:1935/live/mosaic_webrtc")
 
     print(f"[DBG] Using RTMP URL => {rtmp_url}")
     asyncio.run(process_webcam(rtmp_url, cctv_id="webcam_test"))

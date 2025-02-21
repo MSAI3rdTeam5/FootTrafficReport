@@ -4,7 +4,7 @@ import uuid
 
 AZURE_CONNECTION_STRING = os.environ.get("AZURE_CONNECTION_STRING", "")
 CONTAINER_NAME = "foottraffic-images"
-
+AZURE_SAS_TOKEN=os.environ.get("AZURE_SAS_TOKEN", "")
 blob_service_client = BlobServiceClient.from_connection_string(AZURE_CONNECTION_STRING)
 container_client = blob_service_client.get_container_client(CONTAINER_NAME)
 
@@ -17,4 +17,4 @@ def upload_image_to_azure(file_bytes: bytes, cctv_id: int) -> str:
 
     # public container라면 blob_client.url 로 접근 가능
     # private라면 SAS Token 필요
-    return blob_client.url
+    return f"{blob_client.url}?{AZURE_SAS_TOKEN}"

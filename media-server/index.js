@@ -21,6 +21,14 @@ const server = http.createServer(app);
 // Nginx에서 proxy_pass "/socket.io/"로 설정되어 있음
 const io = socketIO(server);
 
+// -------------------------------
+// (추가) SRS 관련 안내 (supervisord에서 별도 프로세스로 실행)
+// -------------------------------
+// 이 Node.js 앱(미디어수프 SFU)와는 별개로, supervisord가 /srs/trunk/objs/srs -c /usr/local/srs/conf/srs.conf
+// 명령을 백그라운드로 실행하고 있습니다.
+// 따라서 SRS HTTP API(포트 1985) 등은 이 코드에서 직접 다루지 않습니다.
+// -------------------------------
+
 let worker;
 let router;
 
@@ -124,9 +132,11 @@ io.on("connection", (socket) => {
   // 4) Producer 생성 요청 처리 (produce)
   socket.on("produce", async ({ transportId, kind, rtpParameters }, callback) => {
     try {
-      const transport = (socket.data.sendTransport && socket.data.sendTransport.id === transportId)
-        ? socket.data.sendTransport
-        : null;
+      const transport =
+        socket.data.sendTransport && socket.data.sendTransport.id === transportId
+          ? socket.data.sendTransport
+          : null;
+
       if (!transport) {
         throw new Error("No sendTransport for produce");
       }
@@ -153,9 +163,10 @@ io.on("connection", (socket) => {
   // 5) Consumer 생성 요청 처리 (consume)
   socket.on("consume", async ({ producerId, transportId }, callback) => {
     try {
-      const transport = (socket.data.recvTransport && socket.data.recvTransport.id === transportId)
-        ? socket.data.recvTransport
-        : null;
+      const transport =
+        socket.data.recvTransport && socket.data.recvTransport.id === transportId
+          ? socket.data.recvTransport
+          : null;
       if (!transport) {
         throw new Error("No recvTransport for consume");
       }
@@ -190,6 +201,7 @@ io.on("connection", (socket) => {
   // 6) 클라이언트 연결 종료 시 처리
   socket.on("disconnect", () => {
     console.log("Client disconnected:", socket.id);
+
     if (socket.data.sendTransport) {
       socket.data.sendTransport.close();
     }
@@ -213,6 +225,7 @@ startMediasoup()
     const PORT = 3000;
     server.listen(PORT, () => {
       console.log(`Mediasoup server listening on port ${PORT}`);
+      console.log("Note: SRS is also running (via supervisord) in the same container if configured.");
     });
   })
   .catch((err) => {

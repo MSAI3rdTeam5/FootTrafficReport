@@ -14,7 +14,7 @@ import aiohttp
 import asyncio
 import numpy as np
 import base64
-import subprocess  # 추가: subprocess for /start_webcam
+import subprocess
 from typing import Optional
 
 app = FastAPI()
@@ -59,13 +59,22 @@ class AzureAPI:
 
         def normalize_group(group_preds):
             total = sum(group_preds.values())
-            return {k: (v/total)*100 for k, v in group_preds.items()} if total > 0 else group_preds
+            return {k: (v / total) * 100 for k, v in group_preds.items()} if total > 0 else group_preds
 
         return {**normalize_group(gender_preds), **normalize_group(age_preds)}
 
 class PersonTracker:
-    def __init__(self, model_path, result_dir='../outputs/results/', tracker_config="../data/config/botsort.yaml", conf=0.5, device=None,
-                 iou=0.5, img_size=(720, 1080), output_dir='../outputs/results_video'):
+    def __init__(
+        self,
+        model_path,
+        result_dir='../outputs/results/',
+        tracker_config="../data/config/botsort.yaml",
+        conf=0.5,
+        device=None,
+        iou=0.5,
+        img_size=(720, 1080),
+        output_dir='../outputs/results_video'
+    ):
         self.device = device if device else ('cuda:0' if torch.cuda.is_available() else 'cpu')
         self.model = YOLO(model_path)
         self.result_dir = result_dir
@@ -170,14 +179,7 @@ class PersonTracker:
 
             await asyncio.gather(*tasks)
 
-            if obj_id not in self.detected_ids:
-                self.detected_ids.add(obj_id)
-                cropped_path = self.save_cropped_person(original_frame, x1, y1, x2, y2, obj_id)
-                tasks.append(self.process_person(obj_id, cropped_path, cctv_id))
-                new_object_detected = True
-
             cv2.imshow("Person Tracking", display_frame)
-
             key = cv2.waitKey(1) & 0xFF
             if key == ord('q'):
                 break
@@ -197,11 +199,11 @@ class PersonTracker:
         gender_mapping = {'Male': 'male', 'Female': 'female'}
 
         gender_key = max([k for k in predictions if k in gender_mapping and predictions[k] >= threshold],
-                        key=predictions.get, default="Unknown")
+                         key=predictions.get, default="Unknown")
         gender = gender_mapping.get(gender_key, "Unknown")
 
         age_key = max([k for k in predictions if k in age_mapping and predictions[k] >= threshold],
-                    key=predictions.get, default="Unknown")
+                      key=predictions.get, default="Unknown")
         age = age_mapping.get(age_key, "Unknown")
 
         await self.send_data_to_server(obj_id, gender, age, cctv_id, full_frame_path)
@@ -267,9 +269,6 @@ class PersonTracker:
 
         return cropped_file_name, full_frame_file_name
 
-# ---------------------------------------------------------------------------------
-# 여태까지: 기존 main.py 로직 (detect_people 등)
-# ---------------------------------------------------------------------------------
 
 @app.post("/detect")
 async def detect_people(request: DetectionRequest):
@@ -287,12 +286,11 @@ async def detect_people(request: DetectionRequest):
 # (추가) /start_webcam 라우트
 # ---------------------------------------------------------------------------------
 @app.post("/start_webcam")
-def start_webcam(rtmp_url: Optional[str] = "rtmp://127.0.0.1/live/webcam_mosaic"):
+def start_webcam(rtmp_url: Optional[str] = "rtmp://srs:1935/live/mosaic_webrtc"):
     """
-    예: POST /start_webcam?rtmp_url=rtmp://<SRS_IP>/live/mosaic
+    예: POST /start_webcam?rtmp_url=rtmp://srs:1935/live/mosaic_webrtc
         이 엔드포인트를 호출하면, subprocess로 webcam_pipeline.py 실행
     """
-    # webcam_pipeline.py가 동일 컨테이너 내에 있다고 가정. 위치를 정확히 확인해야 함.
     script_path = "/app/src/webcam_pipeline.py"  # Dockerfile에서 WORKDIR /app, COPY src/ /app/src
 
     if not os.path.exists(script_path):
