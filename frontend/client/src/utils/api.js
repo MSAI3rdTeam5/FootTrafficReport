@@ -35,11 +35,7 @@ export async function callPeopleDetection(cctv_url, cctv_id) {
  */
 export async function callReportGeneration(title, dataSummary) {
   try {
-    const baseUrl = import.meta.env.VITE_REPORT_GENERATION_URL;
-    if (!baseUrl) {
-      throw new Error("VITE_REPORT_GENERATION_URL is not defined in environment variables.");
-    }
-    const endpoint = `${baseUrl}/generate`;
+    const endpoint = "https://msteam5iseeu.ddns.net/report-generation/report";
     const response = await fetch(endpoint, {
       method: "POST",
       headers: {
@@ -59,3 +55,8 @@ export async function callReportGeneration(title, dataSummary) {
     throw error;
   }
 }
+
+
+/**
+ * 챗봇 API 호출
+ */
