@@ -10,6 +10,8 @@ chatbot/.env
 # Backend 관련 파일
 docker-compose.yml
 
+frontend/server/.env
+
 # 1) Python 일반
 __pycache__/
 *.py[cod]
