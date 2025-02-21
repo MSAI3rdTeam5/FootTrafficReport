@@ -1,5 +1,8 @@
+from fastapi import FastAPI,HTTPException
+from flask import app
 import pandas as pd
-from gpt_response import gpt_response
+from pydantic import BaseModel
+# from gpt_response import gpt_response
 import os
 import markdown
 import pdfkit
@@ -8,6 +11,7 @@ from IPython.display import HTML
 import time
 import sys
 import requests
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from gpt_response import gpt_response
 
@@ -16,8 +20,8 @@ from gpt_response import gpt_response
 # data = pd.read_csv(data_file)
 
 # 현재는 임의로 날짜를 기입했으나 여긴 프론트에서 바로 Input이 가능한 부분이 있는지 확인
-start_date = "2024-01-01"
-end_date = "2024-01-07"
+start_date = "2025-02-28"
+end_date = "2025-03-06"
 persona = "돼지고기집"
 # GPT를 호출하는 함수
 # Input 값은 (페르소나, ~일간의 데이터를 기반으로 보고서 작성(user_inpput <- 우리가 임의로 작성할 것), Data, 시작시점, 종료시점)
@@ -74,7 +78,28 @@ def convert_html_to_pdf(pdf_file, member_id, cctv_id, report_title,persona, star
         # data_file = "./FootTrafficReport/report-generation/yearly_data/decrease_trend_year_data.csv"
         # data = pd.read_csv(data_file)
         
-        data = report_generation(cctv_id)
+        result = report_generation(cctv_id)
+        data = pd.DataFrame(result)
+        data['timestamp'] = pd.to_datetime(data['timestamp'], format='ISO8601', errors='coerce')
+
+
+        # 날짜와 시간 분리
+        data['date'] = data['timestamp'].dt.date
+        data['time'] = data['timestamp'].dt.strftime('%H:00')
+        
+        # 영어 요일을 한국어 요일로 변환
+        weekday_map = {
+            'Monday': '월', 'Tuesday': '화', 'Wednesday': '수', 'Thursday': '목',
+            'Friday': '금', 'Saturday': '토', 'Sunday': '일'
+        }
+        data['day_of_week'] = data['timestamp'].dt.day_name().map(weekday_map)
+        
+        # 불필요한 컬럼(id, cctv_id, timestamp) 삭제
+        data = data.drop(columns=['id', 'cctv_id', 'timestamp'])
+
+        # 컬럼 순서 변경
+        data = data[['date', 'time', 'day_of_week', 'male_young_adult', 'female_young_adult', 'male_middle_aged', 'female_middle_aged', 'male_minor', 'female_minor']]
+        
         response = gpt_response(persona, f"{start_date}~{end_date}간의 데이터를 기반으로 보고서 작성해주세요", data, start_date = start_date, end_date = end_date)
         
         save_html(response, 'response.html')
@@ -92,10 +117,11 @@ def convert_html_to_pdf(pdf_file, member_id, cctv_id, report_title,persona, star
         }
 
         pdfkit.from_file('response.html', pdf_file, options=options, configuration=config)
+        print(f"PDF 파일 경로: {pdf_file}")
 
         # PDF 파일이 정상적으로 생성되었는지 확인
         with open(pdf_file, "rb") as f:
-            files = {"pdf_file": f}
+            files = {"pdf_file": ("report.pdf", f, "application/pdf")}
             data = {
                 "member_id": member_id,
                 "cctv_id": cctv_id,
@@ -104,8 +130,11 @@ def convert_html_to_pdf(pdf_file, member_id, cctv_id, report_title,persona, star
 
             url = "https://msteam5iseeu.ddns.net/api/report"
             response = requests.post(url, data=data, files=files, timeout=30)
-            response.raise_for_status()
-            return response.json()
+            result = response.raise_for_status()
+            print(f"응답 상태 코드: {response.status_code}")
+            print(f"응답 본문: {response.text}")
+            # print(result)
+            return {"status": "success", "message": "Report successfully generated and uploaded.", "data": result}
 
     except Exception as e:
         print(f"오류 발생: {e}")
@@ -115,11 +144,55 @@ def convert_html_to_pdf(pdf_file, member_id, cctv_id, report_title,persona, star
 #현재는 테스트 중이기에 response.html 하나로만 사용하지만, 다수의 이용자가 동시에 사용했을 때 response도 관리가 필요하면 추후 수정해야함.
 #저장되는 경로도 추후에 수정이 필요
 # save_html(response, 'response.html')
-convert_html_to_pdf("aaa.pdf",2,1,"aaa",persona,start_date, end_date)
+# convert_html_to_pdf("aaa.pdf",1,1,"aaa",persona,start_date, end_date)
 
+# class ReportRequest(BaseModel): 
+#     pdf_file: str 
+#     member_id: int  
+#     cctv_id: int  
+#     report_title: str  
+#     persona: str  #businessType = persona
+#     start_date: str  
+#     end_date: str 
 
+# app = FastAPI()
+# origins = [
+#     "http://localhost:5173",  # 프론트엔드 앱 URL
+# ]
+# from fastapi.middleware.cors import CORSMiddleware
+# app.add_middleware(
+#     CORSMiddleware,
+#     allow_origins=origins,  # 허용할 출처
+#     allow_credentials=True,
+#     allow_methods=["*"],  # 허용할 HTTP 메소드
+#     allow_headers=["*"],  # 허용할 헤더
+# )
+# @app.post("/generate-report")
+# async def generate_report(request: ReportRequest):
+#     """
+#     FastAPI 엔드포인트: 보고서 생성 요청을 받아 PDF를 생성하고 결과를 반환
+#     """
+#     print("Received Data:", request.model_dump())
+#     result = convert_html_to_pdf(
+#         pdf_file=request.pdf_file,
+#         member_id=request.member_id,
+#         cctv_id=request.cctv_id,
+#         report_title=request.report_title,
+#         persona=request.persona,
+#         start_date=request.start_date,
+#         end_date=request.end_date
+#     )
+
+#     if result["status"] == "error":
+#         raise HTTPException(status_code=500, detail=result["message"])
     
- 
+#     return result
+    
+# if __name__ == "__main__":
+#     import uvicorn
+#     uvicorn.run(app, host="127.0.0.1", port=8000)
+
+
 # if __name__ == "__main__":
 #     # 예시 사용
 #     pdf_path = "C:/Users/username/Documents/sample.pdf"

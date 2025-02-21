@@ -44,28 +44,30 @@ def create_visualizations(data, start_date=None, end_date=None):
     
     graph_paths = []
 
-    data_folder = "./FootTrafficReport/report-generation/data_graph" #현재 로컬에선 data_graph경로로 설정해 활용중이지만 추후 경로수정 필요
+    data_folder = "./FootTrafficReport/report-generation/data_graph"
 
     clear_folder(data_folder)
     
-
-
     if start_date and end_date:
         data = filter_data_by_date(data, start_date, end_date)
     else:
         print('입력오류')
         
-    age_columns = ["male_adult", "female_adult", "male_old", "female_old", "male_young", "female_young"]
+    age_columns = ['male_young_adult', 'female_young_adult', 'male_middle_aged', 'female_middle_aged', 'male_minor', 'female_minor']
     
     # 요일별 유동인구
     weekday_order = ["월", "화", "수", "목", "금", "토", "일"]
     data['day_of_week'] = pd.Categorical(data['day_of_week'], categories=weekday_order, ordered=True)
     plt.figure(figsize=(8, 5))
-    weekday_values = data.groupby("day_of_week")[age_columns].sum() / 1000  
+    weekday_values = data.groupby("day_of_week")[age_columns].sum()
     weekday_values_total = weekday_values.sum(axis=1)
+
+    # 1000명 이상일 때만 천명 단위로 나누기
+    weekday_values_total = weekday_values_total.apply(lambda x: x / 1000 if x >= 1000 else x)
+    
     bars = weekday_values_total.plot(kind="bar", color="purple")
-    plt.title("요일별 유동인구 (합계, 천 명)")
-    plt.ylabel("유동인구 (천 명)")
+    plt.title("요일별 유동인구 (합계)")
+    plt.ylabel("유동인구")
     plt.xlabel("요일")
     plt.xticks(rotation=0) 
     plt.tight_layout()
@@ -81,10 +83,14 @@ def create_visualizations(data, start_date=None, end_date=None):
 
     # 연령별 유동인구
     plt.figure(figsize=(8, 5))
-    age_values = data[age_columns].sum() / 1000  
+    age_values = data[age_columns].sum()
+
+    # 1000명 이상일 때만 천명 단위로 나누기
+    age_values = age_values.apply(lambda x: x / 1000 if x >= 1000 else x)
+    
     bars = age_values.plot(kind="bar", color=["skyblue", "pink", "blue", "lightcoral", "green", "lightgreen"])
-    plt.title("연령별 유동인구 (합계, 천 명)")
-    plt.ylabel("유동인구 (천 명)")
+    plt.title("연령별 유동인구 (합계)")
+    plt.ylabel("유동인구")
     plt.xticks(rotation=0)
     plt.tight_layout()
     for bar in bars.patches:
@@ -100,11 +106,14 @@ def create_visualizations(data, start_date=None, end_date=None):
     male_columns = [col for col in data.columns if col.startswith("male")]
     female_columns = [col for col in data.columns if col.startswith("female")]
 
-    male_values = data[male_columns].sum().sum() / 1000  
-    female_values = data[female_columns].sum().sum() / 1000  
+    male_values = data[male_columns].sum().sum()
+    female_values = data[female_columns].sum().sum()
     gender_values = [male_values, female_values]
     labels = ["남성", "여성"]
     colors = ["skyblue", "pink"]
+
+    # 1000명 이상일 때만 천명 단위로 나누기
+    gender_values = [x / 1000 if x >= 1000 else x for x in gender_values]
 
     plt.figure(figsize=(6, 6))
     wedges, texts, autotexts = plt.pie(
@@ -120,35 +129,36 @@ def create_visualizations(data, start_date=None, end_date=None):
         x, y = wedges[i].center  
         angle = (wedges[i].theta2 + wedges[i].theta1) / 2  
         x = 0.6 * wedges[i].r * np.cos(np.radians(angle))  
-        y = 0.6 * wedges[i].r * np.sin(np.radians(angle))+0.15  
+        y = 0.6 * wedges[i].r * np.sin(np.radians(angle)) + 0.15  
         plt.text(x, y, label, ha='center', va='center', fontsize=14, color="white", weight="bold")
 
-    
-    plt.title("성별 유동인구 (천 명)", fontsize=16)
+    plt.title("성별 유동인구", fontsize=16)
     gender_graph_path = save_with_unique_name(data_folder, "gender_values_pie_chart_with_labels")
     plt.savefig(gender_graph_path)
     plt.close()
     graph_paths.append(gender_graph_path)
 
-    #시간대별 유동인구 그래프
+    # 시간대별 유동인구 그래프
     data['시간_숫자'] = pd.to_datetime(data['time'], format='%H:%M').dt.hour
 
     plt.figure(figsize=(8, 5))
-    morning_values = data[data['시간_숫자'] < 12].groupby('시간_숫자')[age_columns].sum().sum(axis=1) / 1000  # 천 명 단위
-    afternoon_values = data[data['시간_숫자'] >= 12].groupby('시간_숫자')[age_columns].sum().sum(axis=1) / 1000  # 천 명 단위
+    morning_values = data[data['시간_숫자'] < 12].groupby('시간_숫자')[age_columns].sum().sum(axis=1)
+    afternoon_values = data[data['시간_숫자'] >= 12].groupby('시간_숫자')[age_columns].sum().sum(axis=1)
+
+    # 1000명 이상일 때만 천명 단위로 나누기
+    morning_values = morning_values.apply(lambda x: x / 1000 if x >= 1000 else x)
+    afternoon_values = afternoon_values.apply(lambda x: x / 1000 if x >= 1000 else x)
 
     plt.plot(morning_values.index, morning_values.values, marker='o', label="오전 (0~11시)", color="skyblue")
     plt.plot(afternoon_values.index, afternoon_values.values, marker='o', label="오후 (12~23시)", color="orange")
 
-    
-    plt.title("시간대별 유동인구 (천 명)")
-    plt.ylabel("유동인구 (천 명)")
+    plt.title("시간대별 유동인구")
+    plt.ylabel("유동인구")
     plt.xlabel("시간")
     plt.xticks(range(24))  
     plt.grid(axis="y", linestyle="--", alpha=0.7)
     plt.legend()
 
-    # 각 그래프를 이미지로 저장하고 그래프 경로를 return으로 전달    
     time_graph_path = save_with_unique_name(data_folder, "time_values_morning_afternoon_lines")
     plt.savefig(time_graph_path)
     plt.close()

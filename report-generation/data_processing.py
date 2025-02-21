@@ -8,7 +8,7 @@ def process_data(data, start_date, end_date):
     filtered_data = data[(data["date"] >= start_date) & (data["date"] <= end_date)]
     
     weekday_order = ["월", "화", "수", "목", "금", "토", "일"]
-    age_columns = ["male_adult", "female_adult", "male_old", "female_old", "male_young", "female_young"]
+    age_columns = ['male_young_adult', 'female_young_adult', 'male_middle_aged', 'female_middle_aged', 'male_minor', 'female_minor']
     
     weekday_means = filtered_data.groupby("day_of_week")[age_columns].sum().sum(axis=1)
     weekday_means = weekday_means[weekday_order]
