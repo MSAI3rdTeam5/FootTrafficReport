@@ -8,9 +8,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@react-oauth/google": "^0.12.1",
+    "@react-oauth/google": "^1.0.0",
+    "express-session": "^1.18.1",
     "hls.js": "^1.5.20",
     "mediasoup-client": "^3.8.1",
+    "passport": "^0.7.0",
+    "passport-google-oauth20": "^2.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^7.1.3",
@@ -24,5 +27,6 @@
     "postcss": "^8.4.21",
     "tailwindcss": "^3.3.3",
     "vite": "^4.0.0"
-  }
+  },
+  "proxy": "http://localhost:4000"
 }

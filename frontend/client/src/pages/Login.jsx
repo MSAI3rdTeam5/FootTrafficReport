@@ -1,5 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { GoogleLogin } from '@react-oauth/google';
 
 function Login() {
   const navigate = useNavigate();
@@ -93,21 +94,41 @@ function Login() {
                 또는 소셜 계정으로 로그인
               </p>
               <div className="flex flex-col items-center space-y-2">
-                {/* 1) 구글 로그인 버튼 */}
-                <a
-                  href="http://localhost:4000/auth/google"
-                  className="relative inline-block w-[240px] h-[30px] hover:opacity-90"
-                >
-                  <img
-                    src="/google.png"
-                    alt="Google 로그인"
-                    className="absolute inset-0 w-full h-full object-contain"
-                  />
-                </a>
+                {/* 구글 로그인 버튼 교체 */}
+                <GoogleLogin
+                  onSuccess={async (credentialResponse) => {
+                    try {
+                      const response = await fetch("http://localhost:4000/api/google-login", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        credentials: 'include',
+                        body: JSON.stringify({ credential: credentialResponse.credential })
+                      });
+
+                      if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                      }
+
+                      const data = await response.json();
+                      if (data.success) {
+                        // Context API나 Redux로 사용자 정보 저장
+                        // setUser(data.user); 
+                        navigate("/monitor");
+                      }
+                    } catch (error) {
+                      console.error("Login failed:", error);
+                      // 에러 메시지 표시 (예: 토스트 메시지)
+                    }
+                  }}
+                  onError={() => {
+                    console.error("Google Login Error");
+                    // 에러 메시지 표시
+                  }}
+                />
 
                 {/* 2) 페이스북 로그인 버튼 */}
                 <a
-                  href="http://localhost:3000/auth/facebook"
+                  href="/auth/facebook"  // 절대 경로 사용
                   className="relative inline-block w-[240px] h-[30px] hover:opacity-90"
                 >
                   <img
@@ -119,7 +140,7 @@ function Login() {
 
                 {/* 3) 카카오 로그인 버튼 */}
                 <a
-                  href="http://localhost:3000/auth/kakao"
+                  href="/auth/kakao"  // 절대 경로 사용
                   className="relative inline-block w-[240px] h-[30px] hover:opacity-90"
                 >
                   <img
@@ -131,7 +152,7 @@ function Login() {
 
                 {/* 4) 네이버 로그인 버튼 */}
                 <a
-                  href="http://localhost:3000/auth/naver"
+                  href="/auth/naver"  // 절대 경로 사용
                   className="relative inline-block w-[240px] h-[30px] hover:opacity-90"
                 >
                   <img

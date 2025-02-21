@@ -1,5 +1,3 @@
-// server/src/index.js
-
 const express = require("express");
 const path = require("path");
 const cors = require("cors");
@@ -11,19 +9,38 @@ const initPassport = require("./passportConfig");
 
 // (추가) ffmpegRunner.js에서 startFfmpeg, getHlsUrl 가져오기
 const { startFfmpeg, getHlsUrl } = require("./ffmpegRunner");
+const { OAuth2Client } = require('google-auth-library');
+const { Member, Auth } = require('./models');  // DB 모델 import
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const app = express();
 
-// (추가) JSON 바디 파싱
+// 모든 라우트에 대해 CORS 및 보안 헤더 설정
+app.use((req, res, next) => {
+  res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
+  res.setHeader('Cross-Origin-Embedder-Policy', 'unsafe-none');
+  res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  next();
+});
+
+// JSON 파싱 미들웨어
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// 세션 미들웨어 (OAuth 로그인 세션 유지 용)
+// 세션 설정 수정
 app.use(
   session({
-    secret: "someSessionSecretKey", // 실제 운영에선 안전한 값으로
+    secret: "your_session_secret",
     resave: false,
     saveUninitialized: false,
+    cookie: {
+      secure: false, // 개발환경에서는 false
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000 // 24시간
+    }
   })
 );
 
@@ -31,14 +48,6 @@ app.use(
 initPassport(); // passport.use(...) 등록
 app.use(passport.initialize());
 app.use(passport.session());
-
-// CORS 설정 (프론트/백 분리 시)
-app.use(
-  cors({
-    origin: process.env.CLIENT_ORIGIN || "http://localhost:3000",
-    credentials: true,
-  })
-);
 
 // 테스트용 라우트
 app.get("/api/test", (req, res) => {
@@ -70,45 +79,39 @@ app.get("/api/user", (req, res) => {
 /* ------------------
    1) Google OAuth
    ------------------ */
+// server/src/index.js
+// ... 생략 (상단 import 및 기타 설정 부분은 그대로 유지)
+
 if (
   process.env.GOOGLE_CLIENT_ID &&
   process.env.GOOGLE_CLIENT_SECRET &&
   process.env.GOOGLE_CALLBACK_URL
 ) {
+  // 구글 OAuth 시작 라우트
   app.get("/auth/google", (req, res, next) => {
     console.log("[Google OAuth] /auth/google route triggered");
-    passport.authenticate("google", { scope: ["profile"] })(req, res, next);
+    passport.authenticate("google", {
+      scope: ["profile", "email"],
+    })(req, res, next);
   });
 
+  // 구글 OAuth 콜백 라우트 (Custom Callback)
   app.get("/auth/google/callback", (req, res, next) => {
-    console.log("[Google OAuth] /auth/google/callback route triggered");
-
-    // Custom Callback 방식
-    passport.authenticate("google", (err, user, info) => {
-      if (err) {
-        console.log("[Google OAuth] error:", err);
-        return next(err);
+    passport.authenticate("google", (err, user) => {
+      if (err || !user) {
+        return res.redirect("http://localhost:3000/login");
       }
-      if (!user) {
-        console.log("[Google OAuth] No user => 로그인 실패 => redirect /");
-        return res.redirect("/");
-      }
-      // 로그인 성공
-      console.log("[Google OAuth] 성공 => user:", user);
-
-      // 세션에 user 저장
       req.logIn(user, (loginErr) => {
         if (loginErr) {
-          console.log("[Google OAuth] req.logIn error:", loginErr);
-          return next(loginErr);
+          return res.redirect("http://localhost:3000/login");
         }
-        console.log("[Google OAuth] req.logIn 성공 => /monitor로 redirect");
-        return res.redirect("/monitor");
+        // 인증 성공 후 메인 페이지로 이동
+        return res.redirect("http://localhost:3000/monitor");
       });
     })(req, res, next);
   });
 } else {
-  // 미설정 시 501 응답
+  console.warn("[Google OAuth] 환경변수 설정 누락: GOOGLE_CLIENT_ID/SECRET/CALLBACK_URL");
   app.get("/auth/google", (req, res) => {
     res.status(501).json({ error: "Google OAuth not configured" });
   });
@@ -116,6 +119,9 @@ if (
     res.status(501).json({ error: "Google OAuth not configured" });
   });
 }
+
+// ... 하단 나머지 라우트들은 그대로 유지
+
 
 /* ------------------
    2) Facebook OAuth
@@ -258,4 +264,43 @@ app.get("*", (req, res) => {
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}`);
+});
+
+app.post("/api/google-login", async (req, res) => {
+  const { credential } = req.body;
+  
+  try {
+    // Google OAuth2 토큰 검증
+    const ticket = await client.verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID
+    });
+
+    const payload = ticket.getPayload();
+    
+    // FastAPI로 요청 전달
+    const response = await fetch('http://localhost:8000/google-login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: payload.email,
+        name: payload.name,
+        credential: credential
+      })
+    });
+
+    const data = await response.json();
+    
+    if (data.success) {
+      req.login(data.user, (err) => {
+        if (err) return res.status(500).json({ error: "Session creation failed" });
+        return res.json(data);
+      });
+    } else {
+      res.status(400).json({ error: "Login failed" });
+    }
+  } catch (error) {
+    console.error("Google login error:", error);
+    res.status(500).json({ error: "Server error" });
+  }
 });
