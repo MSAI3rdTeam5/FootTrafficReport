@@ -466,7 +466,7 @@ function Dashboard() {
       <ResponsiveNav onOpenPrivacy={handleOpenPrivacy} />
 
       {/* 메인 레이아웃 (화면 아래쪽) */}
-      <div className="flex bg-gray-50 dark:bg-gray-900" style={{ minHeight: "calc(100vh - 4rem)" }}>
+      <div className="flex bg-gray-50 dark:bg-gray-900 pt-16" style={{ minHeight: "calc(100vh - 4rem)" }}>
         <main className="flex-1 overflow-y-auto">
           <div className="container mx-auto px-6 py-8">
             {/* 제목 */}
