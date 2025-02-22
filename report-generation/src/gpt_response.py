@@ -120,9 +120,10 @@ def gpt_response(persona, user_input, data, start_date, end_date):
     completion = client.chat.completions.create(
         model=DEPLOYMENT_NAME,
         messages=chat_prompt,
-        max_tokens=3500, # default token 수는 보고서 생성에 제약이 있어 늘림
-        temperature=0.7,
-        top_p=0.95,
+        # max_tokens=3500,
+        max_completion_tokens=100000,
+        # temperature=0.7,
+        # top_p=0.95,
         frequency_penalty=0,
         presence_penalty=0,
         stop=None,

@@ -8,6 +8,8 @@ import re
 from IPython.display import HTML
 import requests
 from .gpt_response import gpt_response
+from fastapi.middleware.cors import CORSMiddleware
+
 
 
 class ReportRequest(BaseModel):
@@ -99,6 +101,7 @@ def convert_html_to_pdf(pdf_file, member_id, cctv_id, report_title,persona, star
        
         result = report_generation(cctv_id)
         data = pd.DataFrame(result)
+        data = data.fillna(0)
         data['timestamp'] = pd.to_datetime(data['timestamp'], format='ISO8601', errors='coerce')
  
  
@@ -153,7 +156,7 @@ def convert_html_to_pdf(pdf_file, member_id, cctv_id, report_title,persona, star
             print(f"응답 상태 코드: {response.status_code}")
             print(f"응답 본문: {response.text}")
             # print(result)
-            return {"status": "success", "message": "Report successfully generated and uploaded.", "data": result}
+            return {"status": "success", "message": "Report successfully generated and uploaded.", "data": response.text}
  
     except Exception as e:
         print(f"오류 발생: {e}")
@@ -178,11 +181,9 @@ async def generate_report(request: ReportRequest):
  
     if result["status"] == "error":
         raise HTTPException(status_code=500, detail=result["message"])
-   
+    print(result)
     return result
    
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8600)
- 
- 
