@@ -32,6 +32,8 @@ function App() {
 
       {/* 새로 추가한 LiveStreamPlayer 라우트 */}
       <Route path="/live" element={<LiveStreamPlayer />} />
+
+
     </Routes>
   );
 }
