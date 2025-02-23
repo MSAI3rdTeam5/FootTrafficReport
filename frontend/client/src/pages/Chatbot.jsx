@@ -18,9 +18,44 @@ function ChatbotPage() {
   const isChatbotActive = location.pathname === "/chatbot";
   const isGuideActive = location.pathname === "/guide";
 
-  // 대화 목록 및 메시지 상태
-  const [conversations, setConversations] = useState([]);
-  const [activeConversationId, setActiveConversationId] = useState(null);
+  //초기 대화
+  const daysOfWeek = ["일", "월", "화", "수", "목", "금", "토"];
+  const now = new Date();
+  const month = now.getMonth() + 1;
+  const date = now.getDate();
+  const dayOfWeek = daysOfWeek[now.getDay()];
+
+  const initialConversationId = Date.now();
+  const initialConversation = {
+    id: initialConversationId,
+    title: `대화 1 - ${month}월 ${date}일(${dayOfWeek})`,
+    date: now.toLocaleString("ko-KR", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    }),
+    messages: [
+      {
+        id: initialConversationId + 1,
+        sender: "bot",
+        text: "안녕하세요 ! 저는 AI 정책 추천 챗봇 입니다. ",
+      },
+      {
+        id: initialConversationId + 2,
+        sender: "bot",
+        text: "정확한 추천을 위해, 거주 지역(시/도, 시/군/구)·신분(예비창업자, 소상공인 등)·관심 업종 등을 구체적으로 포함해 질문해 주세요.",
+      },
+    ],
+  };
+
+  const [conversations, setConversations] = useState([initialConversation]);
+  const [activeConversationId, setActiveConversationId] = useState(
+    initialConversationId
+  );
+
+  // 입력창 상태
   const [inputMessage, setInputMessage] = useState("");
 
   // 목록 표시/숨기기 상태
@@ -40,8 +75,6 @@ function ChatbotPage() {
 
     const now = new Date();
     const newId = Date.now();
-
-    // 월/일/요일 구하기
     const month = now.getMonth() + 1;
     const date = now.getDate();
     const dayOfWeek = daysOfWeek[now.getDay()];
@@ -65,7 +98,12 @@ function ChatbotPage() {
         {
           id: newId + 1,
           sender: "bot",
-          text: "대화를 시작합니다! 무엇을 도와드릴까요?",
+          text: "안녕하세요 ! 저는 AI 정책 추천 챗봇 입니다. ",
+        },
+        {
+          id: newId + 2,
+          sender: "bot",
+          text: "정확한 추천을 위해, 거주 지역(시/도, 시/군/구)·신분(예비창업자, 소상공인 등)·관심 업종 등을 구체적으로 포함해 질문해 주세요.",
         },
       ],
     };
@@ -94,10 +132,6 @@ function ChatbotPage() {
       )
     );
 
-    // 사용자의 입력값을 임시 변수에 저장한 후 입력창 초기화
-    const currentQuestion = inputMessage;
-    setInputMessage("");
-
     // 로딩(타이핑) 상태 메시지 추가 (옵션)
     const typingMsgId = Date.now() + 1;
     const typingMsg = {
@@ -118,6 +152,18 @@ function ChatbotPage() {
       // 실제 백엔드 API 호출
       const answer = await getChatbotResponse(inputMessage);
 
+      // 봇 응답 메시지와 저장 안내 메시지를 생성합니다.
+      const newAnswerMessage = {
+        id: Date.now(),
+        sender: "bot",
+        text: answer,
+      };
+      const newSaveMessage = {
+        id: Date.now() + 1,
+        sender: "bot",
+        text: "채팅 내용을 저장하고 싶으면 오른쪽 상단 '저장하기' 버튼을 눌러주세요.",
+      };
+
       setConversations((prev) =>
         prev.map((conv) =>
           conv.id === activeConversationId
@@ -125,7 +171,8 @@ function ChatbotPage() {
                 ...conv,
                 messages: conv.messages
                   .filter((msg) => msg.id !== typingMsgId)
-                  .concat({ id: Date.now(), sender: "bot", text: answer }),
+                  // .concat({ id: Date.now(), sender: "bot", text: answer }),
+                  .concat([newAnswerMessage, newSaveMessage]),
               }
             : conv
         )
@@ -150,11 +197,6 @@ function ChatbotPage() {
         })
       );
     }
-  };
-
-  // 대화 이름 바꾸기 (임시 구현)
-  const handleRenameConversation = (id) => {
-    alert("대화 이름 바꾸기는 아직 구현되지 않았습니다.");
   };
 
   // 목록 토글 버튼
@@ -523,7 +565,7 @@ function ChatbotPage() {
                           {/* 점 세 개 눌렀을 때 나오는 드롭다운 메뉴 */}
                           {activeMenuId === conv.id && (
                             <div className="absolute top-8 right-2 w-32 bg-white border border-gray-200 rounded shadow-md z-10">
-                              <button
+                              {/* <button
                                 className="w-full text-left px-4 py-2 text-sm text-black hover:bg-gray-100"
                                 onClick={(e) => {
                                   e.stopPropagation();
@@ -532,7 +574,7 @@ function ChatbotPage() {
                                 }}
                               >
                                 이름 바꾸기
-                              </button>
+                              </button> */}
                               <button
                                 className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 text-red-500"
                                 onClick={(e) => {
@@ -582,9 +624,9 @@ function ChatbotPage() {
                   >
                     <i className="fas fa-download"></i>
                   </button>
-                  <button className="p-2 text-gray-500 hover:text-gray-700 rounded">
+                  {/* <button className="p-2 text-gray-500 hover:text-gray-700 rounded">
                     <i className="fas fa-ellipsis-v"></i>
-                  </button>
+                  </button> */}
                 </div>
               </div>
 
