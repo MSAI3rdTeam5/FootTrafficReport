@@ -8,7 +8,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@react-oauth/google": "^1.0.0",
+    "@react-oauth/google": "^0.7.0",
     "express-session": "^1.18.1",
     "hls.js": "^1.5.20",
     "mediasoup-client": "^3.8.1",

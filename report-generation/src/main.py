@@ -8,8 +8,6 @@ import re
 from IPython.display import HTML
 import requests
 from .gpt_response import gpt_response
-from fastapi.middleware.cors import CORSMiddleware
-
 
 
 class ReportRequest(BaseModel):
@@ -101,6 +99,7 @@ def convert_html_to_pdf(pdf_file, member_id, cctv_id, report_title,persona, star
        
         result = report_generation(cctv_id)
         data = pd.DataFrame(result)
+        print(data)
         data = data.fillna(0)
         data['timestamp'] = pd.to_datetime(data['timestamp'], format='ISO8601', errors='coerce')
  

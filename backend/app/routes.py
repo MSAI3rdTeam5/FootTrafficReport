@@ -123,9 +123,9 @@ def create_cctv(data: CctvInfoCreate, db: Session = Depends(get_db)):
     db.refresh(new_cctv)
     return {"message": "cctv created", "id": new_cctv.id}
 
-@router.get("/cctvs", response_model=List[dict])
-def list_cctvs(db: Session = Depends(get_db)):
-    cctvs = db.query(CctvInfo).all()
+@router.get("/cctvs/{member_id}", response_model=List[dict])
+def list_cctvs(member_id: int,db: Session = Depends(get_db)):
+    cctvs = db.query(CctvInfo).filter(CctvInfo.member_id == member_id).all()
     return [
         {
             "id": c.id,
