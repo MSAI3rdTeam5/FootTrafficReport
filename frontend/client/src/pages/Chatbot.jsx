@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { getChatbotResponse } from "../utils/api";
+import html2canvas from "html2canvas";
+import { jsPDF } from "jspdf";
 
 function ChatbotPage() {
   const location = useLocation();
@@ -34,11 +36,24 @@ function ChatbotPage() {
 
   // 새 대화 버튼
   const handleNewConversation = () => {
+    const daysOfWeek = ["일", "월", "화", "수", "목", "금", "토"];
+
     const now = new Date();
     const newId = Date.now();
+
+    // 월/일/요일 구하기
+    const month = now.getMonth() + 1;
+    const date = now.getDate();
+    const dayOfWeek = daysOfWeek[now.getDay()];
+
+    const conversationNumber = conversations.length + 1;
+
+    // 예: "대화 #1 - 2월 21일(금)"
+    const newTitle = `대화 ${conversationNumber} - ${month}월 ${date}일(${dayOfWeek})`;
+
     const newConv = {
       id: newId,
-      title: `새 대화 ${conversations.length + 1}`,
+      title: newTitle,
       date: now.toLocaleString("ko-KR", {
         year: "numeric",
         month: "2-digit",
@@ -50,7 +65,7 @@ function ChatbotPage() {
         {
           id: newId + 1,
           sender: "bot",
-          text: "새로운 대화를 시작합니다! 무엇을 도와드릴까요?",
+          text: "대화를 시작합니다! 무엇을 도와드릴까요?",
         },
       ],
     };
@@ -88,7 +103,7 @@ function ChatbotPage() {
     const typingMsg = {
       id: typingMsgId,
       sender: "bot",
-      text: "챗봇이 응답을 준비 중입니다...",
+      text: "응답을 준비 중입니다...",
     };
 
     setConversations((prev) =>
@@ -103,7 +118,6 @@ function ChatbotPage() {
       // 실제 백엔드 API 호출
       const answer = await getChatbotResponse(inputMessage);
 
-      // "타이핑 중..." 메시지 삭제 후 응답 추가
       setConversations((prev) =>
         prev.map((conv) =>
           conv.id === activeConversationId
@@ -158,6 +172,63 @@ function ChatbotPage() {
     setConversations((prev) => prev.filter((c) => c.id !== id));
     if (activeConversationId === id) {
       setActiveConversationId(null);
+    }
+  };
+
+  //PDF 다운로드
+  const handleDownloadPDF = async () => {
+    if (!activeConversation) {
+      alert("내보낼 대화가 없습니다.");
+      return;
+    }
+
+    const chatElement = document.getElementById("chatContainer");
+    if (!chatElement) {
+      alert("대화 영역을 찾을 수 없습니다.");
+      return;
+    }
+
+    const originalStyles = {
+      height: chatElement.style.height,
+      maxHeight: chatElement.style.maxHeight,
+      overflow: chatElement.style.overflow,
+    };
+
+    try {
+      chatElement.style.height = "auto";
+      chatElement.style.maxHeight = "none";
+      chatElement.style.overflow = "visible";
+
+      await new Promise((r) => setTimeout(r, 100));
+
+      const canvas = await html2canvas(chatElement, { scale: 2 });
+      const imgData = canvas.toDataURL("image/png");
+
+      const pdf = new jsPDF("p", "pt", "a4");
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+
+      const imgProps = pdf.getImageProperties(imgData);
+      const imgWidth = imgProps.width;
+      const imgHeight = imgProps.height;
+
+      const today = new Date();
+      const formattedDate = today.toISOString().split("T")[0];
+
+      let newHeight = (imgHeight * pdfWidth) / imgWidth;
+      if (newHeight > pdfHeight) {
+        newHeight = pdfHeight;
+      }
+
+      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, newHeight);
+      pdf.save(`ISeeU_Chat${formattedDate}.pdf`);
+    } catch (err) {
+      console.error("PDF 생성 에러:", err);
+      alert("PDF 생성 중 오류가 발생했습니다.");
+    } finally {
+      chatElement.style.height = originalStyles.height;
+      chatElement.style.maxHeight = originalStyles.maxHeight;
+      chatElement.style.overflow = originalStyles.overflow;
     }
   };
 
@@ -505,7 +576,10 @@ function ChatbotPage() {
                   </h3>
                 </div>
                 <div className="flex space-x-2">
-                  <button className="p-2 text-gray-500 hover:text-gray-700 rounded">
+                  <button
+                    className="p-2 text-gray-500 hover:text-gray-700 rounded"
+                    onClick={handleDownloadPDF}
+                  >
                     <i className="fas fa-download"></i>
                   </button>
                   <button className="p-2 text-gray-500 hover:text-gray-700 rounded">
@@ -515,10 +589,10 @@ function ChatbotPage() {
               </div>
 
               {/* 메시지 목록 (스크롤) */}
-              <div className="flex-1 p-6 overflow-y-auto">
+              <div id="chatContainer" className="flex-1 p-6 overflow-y-auto">
                 {!activeConversation ? (
                   <div className="text-gray-500">
-                    메시지를 입력하면 새 대화가 시작됩니다.
+                    메시지를 입력하면 대화가 시작됩니다.
                   </div>
                 ) : (
                   <div className="space-y-6">
@@ -562,7 +636,7 @@ function ChatbotPage() {
                     className="flex-1 form-input border-gray-300 focus:border-custom focus:ring-custom rounded-lg resize-none"
                     placeholder={
                       activeConversation
-                        ? "메시지를 입력하세요..."
+                        ? "메시지를 입력해주세요. "
                         : "대화를 먼저 선택해주세요."
                     }
                     rows={3}
