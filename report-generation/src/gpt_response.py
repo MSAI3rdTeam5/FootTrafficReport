@@ -1,5 +1,5 @@
-from visualization import create_visualizations
-from data_processing import process_data
+from .visualization import create_visualizations
+from .data_processing import process_data
 from datetime import datetime
 from dotenv import load_dotenv
 import os
@@ -9,14 +9,14 @@ import pandas as pd
 load_dotenv()
 
 # env파일 불러오기. GPT-4o or o1 사용가능
-endpoint = os.getenv("ENDPOINT_URL")
-deployment = os.getenv("DEPLOYMENT_NAME")
-subscription_key = os.getenv("AZURE_OPENAI_API_KEY")   
+ENDPOINT_URL = os.getenv("ENDPOINT_URL")
+DEPLOYMENT_NAME = os.getenv("DEPLOYMENT_NAME")
+AZURE_OPENAI_API_KEY = os.getenv("AZURE_OPENAI_API_KEY")   
 
 client = AzureOpenAI(  
-    azure_endpoint=endpoint,  
-    api_key=subscription_key,  
-    api_version="2024-05-01-preview",
+    azure_endpoint=ENDPOINT_URL,  
+    api_key=AZURE_OPENAI_API_KEY,  
+    api_version="2024-12-01-preview",
 )
 
 # Azure Open AI를 활용해 Chat-bot으로 보고서 생성 코드
@@ -118,11 +118,12 @@ def gpt_response(persona, user_input, data, start_date, end_date):
     ]
 
     completion = client.chat.completions.create(
-        model=deployment,
+        model=DEPLOYMENT_NAME,
         messages=chat_prompt,
-        max_tokens=3500, # default token 수는 보고서 생성에 제약이 있어 늘림
-        temperature=0.7,
-        top_p=0.95,
+        # max_tokens=3500,
+        max_completion_tokens=100000,
+        # temperature=0.7,
+        # top_p=0.95,
         frequency_penalty=0,
         presence_penalty=0,
         stop=None,
