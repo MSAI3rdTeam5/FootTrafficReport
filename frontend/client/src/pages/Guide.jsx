@@ -14,6 +14,11 @@ function Guide() {
   const isGuideActive = location.pathname === "/guide";
   const isPrivacyActive = location.pathname === "/privacy";
 
+  // 개인정보 오버레이
+  const [privacyOpen, setPrivacyOpen] = useState(false);
+  const handleOpenPrivacy = () => setPrivacyOpen(true);
+  const handleClosePrivacy = () => setPrivacyOpen(false);
+
   //사이드바 확장
   const sidebarRef = useRef(null);
 
@@ -62,157 +67,7 @@ function Guide() {
   return (
     <div className="bg-gray-50 min-h-screen font-['Noto_Sans_KR']">
       {/* 상단 Nav */}
-      <nav className="bg-white shadow">
-        <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16 items-center">
-            {/* 왼쪽: "I See U" + 탭 */}
-            <div className="flex items-center space-x-8">
-              <Link
-                to="/monitor"
-                className="text-xl font-bold text-black hover:text-gray-700"
-              >
-                I See U
-              </Link>
-              <div className="flex space-x-3">
-                {/* 내 모니터링 */}
-                <Link
-                  to="/monitor"
-                  className={`inline-flex items-center px-1 pt-1 nav-link ${
-                    isMonitorActive
-                      ? "bg-black text-white font-medium"
-                      : "text-gray-500 hover:text-black"
-                  }`}
-                  style={{
-                    padding: "0.5rem 1rem",
-                    borderRadius: "0.375rem",
-                    transition: "all 0.3s ease",
-                    backgroundColor: isMonitorActive ? "#000000" : "#f3f4f6",
-                    color: isMonitorActive ? "#ffffff" : "#000000",
-                  }}
-                >
-                  내 모니터링
-                </Link>
-
-                {/* 통계 분석 */}
-                <Link
-                  to="/dashboard"
-                  className={`inline-flex items-center px-1 pt-1 nav-link ${
-                    isDashboardActive
-                      ? "bg-black text-white font-medium"
-                      : "text-gray-500 hover:text-black"
-                  }`}
-                  style={{
-                    padding: "0.5rem 1rem",
-                    borderRadius: "0.375rem",
-                    transition: "all 0.3s ease",
-                    backgroundColor: isDashboardActive ? "#000000" : "#f3f4f6",
-                    color: isDashboardActive ? "#ffffff" : "#000000",
-                  }}
-                >
-                  통계 분석
-                </Link>
-
-                {/* AI 인사이트 */}
-                <Link
-                  to="/ai-insight"
-                  className={`inline-flex items-center px-1 pt-1 nav-link ${
-                    isAiInsightActive
-                      ? "bg-black text-white font-medium"
-                      : "text-gray-500 hover:text-black"
-                  }`}
-                  style={{
-                    padding: "0.5rem 1rem",
-                    borderRadius: "0.375rem",
-                    transition: "all 0.3s ease",
-                    backgroundColor: isAiInsightActive ? "#000000" : "#f3f4f6",
-                    color: isAiInsightActive ? "#ffffff" : "#000000",
-                  }}
-                >
-                  AI 인사이트
-                </Link>
-
-                {/* 챗봇 */}
-                <Link
-                  to="/chatbot"
-                  className={`inline-flex items-center px-1 pt-1 nav-link ${
-                    isAiInsightActive
-                      ? "bg-black text-white font-medium"
-                      : "text-gray-500 hover:text-black"
-                  }`}
-                  style={{
-                    padding: "0.5rem 1rem",
-                    borderRadius: "0.375rem",
-                    transition: "all 0.3s ease",
-                    backgroundColor: isAiInsightActive ? "#000000" : "#f3f4f6",
-                    color: isAiInsightActive ? "#ffffff" : "#000000",
-                  }}
-                >
-                  챗봇
-                </Link>
-
-                {/* 사용 방법 (현재 화면) */}
-                <Link
-                  to="/guide"
-                  className={`inline-flex items-center px-1 pt-1 nav-link ${
-                    isGuideActive
-                      ? "bg-black text-white font-medium"
-                      : "text-gray-500 hover:text-black"
-                  }`}
-                  style={{
-                    padding: "0.5rem 1rem",
-                    borderRadius: "0.375rem",
-                    transition: "all 0.3s ease",
-                    backgroundColor: isGuideActive ? "#000000" : "#f3f4f6",
-                    color: isGuideActive ? "#ffffff" : "#000000",
-                  }}
-                >
-                  사용 방법
-                </Link>
-
-                {/* 개인정보법 안내 */}
-                <Link
-                  to="/privacy"
-                  className={`inline-flex items-center px-1 pt-1 nav-link ${
-                    isPrivacyActive
-                      ? "bg-black text-white font-medium"
-                      : "text-gray-500 hover:text-white"
-                  }`}
-                  style={{
-                    padding: "0.5rem 1rem",
-                    borderRadius: "0.375rem",
-                    transition: "all 0.3s ease",
-                    backgroundColor: isPrivacyActive ? "#000000" : "#f3f4f6",
-                    color: isPrivacyActive ? "#ffffff" : "#000000",
-                  }}
-                >
-                  개인정보법 안내
-                </Link>
-              </div>
-            </div>
-
-            {/* 오른쪽 알림/설정/프로필 */}
-            <div className="flex items-center">
-              <button className="p-2 rounded-full hover:bg-gray-100 relative">
-                <i className="fas fa-bell text-gray-600"></i>
-                <span className="absolute top-1 right-1 bg-red-500 rounded-full w-2 h-2"></span>
-              </button>
-              <button className="ml-3 p-2 rounded-full hover:bg-gray-100">
-                <i className="fas fa-cog text-gray-600"></i>
-              </button>
-              <div className="ml-4 flex items-center">
-                <img
-                  className="h-8 w-8 rounded-full"
-                  src="/기본프로필.png"
-                  alt="사용자 프로필"
-                />
-                <span className="ml-2 text-sm font-medium text-gray-700">
-                  김관리자
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <ResponsiveNav onOpenPrivacy={handleOpenPrivacy} />
 
       {/* 메인 레이아웃 */}
       <div className="min-h-screen flex">

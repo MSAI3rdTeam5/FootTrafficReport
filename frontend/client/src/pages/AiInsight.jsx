@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 
+
 function AiInsight() {
   // [상태] 창업 여부, 업종, 날짜, CCTV 선택
   const [isNewBusiness, setIsNewBusiness] = useState(""); // ""이면 아직 미선택
@@ -8,6 +9,12 @@ function AiInsight() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [selectedCCTV, setSelectedCCTV] = useState("");
+
+  // 개인정보 오버레이
+  const [privacyOpen, setPrivacyOpen] = useState(false);
+  const handleOpenPrivacy = () => setPrivacyOpen(true);
+  const handleClosePrivacy = () => setPrivacyOpen(false);
+  
 
   // 예시 CCTV 목록 (monitor.jsx 등에서 실제 등록 정보를 가져올 수도 있음)
   const cctvOptions = [
@@ -35,123 +42,7 @@ function AiInsight() {
   return (
     <div className="bg-gray-50 font-sans min-h-screen">
       {/* 상단 Nav */}
-      <nav className="bg-white shadow">
-        <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16 items-center">
-            {/* 왼쪽: "I See U" + 탭 */}
-            <div className="flex items-center space-x-8">
-              <span className="text-xl font-bold text-black">I See U</span>
-              <div className="flex space-x-3">
-                {/* 내 모니터링 탭 */}
-                <Link
-                  to="/monitor"
-                  className="inline-flex items-center px-1 pt-1 nav-link text-gray-500 hover:text-black"
-                  style={{
-                    padding: "0.5rem 1rem",
-                    borderRadius: "0.375rem",
-                    transition: "all 0.3s ease",
-                    backgroundColor: "#f3f4f6",
-                    color: "#000000",
-                  }}
-                >
-                  내 모니터링
-                </Link>
-                {/* 통계 분석 탭 */}
-                <Link
-                  to="/dashboard"
-                  className="inline-flex items-center px-1 pt-1 nav-link text-gray-500 hover:text-black"
-                  style={{
-                    padding: "0.5rem 1rem",
-                    borderRadius: "0.375rem",
-                    transition: "all 0.3s ease",
-                    backgroundColor: "#f3f4f6",
-                    color: "#000000",
-                  }}
-                >
-                  통계 분석
-                </Link>
-                {/* AI 인사이트 탭 (현재 페이지) */}
-                <Link
-                  to="/ai-insight"
-                  className="inline-flex items-center px-1 pt-1 nav-link bg-black text-white font-medium"
-                  style={{
-                    padding: "0.5rem 1rem",
-                    borderRadius: "0.375rem",
-                    transition: "all 0.3s ease",
-                  }}
-                >
-                  AI 인사이트
-                </Link>
-
-                {/* 챗봇 */}
-                <Link
-                  to="/chatbot"
-                  className="inline-flex items-center px-1 pt-1 nav-link text-gray-500 hover:text-black"
-                  style={{
-                    padding: "0.5rem 1rem",
-                    borderRadius: "0.375rem",
-                    transition: "all 0.3s ease",
-                    backgroundColor: "#f3f4f6",
-                    color: "#000000",
-                  }}
-                >
-                  챗봇
-                </Link>
-
-                {/* 사용 방법 */}
-                <Link
-                  to="/guide"
-                  className="inline-flex items-center px-1 pt-1 nav-link text-gray-500 hover:text-black"
-                  style={{
-                    padding: "0.5rem 1rem",
-                    borderRadius: "0.375rem",
-                    transition: "all 0.3s ease",
-                    backgroundColor: "#f3f4f6",
-                    color: "#000000",
-                  }}
-                >
-                  사용 방법
-                </Link>
-                {/* 개인정보법 안내 */}
-                <button
-                  type="button"
-                  className="inline-flex items-center px-1 pt-1 text-gray-500 hover:text-black nav-link"
-                  style={{
-                    padding: "0.5rem 1rem",
-                    borderRadius: "0.375rem",
-                    transition: "all 0.3s ease",
-                    backgroundColor: "#f3f4f6",
-                    color: "#000000",
-                  }}
-                >
-                  개인정보법 안내
-                </button>
-              </div>
-            </div>
-
-            {/* 오른쪽: 알림/설정/사용자 프로필 */}
-            <div className="flex items-center">
-              <button className="p-2 rounded-full hover:bg-gray-100 relative">
-                <i className="fas fa-bell text-gray-600"></i>
-                <span className="absolute top-1 right-1 bg-red-500 rounded-full w-2 h-2"></span>
-              </button>
-              <button className="ml-3 p-2 rounded-full hover:bg-gray-100">
-                <i className="fas fa-cog text-gray-600"></i>
-              </button>
-              <div className="ml-4 flex items-center">
-                <img
-                  className="h-8 w-8 rounded-full"
-                  src="/기본프로필.png"
-                  alt="사용자 프로필"
-                />
-                <span className="ml-2 text-sm font-medium text-gray-700">
-                  김관리자
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <ResponsiveNav onOpenPrivacy={handleOpenPrivacy} />
 
       {/* 메인 레이아웃 */}
       <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-16">

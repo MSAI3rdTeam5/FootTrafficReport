@@ -129,6 +129,7 @@ function PrivacyOverlay({ open, onClose }) {
           </section>
 
           <section>
+            
             <p className="text-sm text-gray-600 mt-4">
               *본 안내는 요약본이며, 자세한 내용은 회사의 개인정보처리방침을
               참조해 주세요.
