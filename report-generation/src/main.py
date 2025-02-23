@@ -7,7 +7,8 @@ import pdfkit
 import re
 from IPython.display import HTML
 import requests
-from .gpt_response import gpt_response
+from .gpt_response import gpt_response, gpt_response_key
+import json
 
 
 class ReportRequest(BaseModel):
@@ -100,7 +101,6 @@ def convert_html_to_pdf(pdf_file, member_id, cctv_id, report_title,persona, star
         result = report_generation(cctv_id)
         data = pd.DataFrame(result)
         print(data)
-        data = data.fillna(0)
         data['timestamp'] = pd.to_datetime(data['timestamp'], format='ISO8601', errors='coerce')
  
  
@@ -122,7 +122,8 @@ def convert_html_to_pdf(pdf_file, member_id, cctv_id, report_title,persona, star
         data = data[['date', 'time', 'day_of_week', 'male_young_adult', 'female_young_adult', 'male_middle_aged', 'female_middle_aged', 'male_minor', 'female_minor']]
        
         response = gpt_response(persona, f"{start_date}~{end_date}간의 데이터를 기반으로 보고서 작성해주세요", data, start_date = start_date, end_date = end_date)
-       
+        response_key = gpt_response_key(response)
+        response_key_anw = json.dumps(response_key)
         save_html(response, 'response.html')
         config = pdfkit.configuration(wkhtmltopdf='/usr/bin/wkhtmltopdf')
  
@@ -150,12 +151,13 @@ def convert_html_to_pdf(pdf_file, member_id, cctv_id, report_title,persona, star
             }
  
             url = "https://msteam5iseeu.ddns.net/api/report"
-            response = requests.post(url, data=data, files=files, timeout=30)
-            result = response.raise_for_status()
-            print(f"응답 상태 코드: {response.status_code}")
-            print(f"응답 본문: {response.text}")
+            response_pdf = requests.post(url, data=data, files=files, response_key_anw=response_key_anw, timeout=30)
+            result = response_pdf.raise_for_status()
+            print(f"응답 상태 코드: {response_pdf.status_code}")
+            print(f"응답 본문: {response_pdf.text}")
             # print(result)
-            return {"status": "success", "message": "Report successfully generated and uploaded.", "data": response.text}
+            print(response_key)
+            return {"status": "success", "data": result}
  
     except Exception as e:
         print(f"오류 발생: {e}")

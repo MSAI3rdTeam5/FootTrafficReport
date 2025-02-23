@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 import os
 from openai import AzureOpenAI
 import pandas as pd
+import json
 
 load_dotenv()
 
@@ -139,3 +140,59 @@ def gpt_response(persona, user_input, data, start_date, end_date):
     result = content
     return result
 
+def gpt_response_key(user_input):
+ 
+ 
+    chat_prompt = [
+        {
+            "role": "system",
+            "content": f"""
+           
+            ## 역할
+ 
+            너는 데이터 전문가이며 마케팅 전문가 입니다. 지침에 맞게 내용을 요약하는 역할입니다.
+           
+            ## 지침
+            1. 데이터를 바탕으로 할당된 역할에 맞게 키워드를 5~7개 추출해서 2~3줄로 json형식으로 출력해주세요.
+            2. 이때 키워드는 상권분석에 관련된 내용을 추출해주세요. ex)여성인구 수가 많으면 여성에 맞게
+            3. 데이터의 이름은 넣지 마세요. ex)요일별 유동인구
+            4. json 형식 만 나오고 그외에 문자는 나오지 마세요.
+            5. **summury**내용에는 간단요약, 추천전략, 유동인구 정보 항목들로 구성하여 3~4줄로 완성해주세요.
+            ## json 형식
+            "keywords": [],
+            "summary": ""
+               
+ 
+           
+            """
+        },
+        {
+            "role": "user",
+            "content": user_input
+        }
+    ]
+ 
+    completion = client.chat.completions.create(
+        model=DEPLOYMENT_NAME,
+        messages=chat_prompt,
+        # max_tokens=3500,
+        max_completion_tokens=100000,
+        # temperature=0.7,
+        # top_p=0.95,
+        frequency_penalty=0,
+        presence_penalty=0,
+        stop=None,
+        stream=False
+    )
+   
+    if completion.choices:
+        content = completion.choices[0].message.content
+    else:
+        content = "No content available"
+ 
+    try:
+        result = json.loads(content)
+    except json.JSONDecodeError:
+        result = {"keywords": [], "summary": "Invalid JSON format"}
+   
+    return result

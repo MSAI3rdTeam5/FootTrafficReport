@@ -87,7 +87,7 @@ app.post("/api/google-login", async (req, res) => {
     let memberId = null;
 
     // 간단 예시: /members (GET -> array)
-    const membersRes = await fetch("https://msteam5iseeu.ddns.net/members");
+    const membersRes = await fetch("https://msteam5iseeu.ddns.net/api/members");
     if (!membersRes.ok) {
       throw new Error(`Failed to fetch members: ${membersRes.status}`);
     }
@@ -99,7 +99,7 @@ app.post("/api/google-login", async (req, res) => {
     if (!existingMember) {
       // 4) 없으면 Python 백엔드에 신규 member 생성
       // Python에 POST /members? => 실제 구현 필요
-      const createMemberRes = await fetch("https://msteam5iseeu.ddns.net/members", {
+      const createMemberRes = await fetch("https://msteam5iseeu.ddns.net/api/members", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -120,7 +120,7 @@ app.post("/api/google-login", async (req, res) => {
     // 5) auth 테이블에 기록
     // Python 백엔드에 `/auth` POST가 있다고 가정 (create auth)
     // (실제 라우트명, 필드명에 맞춰 수정)
-    const createAuthRes = await fetch("https://msteam5iseeu.ddns.net/auth", {
+    const createAuthRes = await fetch("https://msteam5iseeu.ddns.net/api/auth", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

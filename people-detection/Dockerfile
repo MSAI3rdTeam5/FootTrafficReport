@@ -22,6 +22,7 @@ WORKDIR /app
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir python-multipart==0.0.6
 
 COPY src/ ./src/
 

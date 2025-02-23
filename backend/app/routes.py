@@ -403,7 +403,7 @@ async def upload_report(
     member_id: int = Form(...),
     cctv_id: int = Form(...),
     report_title: str = Form(...),
-    summary: Optional[str] = Form(None),
+    summary_str: Optional[str] = Form(None),
     pdf_file: UploadFile = File(...),
     db: Session = Depends(get_db)
 ):
@@ -420,9 +420,9 @@ async def upload_report(
     
      # summary_str -> JSON dict
     summary_json = None
-    if summary:
+    if summary_str:
         import json
-        summary_json = json.loads(summary)   
+        summary_json = json.loads(summary_str) 
 
     # 2) DB 저장
     new_report = Report(
@@ -437,6 +437,26 @@ async def upload_report(
     db.refresh(new_report)
 
     return { "message": "report created", "id": new_report.id }
+
+@router.get("/report/{member_id}", response_model=List[dict])
+def get_reports_by_member(member_id: int, db: Session = Depends(get_db)):
+    # 1) report & cctv_info 조인
+    #    CctvInfo.id == Report.cctv_id
+    #    CctvInfo.member_id == member_id
+    reports = db.query(Report).filter(Report.member_id == member_id).all()
+
+    if not reports:
+        # 만약 데이터가 전혀 없으면 빈 리스트 반환 or 에러
+        # 여기서는 그냥 빈 리스트 반환(404로 할 수도)
+        return []
+
+    return [
+        {
+            "id": r.id,
+            "summary": r.summary,
+        }
+        for r in reports
+    ]
 
 @router.get("/report/{report_id}", response_model=dict)
 def get_report_info(report_id: int, db: Session = Depends(get_db)):
@@ -455,6 +475,8 @@ def get_report_info(report_id: int, db: Session = Depends(get_db)):
         "summary": rp.summary,
         "created_at": rp.created_at
     }
+
+
 
 @router.get("/report/{report_id}/download")
 def download_pdf(report_id: int, db: Session = Depends(get_db)):
