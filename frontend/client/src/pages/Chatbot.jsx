@@ -161,7 +161,7 @@ function ChatbotPage() {
       const newSaveMessage = {
         id: Date.now() + 1,
         sender: "bot",
-        text: "채팅 내용을 저장하고 싶으면 오른쪽 상단 '저장하기' 버튼을 눌러주세요.",
+        text: "채팅 내용을 저장하고 싶으면 오른쪽 상단 '다운로드' 버튼을 눌러주세요.",
       };
 
       setConversations((prev) =>
@@ -583,7 +583,7 @@ function ChatbotPage() {
                                   toggleMenu(conv.id);
                                 }}
                               >
-                                삭제
+                                대화내용 삭제
                               </button>
                             </div>
                           )}
@@ -618,15 +618,38 @@ function ChatbotPage() {
                   </h3>
                 </div>
                 <div className="flex space-x-2">
-                  <button
-                    className="p-2 text-gray-500 hover:text-gray-700 rounded"
-                    onClick={handleDownloadPDF}
-                  >
-                    <i className="fas fa-download"></i>
-                  </button>
-                  {/* <button className="p-2 text-gray-500 hover:text-gray-700 rounded">
-                    <i className="fas fa-ellipsis-v"></i>
-                  </button> */}
+                  {/* 다운로드 버튼 + 툴팁 */}
+                  <div className="relative group">
+                    <button
+                      className="p-2 text-gray-500 hover:text-gray-700 rounded"
+                      onClick={handleDownloadPDF}
+                    >
+                      <i className="fas fa-download"></i>
+                    </button>
+                    {/* 툴팁 */}
+                    <div
+                      className="
+                        absolute
+                        whitespace-nowrap
+                        bg-black
+                        text-white
+                        text-xs
+                        rounded
+                        px-2
+                        py-1
+                        opacity-0
+                        group-hover:opacity-100
+                        transition-opacity
+                        duration-300
+                        -top-5
+                        left-1/2
+                        transform
+                        -translate-x-1/2
+                      "
+                    >
+                      다운로드
+                    </div>
+                  </div>
                 </div>
               </div>
 
