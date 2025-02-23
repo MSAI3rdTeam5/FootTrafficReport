@@ -21,7 +21,6 @@ from typing import Optional
 
 app = FastAPI()
 
-
 # ---------------------------------------------------------
 # 예: FastAPI로 들어오는 JSON Body
 # {
@@ -35,7 +34,7 @@ class DetectionRequest(BaseModel):
 
 
 # ---------------------------------------------------------
-# Azure Custom Vision API (성별/연령 태깅) 예시 클래스
+# Azure Custom Vision API (성별/연령 태깅) 예시
 # ---------------------------------------------------------
 class AzureAPI:
     def __init__(self):
@@ -95,7 +94,6 @@ class AzureAPI:
             **normalize_group(gender_preds),
             **normalize_group(age_preds)
         }
-
 
 # ---------------------------------------------------------
 # YOLO 추적 + 얼굴 모자이크 PersonTracker 클래스
@@ -198,7 +196,6 @@ class PersonTracker:
             self.boxes.append(boxes)
 
             tasks = []
-
             for box, kpts in zip(boxes, keypoints_data):
                 x1, y1, x2, y2 = map(int, box.xyxy[0].tolist())
 
@@ -324,11 +321,12 @@ class PersonTracker:
         return cropped_file_name, full_frame_file_name
 
 
-app = FastAPI()
-
-
 @app.post("/detect")
 async def detect_people(request: DetectionRequest):
+    """
+    기존 /detect 라우트 예시:
+    cctv_url => RTMP or 파일 경로 -> YOLO & 모자이크
+    """
     try:
         tracker = PersonTracker(model_path='FootTrafficReport/people-detection/model/yolo11n-pose.pt')
         await tracker.detect_and_track(
@@ -346,7 +344,7 @@ def start_webcam(rtmp_url: Optional[str] = "rtmp://srs:1935/live/mosaic_webrtc")
     예: POST /start_webcam?rtmp_url=rtmp://srs:1935/live/mosaic_webrtc
     => subprocess로 webcam_pipeline.py 실행 (로컬 웹캠 -> rtmp)
     """
-    script_path = "/app/src/webcam_pipeline.py"
+    script_path = "/app/src/webcam_pipeline.py"  # 예시
     if not os.path.exists(script_path):
         raise HTTPException(status_code=500, detail=f"Script not found: {script_path}")
 
@@ -363,36 +361,33 @@ def start_webcam(rtmp_url: Optional[str] = "rtmp://srs:1935/live/mosaic_webrtc")
 # ---------------------------------------------------------
 @app.post("/start_rtp_pipeline")
 def start_rtp_pipeline(
-    rtp_host: str = "media-sfu",
-    rtp_port: int = 40000,
-    rtmp_url: str = "rtmp://srs:1935/live/mosaic_sfu",
-    cctv_id: str = "sfu_test"
+    rtp_url: Optional[str] = None,
+    rtmp_url: Optional[str] = "rtmp://srs:1935/live/mosaic_sfu",
+    cctv_id: Optional[str] = "sfu_test",
 ):
     """
-    예:
-      POST /start_rtp_pipeline?rtp_host=media-sfu&rtp_port=40012&rtmp_url=rtmp://srs:1935/live/test&cctv_id=myCCTV
-
-    => python rtp_pipeline.py media-sfu 40012 rtmp://srs:1935/live/test myCCTV
+    ex) POST /start_rtp_pipeline?rtp_url=rtp://media-sfu:40012&rtmp_url=rtmp://srs:1935/live/mosaic_sfu
+    => python rtp_pipeline.py rtp://media-sfu:40012 rtmp://srs:1935/live/mosaic_sfu sfu_test
     """
     script_path = "/app/src/rtp_pipeline.py"
     if not os.path.exists(script_path):
         raise HTTPException(status_code=500, detail=f"Script not found: {script_path}")
 
-    # popen_args: [python, rtp_pipeline.py, media-sfu, 40012, rtmp://..., myCCTV]
+    if not rtp_url:
+        raise HTTPException(status_code=400, detail="rtp_url is required")
+
     popen_args = [
         "python", script_path,
-        str(rtp_host),
-        str(rtp_port),
-        str(rtmp_url),
-        str(cctv_id)
+        rtp_url,
+        rtmp_url,
+        cctv_id
     ]
     print(f"[DEBUG] Launching pipeline subprocess => {popen_args}")
     try:
         subprocess.Popen(popen_args)
         return {
             "status": "pipeline started",
-            "rtp_host": rtp_host,
-            "rtp_port": rtp_port,
+            "rtp_url": rtp_url,
             "rtmp_url": rtmp_url,
             "cctv_id": cctv_id
         }

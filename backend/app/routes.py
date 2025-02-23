@@ -11,6 +11,7 @@ from .models import (
 )
 from pydantic import BaseModel
 from .azure_blob import upload_image_to_azure
+from .hashing import get_password_hash # 해싱 함수
 
 router = APIRouter()
 
@@ -20,11 +21,13 @@ router = APIRouter()
 
 class MemberCreate(BaseModel):
     email: str
+    password: str
     name: str
     subscription_plan: Optional[str] = "FREE"
 
 class MemberUpdate(BaseModel):
     name: Optional[str] = None
+    password: Optional[str] = None
     subscription_plan: Optional[str] = None
 
 @router.post("/members", response_model=dict)
@@ -33,9 +36,12 @@ def create_member(data: MemberCreate, db: Session = Depends(get_db)):
     exists = db.query(Member).filter(Member.email == data.email).first()
     if exists:
         raise HTTPException(status_code=400, detail="Email already registered")
+    
+    password_hashed = get_password_hash(data.password)
 
     new_member = Member(
         email=data.email,
+        password=password_hashed,
         name=data.name,
         subscription_plan=data.subscription_plan
     )
@@ -79,6 +85,9 @@ def update_member(member_id: int, data: MemberUpdate, db: Session = Depends(get_
         member.name = data.name
     if data.subscription_plan is not None:
         member.subscription_plan = data.subscription_plan
+    if data.password is not None:
+        hashed_pw = get_password_hash(data.password)
+        member.password = hashed_pw
 
     db.commit()
     db.refresh(member)
@@ -394,6 +403,7 @@ async def upload_report(
     member_id: int = Form(...),
     cctv_id: int = Form(...),
     report_title: str = Form(...),
+    summary: Optional[str] = Form(None),
     pdf_file: UploadFile = File(...),
     db: Session = Depends(get_db)
 ):
@@ -407,19 +417,26 @@ async def upload_report(
     pdf_bytes = await pdf_file.read()
     if not pdf_bytes:
         raise HTTPException(status_code=400, detail="No PDF file provided or file is empty")
+    
+     # summary_str -> JSON dict
+    summary_json = None
+    if summary:
+        import json
+        summary_json = json.loads(summary)   
 
     # 2) DB 저장
     new_report = Report(
         member_id=member_id,
         cctv_id=cctv_id,
         report_title=report_title,
-        pdf_data=pdf_bytes
+        pdf_data=pdf_bytes,
+        summary=summary_json
     )
     db.add(new_report)
     db.commit()
     db.refresh(new_report)
 
-    return {"message": "report uploaded", "id": new_report.id}
+    return { "message": "report created", "id": new_report.id }
 
 @router.get("/report/{report_id}", response_model=dict)
 def get_report_info(report_id: int, db: Session = Depends(get_db)):
@@ -432,8 +449,10 @@ def get_report_info(report_id: int, db: Session = Depends(get_db)):
 
     return {
         "id": rp.id,
+        "member_id": rp.id,
         "cctv_id": rp.cctv_id,
         "report_title": rp.report_title,
+        "summary": rp.summary,
         "created_at": rp.created_at
     }
 

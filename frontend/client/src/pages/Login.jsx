@@ -103,7 +103,7 @@ function Login() {
                       // 로그인 성공 여부 확인을 위한 구글 로그인 응답 처리
                       try {
                         const response = await fetch(
-                          "http://localhost:3000/api/google-login",
+                          "https://msteam5iseeu.ddns.net/api/google-login",
                           {
                             method: "POST",
                             headers: {
@@ -125,6 +125,8 @@ function Login() {
                           );
 
                         const data = await response.json();
+                        console.log("Received data from server:", data); // 콘솔 로그 추가
+
                         if (data.success) {
                           // 로그인 성공 시 /monitor로 이동
                           navigate("/monitor");

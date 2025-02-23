@@ -10,16 +10,15 @@ const initPassport = require("./passportConfig");
 // (추가) ffmpegRunner.js에서 startFfmpeg, getHlsUrl 가져오기
 const { startFfmpeg, getHlsUrl } = require("./ffmpegRunner");
 const { OAuth2Client } = require('google-auth-library');
-const { Member, Auth } = require('./models');  // DB 모델 import
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const app = express();
 
 // 모든 라우트에 대해 CORS 및 보안 헤더 설정
 app.use((req, res, next) => {
-  res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
-  res.setHeader('Cross-Origin-Embedder-Policy', 'unsafe-none');
-  res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000');
+  // res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
+  // res.setHeader('Cross-Origin-Embedder-Policy', 'credentialless');
+  res.setHeader('Access-Control-Allow-Origin', 'https://msteam5iseeu.ddns.net');
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
@@ -53,6 +52,113 @@ app.use(passport.session());
 app.get("/api/test", (req, res) => {
   res.json({ message: "Hello from Express server!" });
 });
+
+
+/**
+ * --------------------------------------------
+ *  Google One-Tap 로그인 라우트
+ * --------------------------------------------
+ */
+// (1) One-Tap 로그인 라우트
+app.post("/api/google-login", async (req, res) => {
+  const { credential } = req.body;
+  if (!credential) {
+    return res.status(400).json({ error: "Missing credential" });
+  }
+
+  try {
+    // 2) 구글 credential 검증
+    const ticket = await client.verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID
+    });
+    const payload = ticket.getPayload(); 
+    // e.g. { email, name, picture, sub, ... }
+
+    const email = payload.email;
+    const name = payload.name || "Unknown User";
+    const googleId = payload.sub; // 구글 고유ID
+
+    // 3) Python 백엔드로 'member' 정보 조회
+    //    /members?email=... 같은 라우트가 없으므로,
+    //    우선 /members 전체를 가져오거나, /members/{id}가 아니라
+    //    직접 filter 로직을 작성.
+    // == 개선: Python 쪽에 /members/find?email=xxx 등의 라우트를 추가하는 편이 낫다.
+    let memberId = null;
+
+    // 간단 예시: /members (GET -> array)
+    const membersRes = await fetch("https://msteam5iseeu.ddns.net/members");
+    if (!membersRes.ok) {
+      throw new Error(`Failed to fetch members: ${membersRes.status}`);
+    }
+    const members = await membersRes.json();
+    // e.g. [ {id, email, name, subscription_plan}, ... ]
+
+    // 이미 존재하는지 찾기
+    let existingMember = members.find((m) => m.email === email);
+    if (!existingMember) {
+      // 4) 없으면 Python 백엔드에 신규 member 생성
+      // Python에 POST /members? => 실제 구현 필요
+      const createMemberRes = await fetch("https://msteam5iseeu.ddns.net/members", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email, 
+          name,
+          subscription_plan: "basic" // 예시
+        }),
+      });
+      if (!createMemberRes.ok) {
+        throw new Error(`Failed to create member: ${createMemberRes.status}`);
+      }
+      existingMember = await createMemberRes.json();
+      // e.g. { id, email, name, subscription_plan }
+    }
+
+    memberId = existingMember.id;
+
+    // 5) auth 테이블에 기록
+    // Python 백엔드에 `/auth` POST가 있다고 가정 (create auth)
+    // (실제 라우트명, 필드명에 맞춰 수정)
+    const createAuthRes = await fetch("https://msteam5iseeu.ddns.net/auth", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        member_id: memberId,
+        provider: "google",
+        access_token: credential,  // or payload.sub
+        refresh_token: null
+      })
+    });
+    if (!createAuthRes.ok) {
+      // 409 or something
+      console.warn("Failed to create auth record:", createAuthRes.status);
+    } else {
+      const authData = await createAuthRes.json();
+      console.log("Created auth record:", authData);
+    }
+
+    // 6) Node.js 세션에 user 세팅 (Passport)
+    const userObj = {
+      id: memberId, 
+      email: email,
+      name: name
+      // ... etc
+    };
+    req.login(userObj, (err) => {
+      if (err) {
+        return res.status(500).json({ error: "Session creation failed" });
+      }
+      return res.json({ success: true, user: userObj });
+    });
+
+  } catch (error) {
+    console.error("Google login error:", error);
+    return res.status(500).json({ error: "Server error" });
+  }
+});
+
+
 
 /**
  * -----------------------------
@@ -99,14 +205,14 @@ if (
   app.get("/auth/google/callback", (req, res, next) => {
     passport.authenticate("google", (err, user) => {
       if (err || !user) {
-        return res.redirect("http://localhost:3000/login");
+        return res.redirect("https://msteam5iseeu.ddns.net/login");
       }
       req.logIn(user, (loginErr) => {
         if (loginErr) {
-          return res.redirect("http://localhost:3000/login");
+          return res.redirect("https://msteam5iseeu.ddns.net/login");
         }
         // 인증 성공 후 메인 페이지로 이동
-        return res.redirect("http://localhost:3000/monitor");
+        return res.redirect("https://msteam5iseeu.ddns.net/monitor");
       });
     })(req, res, next);
   });
@@ -251,56 +357,17 @@ app.use(
  *  - __dirname === "C:/.../server/src"
  *  - "../../client/dist" => "C:/.../frontend/client/dist"
  * ------------------------------------------------
- */
-app.use(express.static(path.join(__dirname, "../../client/dist")));
+//  */
+// app.use(express.static(path.join(__dirname, "../../client/dist")));
 
-// React SPA 라우팅
-app.get("*", (req, res) => {
-  console.log("[Express] Serving index.html for SPA routing");
-  res.sendFile(path.join(__dirname, "../../client/dist", "index.html"));
-});
+// // React SPA 라우팅
+// app.get("*", (req, res) => {
+//   console.log("[Express] Serving index.html for SPA routing");
+//   res.sendFile(path.join(__dirname, "../../client/dist", "index.html"));
+// });
 
 // 포트 설정
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}`);
-});
-
-app.post("/api/google-login", async (req, res) => {
-  const { credential } = req.body;
-  
-  try {
-    // Google OAuth2 토큰 검증
-    const ticket = await client.verifyIdToken({
-      idToken: credential,
-      audience: process.env.GOOGLE_CLIENT_ID
-    });
-
-    const payload = ticket.getPayload();
-    
-    // FastAPI로 요청 전달
-    const response = await fetch('http://localhost:8000/google-login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        email: payload.email,
-        name: payload.name,
-        credential: credential
-      })
-    });
-
-    const data = await response.json();
-    
-    if (data.success) {
-      req.login(data.user, (err) => {
-        if (err) return res.status(500).json({ error: "Session creation failed" });
-        return res.json(data);
-      });
-    } else {
-      res.status(400).json({ error: "Login failed" });
-    }
-  } catch (error) {
-    console.error("Google login error:", error);
-    res.status(500).json({ error: "Server error" });
-  }
 });
