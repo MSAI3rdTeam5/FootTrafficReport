@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { getChatbotResponse } from "../utils/api";
+import PrivacyOverlay from "./PrivacyOverlay";
+import ResponsiveNav from "../components/ResponsiveNav";
 
-  // 개인정보 오버레이
-  const [privacyOpen, setPrivacyOpen] = useState(false);
-  const handleOpenPrivacy = () => setPrivacyOpen(true);
-  const handleClosePrivacy = () => setPrivacyOpen(false);
 
 function ChatbotPage() {
   const location = useLocation();

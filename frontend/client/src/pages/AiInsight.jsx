@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import PrivacyOverlay from "./PrivacyOverlay";
+import ResponsiveNav from "../components/ResponsiveNav";
 
 
 function AiInsight() {

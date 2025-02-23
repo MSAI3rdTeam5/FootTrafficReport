@@ -1,6 +1,8 @@
 // src/pages/Guide.jsx
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
+import PrivacyOverlay from "./PrivacyOverlay";
+import ResponsiveNav from "../components/ResponsiveNav";
 // 만약 개인정보법 안내를 오버레이로 쓰신다면 import PrivacyOverlay from "./PrivacyOverlay";
 
 function Guide() {
