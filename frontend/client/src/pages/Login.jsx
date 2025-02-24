@@ -1,15 +1,41 @@
-import React from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
 function Login() {
   const navigate = useNavigate();
+  const [credentials, setCredentials] = useState({ email: "", password: "" });
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setCredentials(prev => ({ ...prev, [name]: value }));
+  };
 
   // 로그인 폼(submit) 처리
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    // TODO: 실제 아이디/비번 검증 후
-    // 백엔드에 로그인 요청, 성공 시 navigate("/monitor") 등
-    navigate("/monitor");
+    // 라우팅: 회원 검증 로직 추가 (GET /api/members)
+    try {
+      const response = await fetch("/api/members");
+      if (!response.ok) {
+        alert("회원 정보를 불러오지 못했습니다.");
+        return;
+      }
+      const members = await response.json();
+      const member = members.find(m => m.email === credentials.email);
+      if (!member) {
+        alert("등록되지 않은 이메일입니다.");
+        return;
+      }
+      if (member.password !== credentials.password) {
+        alert("비밀번호가 일치하지 않습니다.");
+        return;
+      }
+      // 이메일과 비밀번호 검증 성공 시 monitor 페이지로 이동
+      navigate("/monitor");
+    } catch (error) {
+      console.error(error);
+      alert("오류 발생");
+    }
   };
 
   return (
@@ -42,6 +68,8 @@ function Login() {
                     name="email"
                     type="email"
                     required
+                    value={credentials.email}
+                    onChange={handleChange}
                     className="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-button placeholder-gray-400 focus:outline-none focus:ring-custom focus:border-custom text-sm"
                     placeholder="이메일 주소를 입력하세요"
                   />
@@ -64,6 +92,8 @@ function Login() {
                     name="password"
                     type="password"
                     required
+                    value={credentials.password}
+                    onChange={handleChange}
                     className="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-button placeholder-gray-400 focus:outline-none focus:ring-custom focus:border-custom text-sm"
                     placeholder="비밀번호를 입력하세요"
                   />
@@ -79,9 +109,9 @@ function Login() {
             </form>
 
             <div className="mt-6 flex items-center justify-between">
-              <a href="#" className="text-sm text-custom hover:text-custom/90">
+              <Link to="/signup" className="text-sm text-custom hover:text-custom/90">
                 회원가입
-              </a>
+              </Link>
               <a href="#" className="text-sm text-custom hover:text-custom/90">
                 비밀번호 찾기
               </a>

@@ -2,6 +2,7 @@ import React from "react";
 import { Routes, Route } from "react-router-dom";
 
 import Login from "./pages/Login";
+import Signup from "./pages/Signup"; // 추가: Signup 페이지 import
 import Monitor from "./pages/Monitor";
 import Dashboard from "./pages/Dashboard";
 import Guide from "./pages/Guide";
@@ -14,6 +15,12 @@ function App() {
     <Routes>
       {/* "/" - 로그인 화면 */}
       <Route path="/" element={<Login />} />
+
+      {/* "/login" - 로그인 화면 명시적 경로 추가 */}
+      <Route path="/login" element={<Login />} />
+
+      {/* "/signup" - 회원가입 화면 */}
+      <Route path="/signup" element={<Signup />} />
 
       {/* "/monitor" - 내 모니터링 화면 */}
       <Route path="/monitor" element={<Monitor />} />
@@ -32,8 +39,6 @@ function App() {
 
       {/* 새로 추가한 LiveStreamPlayer 라우트 */}
       <Route path="/live" element={<LiveStreamPlayer />} />
-
-
     </Routes>
   );
 }
