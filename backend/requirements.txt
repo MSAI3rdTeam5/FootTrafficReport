@@ -10,3 +10,4 @@ redis==5.2.1
 azure-storage-blob==12.24.1
 pytz==2024.2
 passlib==1.7.4
+PyJWT==2.10.1

@@ -1,7 +1,21 @@
-import React, { useState } from "react";
+import React, { useEffect,useState } from "react";
+import { getMemberProfile } from "../utils/api";
 import { Link, useLocation } from "react-router-dom";
 
 function Dashboard() {
+  const [profile, setProfile] = useState(null);
+
+  useEffect(() => {
+    getMemberProfile()
+      .then((data) => {
+        setProfile(data);
+      })
+      .catch((err) => {
+        console.error("Failed to get profile:", err);
+      });
+  }, []);
+
+
   const location = useLocation();
 
   // 탭 활성 로직
@@ -31,6 +45,7 @@ function Dashboard() {
     setChartIndex((prev) => (prev + 1) % chartModes.length);
   };
 
+  if (!profile) return <div>Loading...</div>;
   return (
     <div className="bg-gray-50">
       {/* 상단 Nav */}
@@ -150,7 +165,7 @@ function Dashboard() {
                   alt="사용자 프로필"
                 />
                 <span className="ml-2 text-sm font-medium text-gray-700">
-                  김관리자
+                  {profile.name}
                 </span>
               </div>
             </div>

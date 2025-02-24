@@ -147,17 +147,18 @@ def convert_html_to_pdf(pdf_file, member_id, cctv_id, report_title,persona, star
             data = {
                 "member_id": member_id,
                 "cctv_id": cctv_id,
-                "report_title": report_title
+                "report_title": report_title,
+                "summary_str":response_key_anw
             }
  
             url = "https://msteam5iseeu.ddns.net/api/report"
-            response_pdf = requests.post(url, data=data, files=files, response_key_anw=response_key_anw, timeout=30)
+            response_pdf = requests.post(url, data=data, files=files, timeout=30)
             result = response_pdf.raise_for_status()
             print(f"응답 상태 코드: {response_pdf.status_code}")
             print(f"응답 본문: {response_pdf.text}")
-            # print(result)
-            print(response_key)
-            return {"status": "success", "data": result}
+            print(response_key_anw)
+
+            return {"status": "success", "data": response_pdf.text}
  
     except Exception as e:
         print(f"오류 발생: {e}")
@@ -183,7 +184,7 @@ async def generate_report(request: ReportRequest):
     if result["status"] == "error":
         raise HTTPException(status_code=500, detail=result["message"])
     print(result)
-    return result
+    return result['data']
    
 if __name__ == "__main__":
     import uvicorn

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, Form
+from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, Form, status, Body
 from sqlalchemy.orm import Session
 from typing import Optional, List
 from datetime import datetime
@@ -11,9 +11,44 @@ from .models import (
 )
 from pydantic import BaseModel
 from .azure_blob import upload_image_to_azure
-from .hashing import get_password_hash # 해싱 함수
+from .hashing import get_password_hash, verify_password # 해싱 함수
+from .jwt_utils import create_jwt_token # 토큰 발급 함수
+import os
+import jwt
+from jwt import PyJWTError, ExpiredSignatureError
+
+
 
 router = APIRouter()
+
+JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
+REFRESH_SECRET = os.getenv("REFRESH_SECRET")
+
+# -----------------------------
+# Security Dependency
+# -----------------------------
+from fastapi.security import OAuth2PasswordBearer
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login")
+
+def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    try:
+        payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=["HS256"])
+        email: str = payload.get("sub")
+        if email is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid authentication credentials",
+            )
+    except ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Token expired")
+    except PyJWTError:
+        raise HTTPException(status_code=401, detail="Could not validate token")
+    
+    user = db.query(Member).filter(Member.email == email).first()
+    if user is None:
+        raise HTTPException(status_code=401, detail="User not found")
+    
+    return user
 
 # -----------------------------------------------------------
 # 1) Member 테이블 관련
@@ -29,6 +64,10 @@ class MemberUpdate(BaseModel):
     name: Optional[str] = None
     password: Optional[str] = None
     subscription_plan: Optional[str] = None
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
 
 @router.post("/members", response_model=dict)
 def create_member(data: MemberCreate, db: Session = Depends(get_db)):
@@ -50,6 +89,63 @@ def create_member(data: MemberCreate, db: Session = Depends(get_db)):
     db.refresh(new_member)
     return {"message": "member created", "id": new_member.id}
 
+
+@router.post("/login", response_model=dict)
+def login_user(data: LoginRequest, db: Session = Depends(get_db)):
+    user = db.query(Member).filter(Member.email == data.email).first()
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+
+    if not verify_password(data.password, user.password):
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+
+    # Access Token (짧은 만료, 예: 300초=5분)
+    access_token = create_jwt_token({"sub": user.email}, key_type="access", expires_in=300)
+
+    # Refresh Token (긴 만료, 예: 7일=604800초)
+    refresh_token = create_jwt_token({"sub": user.email}, key_type="refresh", expires_in=604800)
+
+    return {
+        "access_token": access_token,
+        "refresh_token": refresh_token,
+        "token_type": "bearer"
+    }
+
+@router.post("/refresh", response_model=dict)
+def refresh_token(refresh_token: str = Body(...), db: Session = Depends(get_db)):
+    try:
+        payload = jwt.decode(refresh_token, REFRESH_SECRET, algorithms=["HS256"])
+        user_email = payload.get("sub")   # ex. user_email
+        if not user_email:
+            raise HTTPException(401, "Invalid token payload")
+    except ExpiredSignatureError:
+        raise HTTPException(401, "Refresh token expired")
+    except jwt.PyJWTError:
+        raise HTTPException(401, "Invalid token")
+
+    # DB에서 user를 찾고, 유효하면 access token 재발급
+    user = db.query(Member).filter(Member.email == user_email).first()
+    if not user:
+        raise HTTPException(404, "User not found")
+
+    # 새 Access token
+    new_access_token = create_jwt_token({"sub": user_email}, expires_in=300)
+    return {"access_token": new_access_token}
+
+
+
+@router.get("/members/me", response_model=dict)
+def get_current_member(current_user: Member = Depends(get_current_user)):
+    """
+    현재 인증된 사용자의 정보를 반환합니다.
+    """
+    return {
+        "id": current_user.id,
+        "email": current_user.email,
+        "name": current_user.name,
+        "subscription_plan": current_user.subscription_plan,
+    }
+
 @router.get("/members", response_model=List[dict])
 def list_members(db: Session = Depends(get_db)):
     members = db.query(Member).all()
@@ -63,17 +159,17 @@ def list_members(db: Session = Depends(get_db)):
         })
     return results
 
-@router.get("/members/{member_id}", response_model=dict)
-def get_member(member_id: int, db: Session = Depends(get_db)):
-    member = db.query(Member).filter(Member.id == member_id).first()
-    if not member:
-        raise HTTPException(status_code=404, detail="Member not found")
-    return {
-        "id": member.id,
-        "email": member.email,
-        "name": member.name,
-        "subscription_plan": member.subscription_plan
-    }
+# @router.get("/members/{member_id}", response_model=dict)
+# def get_member(member_id: int, db: Session = Depends(get_db)):
+#     member = db.query(Member).filter(Member.id == member_id).first()
+#     if not member:
+#         raise HTTPException(status_code=404, detail="Member not found")
+#     return {
+#         "id": member.id,
+#         "email": member.email,
+#         "name": member.name,
+#         "subscription_plan": member.subscription_plan
+#     }
 
 @router.put("/members/{member_id}", response_model=dict)
 def update_member(member_id: int, data: MemberUpdate, db: Session = Depends(get_db)):
@@ -453,7 +549,9 @@ def get_reports_by_member(member_id: int, db: Session = Depends(get_db)):
     return [
         {
             "id": r.id,
+            "report_title":r.report_title,
             "summary": r.summary,
+            "created_at":r.created_at
         }
         for r in reports
     ]

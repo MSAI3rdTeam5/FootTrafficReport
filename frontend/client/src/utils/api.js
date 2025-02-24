@@ -1,3 +1,16 @@
+// client/src/utils/api.js
+import { apiRequest } from "../utils/apiWrapper";
+import { getAuthHeaders } from "../utils/auth";
+
+
+/**
+ * 현재 회원 프로필 + 401 처리 + 재시도 API
+ */
+export async function getMemberProfile() {
+  return await apiRequest("/api/members/me", { method: "GET" });
+}
+
+
 /**
  * 사람 감지 API 호출
  * - Nginx 리버스 프록시를 통해 people-detection 서비스의 /detect 엔드포인트로 요청합니다.
