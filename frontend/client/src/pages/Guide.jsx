@@ -1,24 +1,14 @@
 // src/pages/Guide.jsx
 import React, { useState, useEffect, useRef } from "react";
-import { Link, useLocation } from "react-router-dom";
 import PrivacyOverlay from "./PrivacyOverlay";
 import ResponsiveNav from "../components/ResponsiveNav";
-// 만약 개인정보법 안내를 오버레이로 쓰신다면 import PrivacyOverlay from "./PrivacyOverlay";
 
 function Guide() {
-  const location = useLocation();
 
-  // 탭 활성화 로직
-  const isMonitorActive = location.pathname === "/monitor";
-  const isDashboardActive = location.pathname === "/dashboard";
-  const isAiInsightActive = location.pathname === "/ai-insight";
-  const isChatbotActive = location.pathname === "/chatbot";
-  const isGuideActive = location.pathname === "/guide";
-  const isPrivacyActive = location.pathname === "/privacy";
-
-  // 개인정보 오버레이
   const [privacyOpen, setPrivacyOpen] = useState(false);
+  // (2) Nav에서 이 함수를 호출 -> 오버레이 열림
   const handleOpenPrivacy = () => setPrivacyOpen(true);
+  // (3) 오버레이 닫기
   const handleClosePrivacy = () => setPrivacyOpen(false);
 
   //사이드바 확장
@@ -59,16 +49,10 @@ function Guide() {
     setShowWithdrawModal(false);
   };
 
-  // 개인정보법 안내는 버튼/링크/오버레이 방식에 따라 추가 로직 가능
-
-  // 예: 개인정보법 안내 오버레이
-  // const [privacyOpen, setPrivacyOpen] = useState(false);
-  // const openPrivacy = () => setPrivacyOpen(true);
-  // const closePrivacy = () => setPrivacyOpen(false);
 
   return (
     <div className="bg-gray-50 min-h-screen font-['Noto_Sans_KR']">
-      {/* 상단 Nav */}
+      {/* 공통 네비 바 */}
       <ResponsiveNav onOpenPrivacy={handleOpenPrivacy} />
 
       {/* 메인 레이아웃 */}
@@ -481,10 +465,8 @@ function Guide() {
         </main>
       </div>
 
-      {/* 개인정보법 안내 오버레이 (있다면) */}
-      {/* {privacyOpen && (
-        <PrivacyOverlay open={privacyOpen} onClose={closePrivacy} />
-      )} */}
+      {/* 개인정보법 안내 오버레이 */}
+      {privacyOpen && <PrivacyOverlay open={privacyOpen} onClose={handleClosePrivacy} />}
     </div>
   );
 }
