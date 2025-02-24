@@ -1,8 +1,13 @@
+// /home/azureuser/FootTrafficReport/frontend/client/src/App.jsx
+
 import React from "react";
 import { Routes, Route } from "react-router-dom";
 
+// 전역 Context (AppContext) import
+import { AppProvider } from "./context/AppContext";
+
+// 기존 페이지들 import
 import Login from "./pages/Login";
-import Signup from "./pages/Signup"; // 추가: Signup 페이지 import
 import Monitor from "./pages/Monitor";
 import Dashboard from "./pages/Dashboard";
 import Guide from "./pages/Guide";
@@ -11,39 +16,58 @@ import LiveStreamPlayer from "./pages/LiveStreamPlayer";
 import Chatbot from "./pages/Chatbot";
 import GuidePage from "./pages/Chatbot_guide";
 
+// 새로 추가한 CCTVMonitoring
+import CCTVMonitoring from "./pages/CCTVMonitoring";
+import Signup from "./pages/Signup";
+import ProtectedRoute from "./components/ProtectedRoute";
+
 function App() {
   return (
-    <Routes>
-      {/* "/" - 로그인 화면 */}
-      <Route path="/" element={<Login />} />
+    // (1) 전역 상태 관리를 위해 <AppProvider>로 전체 라우트를 감싼다.
+    <AppProvider>
+      <Routes>
+        {/* "/" - 로그인 화면 */}
+        <Route path="/" element={<Login />} />
 
-      {/* "/login" - 로그인 화면 명시적 경로 추가 */}
-      <Route path="/login" element={<Login />} />
+        {/* "/signup" - 회원가입 화면 */}
+        <Route path="/signup" element={<Signup />} />
 
-      {/* "/signup" - 회원가입 화면 */}
-      <Route path="/signup" element={<Signup />} />
+        {/* "/monitor" - 내 모니터링 화면 */}
+        <Route path="/monitor" element={<ProtectedRoute><Monitor /></ProtectedRoute>} />
 
-      {/* "/monitor" - 내 모니터링 화면 */}
-      <Route path="/monitor" element={<Monitor />} />
+        {/* "/ai-insight" - AI 인사이트 화면 */}
+        <Route path="/ai-insight" element={<ProtectedRoute><AiInsight /></ProtectedRoute>} />
 
-      {/* "/ai-insight" - AI 인사이트 화면 */}
-      <Route path="/ai-insight" element={<AiInsight />} />
+        {/* "/chatbotpage" - 챗봇 가이드(메인) 페이지 */}
+        <Route path="/chatbot" element={<ProtectedRoute><GuidePage /></ProtectedRoute>} />
 
-      {/* "/chatbotpage" - 챗봇 가이드(메인) 페이지 */}
-      <Route path="/chatbot" element={<GuidePage />} />
+        {/* "/chatbot" - 챗봇 화면 */}
+        <Route path="/chatbotpage" element={<ProtectedRoute><Chatbot /></ProtectedRoute>} />
 
-      {/* "/chatbot" - 챗봇 화면 */}
-      <Route path="/chatbotpage" element={<Chatbot />} />
+        {/* "/dashboard" - 통계 분석 화면 */}
+        <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
 
-      {/* "/dashboard" - 통계 분석 화면 */}
-      <Route path="/dashboard" element={<Dashboard />} />
+        {/* "/guide" - 사용 방법 화면 */}
+        <Route path="/guide" element={<ProtectedRoute><Guide /></ProtectedRoute>} />
 
-      {/* "/guide" - 사용 방법 화면 */}
-      <Route path="/guide" element={<Guide />} />
+        {/* 새로 추가한 LiveStreamPlayer 라우트 */}
+        <Route path="/live" element={<ProtectedRoute><LiveStreamPlayer /></ProtectedRoute>} />
 
-      {/* 새로 추가한 LiveStreamPlayer 라우트 */}
-      <Route path="/live" element={<LiveStreamPlayer />} />
-    </Routes>
+        {/* (NEW) "/cctv-monitoring" - CCTV 모니터링 화면 */}
+        <Route
+          path="/cctv-monitoring"
+          element={
+            <ProtectedRoute>
+              <CCTVMonitoring
+                selectedCamera={{ name: "임시 카메라", videoSrc: "/videos/05_seoul.mp4" }}
+                onClose={() => console.log("Close!")}
+                onSwitchDevice={(idx) => console.log("Switch device:", idx)}
+              />
+            </ProtectedRoute>
+          }
+        />
+      </Routes>
+    </AppProvider>
   );
 }
 

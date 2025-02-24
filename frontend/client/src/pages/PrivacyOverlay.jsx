@@ -18,9 +18,13 @@ function PrivacyOverlay({ open, onClose }) {
       // 모달 닫힐 때
       document.body.style.overflow = "";
     }
+    // 컴포넌트 언마운트 시에도 복원
+    return () => {
+      document.body.style.overflow = "";
+    };
   }, [open]);
 
-  if (!open) return null;
+  if (!open) return null; // 오픈이 false면 렌더링 X
 
   // (A) 배경 클릭 시 모달 닫기 핸들러
   const handleOverlayClick = (e) => {

@@ -1,17 +1,31 @@
 // client/src/pages/Dashboard.jsx
 
 import React, { useState, useEffect, useRef } from "react";
-import { useLocation } from "react-router-dom";
 import * as echarts from "echarts";
 import PrivacyOverlay from "./PrivacyOverlay";
 import ResponsiveNav from "../components/ResponsiveNav";
+import { getMemberProfile } from "../utils/api";
 
 // (1) 회원 ID를 하드코딩(또는 로그인 세션에서 가져옴)
 const MEMBER_ID = 1;
 
 function Dashboard() {
-  const location = useLocation();
 
+  // ------------------------------
+  // (1) 로그인 사용자 정보 State
+  // ------------------------------
+  const [profile, setProfile] = useState(null);
+
+  useEffect(() => {
+    getMemberProfile()
+      .then((data) => {
+        setProfile(data);
+      })
+      .catch((err) => {
+        console.error("Failed to get profile:", err);
+      });
+  }, []);
+  // {profile.id} or {profile.email} or {profile.name} or {profile.subscription_plan} => 로그인 사용자 정보 변수
 
   // 개인정보 오버레이
   const [privacyOpen, setPrivacyOpen] = useState(false);

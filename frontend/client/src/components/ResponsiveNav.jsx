@@ -2,8 +2,23 @@
 
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { getMemberProfile } from "../utils/api";
 
 function ResponsiveNav({ onOpenPrivacy }) {
+
+  const [profile, setProfile] = useState(null);
+
+  useEffect(() => {
+    getMemberProfile()
+      .then((data) => {
+        setProfile(data);
+      })
+      .catch((err) => {
+        console.error("Failed to get profile:", err);
+      });
+  }, []);
+  // {profile.id} or {profile.email} or {profile.name} or {profile.subscription_plan} => 로그인 사용자 정보 변수
+  
   // (1) 모바일 메뉴 열림/닫힘 상태
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -140,7 +155,7 @@ function ResponsiveNav({ onOpenPrivacy }) {
                 alt="사용자 프로필"
               />
               <span className="ml-2 text-sm font-medium text-gray-700 dark:text-gray-200">
-                김관리자
+                {profile.name}
               </span>
             </div>
           </div>

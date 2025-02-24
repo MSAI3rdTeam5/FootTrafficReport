@@ -132,42 +132,42 @@ function AiInsight() {
   }, []);
  
   return (
-    <div className="bg-gray-50 font-sans min-h-screen">
-      {/* 공통 네비 바 */}
+    <div className="bg-gray-50 dark:bg-gray-900 font-sans min-h-screen flex flex-col">
+      {/* 상단 네비 바 */}
       <ResponsiveNav onOpenPrivacy={handleOpenPrivacy} />
- 
-      {/* 메인 레이아웃 */}
-      <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-16">
+
+      {/* 메인 컨텐츠 래퍼 */}
+      <div className="flex-1 pt-20 px-4 sm:px-6 lg:px-8 pb-16 max-w-7xl mx-auto">
         {/* 상단 타이틀 */}
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">전략/인사이트</h1>
-          <p className="mt-1 text-sm text-gray-500">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">전략/인사이트</h1>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
             아래 정보를 입력하여 AI 기반 보고서를 생성해 보세요.
           </p>
         </div>
- 
+
         {/* 입력 섹션 */}
-        <div className="bg-white shadow rounded-lg p-6">
+        <div className="bg-white dark:bg-gray-800 dark:text-gray-200 shadow rounded-lg p-6 border border-gray-200 dark:border-gray-700">
           {/* 1행: 매장 기본 정보 / 분석할 CCTV */}
           <div className="flex flex-col md:flex-row gap-4 mb-4">
             {/* 매장 기본 정보 */}
             <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 매장 기본 정보
               </label>
               <input
                 type="text"
                 placeholder="예) 매장명"
-                className="block w-full rounded-md border-gray-300 focus:border-custom focus:ring-custom"
+                className="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 focus:border-black focus:ring-black"
               />
             </div>
             {/* 분석할 CCTV */}
             <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 분석할 CCTV
               </label>
               <select
-                className="block w-full rounded-md border-gray-300 focus:border-custom focus:ring-custom"
+                className="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 focus:border-black focus:ring-black"
                 value={selectedCCTV}
                 onChange={(e) => setSelectedCCTV(e.target.value)}
               >
@@ -180,16 +180,15 @@ function AiInsight() {
               </select>
             </div>
           </div>
- 
+
           {/* 2행: 창업 여부 / 업종 입력 */}
           <div className="flex flex-col md:flex-row gap-4 mb-4">
-            {/* 창업 여부 */}
             <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 창업 여부
               </label>
               <select
-                className="mt-1 block w-full rounded-md border-gray-300 focus:border-custom focus:ring-custom"
+                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 focus:border-black focus:ring-black"
                 value={isNewBusiness}
                 onChange={handleIsNewBusinessChange}
               >
@@ -198,118 +197,118 @@ function AiInsight() {
                 <option value="아니오">아니오</option>
               </select>
             </div>
- 
-            {/* 업종 입력 (창업 여부가 "네"일 때만 활성) */}
+
+            {/* 업종 입력 (창업 여부 "네"일 때만 활성) */}
             <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 업종 입력
               </label>
               <input
                 type="text"
                 placeholder="예) 카페, 레스토랑 등"
-                className="mt-1 block w-full rounded-md border-gray-300 focus:border-custom focus:ring-custom"
+                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 focus:border-black focus:ring-black"
                 value={businessType}
                 onChange={(e) => setBusinessType(e.target.value)}
                 disabled={isNewBusiness !== "네"}
               />
             </div>
           </div>
- 
+
           {/* 3행: 데이터 시작 일자 / 데이터 종료 일자 */}
           <div className="flex flex-col md:flex-row gap-4 mb-6">
-            {/* 시작 일자 */}
             <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 데이터 시작 일자
               </label>
               <input
                 type="date"
-                className="block w-full rounded-md border-gray-300 focus:border-custom focus:ring-custom"
+                className="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 focus:border-black focus:ring-black"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
               />
             </div>
-            {/* 종료 일자 */}
             <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 데이터 종료 일자
               </label>
               <input
                 type="date"
-                className="block w-full rounded-md border-gray-300 focus:border-custom focus:ring-custom"
+                className="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 focus:border-black focus:ring-black"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
               />
             </div>
           </div>
- 
+
           {/* AI 보고서 생성하기 버튼 */}
           <button
-              type="button"
-              onClick={handleGenerateReport}
-              className={`w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white
-                ${isLoading ? "bg-gray-400 cursor-not-allowed" : "bg-black hover:bg-black/90"}`}
-              disabled={isLoading} // 로딩 중에는 버튼 비활성화
-            >
-              {isLoading ? "보고서를 생성합니다. 잠시만 기다려주세요." : "AI 보고서 생성하기"}
-            </button>
+            type="button"
+            onClick={handleGenerateReport}
+            className={`w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white
+              ${isLoading ? "bg-gray-400 cursor-not-allowed" : "bg-black hover:bg-black/90"}
+            `}
+            disabled={isLoading}
+          >
+            {isLoading
+              ? "보고서를 생성합니다. 잠시만 기다려주세요..."
+              : "AI 보고서 생성하기"}
+          </button>
         </div>
- 
-       
-                     
-           
-        {/* 보고서 생성하기 */}    
+
+        {/* 보고서 목록 섹션 */}
         <div className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-6">
-        {summaries.length > 0 ? (
-          summaries.map((summaryData) => (
-            <div
-              key={summaryData.id}
-              className="bg-white shadow-lg rounded-xl p-6 border border-gray-200 transition-transform transform hover:scale-105 duration-300"
-            >
-              {/* 보고서 ID */}
-              <h3 className="text-xl font-bold text-gray-900 mb-4">
-                📑 보고서 ID: {summaryData.id}
-              </h3>
- 
-              {/* 주요 키워드 */}
-              <div className="mb-4">
-                <p className="text-sm font-semibold text-gray-700 mb-2">🔍 주요 키워드:</p>
-                <div className="flex flex-wrap gap-2">
-                  {summaryData.keywords.map((keyword, index) => (
-                    <span
-                      key={index}
-                      className="bg-blue-100 text-blue-800 text-xs font-medium px-3 py-1 rounded-full"
-                    >
-                      #{keyword}
-                    </span>
-                  ))}
+          {summaries.length > 0 ? (
+            summaries.map((summaryData) => (
+              <div
+                key={summaryData.id}
+                className="bg-white dark:bg-gray-800 dark:text-gray-200 shadow-lg rounded-xl p-6 border border-gray-200 dark:border-gray-700 transition-transform transform hover:scale-105 duration-300"
+              >
+                {/* 보고서 ID */}
+                <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+                  📑 보고서 ID: {summaryData.id}
+                </h3>
+
+                {/* 주요 키워드 */}
+                <div className="mb-4">
+                  <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">🔍 주요 키워드:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {summaryData.keywords.map((keyword, index) => (
+                      <span
+                        key={index}
+                        className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-100 text-xs font-medium px-3 py-1 rounded-full"
+                      >
+                        #{keyword}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 간단 요약 */}
+                <div className="mb-4">
+                  <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">📝 간단 요약:</p>
+                  <blockquote className="border-l-4 border-blue-500 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 italic p-3 rounded-md">
+                    {summaryData.textSummary}
+                  </blockquote>
+                </div>
+
+                {/* 다운로드 버튼 */}
+                <div className="mt-4 flex justify-end">
+                  <button
+                    type="button"
+                    className="px-5 py-2 rounded-lg bg-black text-white hover:bg-gray-900 transition-colors"
+                    onClick={() => handleDownload(summaryData.id)}
+                  >
+                    📥 상세 내용 다운로드
+                  </button>
                 </div>
               </div>
- 
-              {/* 간단 요약 */}
-              <div className="mb-4">
-                <p className="text-sm font-semibold text-gray-700 mb-2">📝 간단 요약:</p>
-                <blockquote className="border-l-4 border-blue-500 bg-gray-100 text-gray-700 italic p-3 rounded-md">
-                  {summaryData.textSummary}
-                </blockquote>
-              </div>
- 
-              {/* 다운로드 버튼 */}
-              <div className="mt-4 flex justify-end">
-                <button
-                  type="button"
-                  className="px-5 py-2 rounded-lg bg-black text-white hover:bg-gray-900 transition-colors"
-                  onClick={() => handleDownload(summaryData.id)}
-                >
-                  📥 상세 내용 다운로드
-                </button>
-              </div>
-            </div>
-          ))
-        ) : (
-        <p className="text-center text-gray-600">📭 보고서 정보가 없습니다.</p>
-      )}
-    </div>
+            ))
+          ) : (
+            <p className="text-center text-gray-600 dark:text-gray-400">
+              📭 보고서 정보가 없습니다.
+            </p>
+          )}
+        </div>
       </div>
 
       {/* 개인정보법 안내 오버레이 */}
@@ -317,5 +316,5 @@ function AiInsight() {
     </div>
   );
 }
- 
+
 export default AiInsight;

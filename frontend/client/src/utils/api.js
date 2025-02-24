@@ -1,3 +1,17 @@
+// client/src/utils/api.js
+import { apiRequest } from "../utils/apiWrapper";
+import { getAuthHeaders } from "../utils/auth";
+
+
+/**
+ * 현재 회원 프로필 + 401 처리 + 재시도 API
+ */
+export async function getMemberProfile() {
+  return await apiRequest("/api/members/me", { method: "GET" });
+}
+
+
+
 /**
  * 사람 감지 API 호출
  * - Nginx 리버스 프록시를 통해 people-detection 서비스의 /detect 엔드포인트로 요청합니다.
@@ -13,9 +27,7 @@ export async function callPeopleDetection(cctv_url, cctv_id) {
 
     const response = await fetch(endpoint, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: getAuthHeaders(), //Authorization
       body: JSON.stringify(payload),
     });
 
@@ -47,9 +59,9 @@ export async function callReportGeneration(requestData) {
       console.log("Request body:", requestBody);  // body 값을 확인하기 위한 로그
 
       const response = await fetch("https://msteam5iseeu.ddns.net/report-generation/report", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(requestBody)  // JSON.stringify 전에 확인
+        method: "POST",
+        headers: getAuthHeaders(), //Authorization
+        body: JSON.stringify(requestBody)
       });
 
       if (!response.ok) {
@@ -71,8 +83,12 @@ try {
 
     console.log("Downloading report from:", url); // URL 로그 확인
 
+    const customHeaders = getAuthHeaders(); //Authorization
+    // Blob 응답 => Accept 설정이 필요하다면 customHeaders["Accept"] = "application/pdf"; 등 가능
+
     const response = await fetch(url, {
-        method: "GET"
+        method: "GET",
+        headers: customHeaders
     });
 
     if (!response.ok) {
@@ -108,7 +124,8 @@ try {
     console.log("Downloading report from:", url); // URL 로그 확인
 
     const response = await fetch(url, {
-        method: "GET"
+      method: "GET",
+      headers: getAuthHeaders() //Authorization
     });
 
     if (!response.ok) {
@@ -140,9 +157,7 @@ export async function getChatbotResponse(userQuestion) {
 
     const response = await fetch(endpoint, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: getAuthHeaders(),  //Authorization
       body: JSON.stringify(payload),
     });
 
