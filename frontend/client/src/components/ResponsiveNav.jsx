@@ -1,27 +1,36 @@
-// client/src/components/ResponsiveNav.jsx
-
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { getMemberProfile } from "../utils/api";
+import NotificationPanel from "./Notification";
 
 function ResponsiveNav({ onOpenPrivacy }) {
 
   const [profile, setProfile] = useState(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
 
-  // useEffect(() => {
-  //   getMemberProfile()
-  //     .then((data) => {
-  //       setProfile(data);
-  //     })
-  //     .catch((err) => {
-  //       console.error("Failed to get profile:", err);
-  //       // 프로필 없을 때 profile를 null로 남겨두면 => 로그인 안 된 상태
-  //     })
-  //     .finally(() => {
-  //       setLoadingProfile(false);
-  //     });
-  // }, []);
+  //알림 패널 표시 여부
+  const [showNotifications, setShowNotifications] = useState(false);
+
+  const handleNotificationToggle = () => {
+    setShowNotifications((prev) => !prev);
+  };
+
+
+
+  // 주석 해제하고 실제 프로필 정보 사용
+  useEffect(() => {
+    getMemberProfile()
+      .then((data) => {
+        setProfile(data);
+      })
+      .catch((err) => {
+        console.error("Failed to get profile:", err);
+        // 프로필 없을 때 profile를 null로 남겨두면 => 로그인 안 된 상태
+      })
+      .finally(() => {
+        setLoadingProfile(false);
+      });
+  }, []);
   // NAV 바에 if (!profile) return <div>Loading...</div> 있으면 안됌!!
   // {profile.id} or {profile.email} or {profile.name} or {profile.subscription_plan} => 로그인 사용자 정보 변수
   
@@ -64,8 +73,12 @@ function ResponsiveNav({ onOpenPrivacy }) {
       <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between h-16 items-center">
         {/* Left: 로고/타이틀 */}
         <div className="flex items-center space-x-8">
-          <span className="text-xl font-bold text-black dark:text-white">I See U</span>
-
+          <Link 
+              to="/monitor" 
+              className="text-xl font-bold text-black dark:text-white"
+            >
+              I See U
+            </Link>
           {/* Desktop Tabs (md 이상) */}
           <div className="hidden md:flex space-x-3">
             <NavLinkItem to="/monitor" label="내 모니터링" currentPath={location.pathname} />
@@ -94,7 +107,10 @@ function ResponsiveNav({ onOpenPrivacy }) {
           </button>
 
           {/* 알림, 설정, 프로필 아이콘 (예시) */}
-          <button className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 relative">
+          <button
+            onClick={handleNotificationToggle}
+            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 relative"
+          >
             <i className="fas fa-bell text-gray-600 dark:text-gray-200"></i>
           </button>
           <button className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
@@ -107,7 +123,7 @@ function ResponsiveNav({ onOpenPrivacy }) {
               alt="사용자 프로필"
             />
             <span className="ml-2 text-sm font-medium text-gray-700 dark:text-gray-200">
-              김 관리자
+              {profile?.name || "사용자"}
             </span>
           </div>
         </div>
@@ -131,6 +147,8 @@ function ResponsiveNav({ onOpenPrivacy }) {
         </div>
       </div>
 
+       
+
       {/* Mobile Menu (md 미만) */}
       {menuOpen && (
         <div className="md:hidden bg-white dark:bg-gray-800 px-4 py-2 shadow">
@@ -148,9 +166,12 @@ function ResponsiveNav({ onOpenPrivacy }) {
 
           {/* 모바일 하단에 알림/설정/프로필 아이콘도 표시할 수 있음 */}
           <div className="mt-3 border-t pt-2 flex items-center space-x-3 dark:border-gray-700">
-            <button className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 relative">
-              <i className="fas fa-bell text-gray-600 dark:text-gray-200"></i>
-            </button>
+            <button
+            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 relative"
+            onClick={handleNotificationToggle}
+          >
+            <i className="fas fa-bell text-gray-600 dark:text-gray-200"></i>
+          </button>
             <button className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
               <i className="fas fa-cog text-gray-600 dark:text-gray-200"></i>
             </button>
@@ -161,12 +182,14 @@ function ResponsiveNav({ onOpenPrivacy }) {
                 alt="사용자 프로필"
               />
               <span className="ml-2 text-sm font-medium text-gray-700 dark:text-gray-200">
-              사용자
+              {profile?.name || "사용자"}
               </span>
             </div>
           </div>
         </div>
       )}
+        {showNotifications && <NotificationPanel />}
+
     </nav>
   );
 }

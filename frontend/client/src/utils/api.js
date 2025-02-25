@@ -16,27 +16,27 @@ export async function getMemberProfile() {
  * - Nginx 리버스 프록시를 통해 people-detection 서비스의 /detect 엔드포인트로 요청합니다.
  * - 프론트엔드에서 전달한 cctv_url과 cctv_id를 payload에 포함합니다.
  */
-export async function callPeopleDetection(cctv_url, cctv_id) {
+export async function callPeopleDetection(fileBlob, cctvId) {
   try {
-    // 요청 URL: Nginx 리버스 프록시를 통해 people-detection 서비스로 요청
-    const endpoint = "https://msteam5iseeu.ddns.net/people-detection/detect";
+    const formData = new FormData();
+    formData.append("file", fileBlob, "frame.png");
+    formData.append("cctv_id", String(cctvId));
 
-    // 요청 payload에 cctv_url과 cctv_id 포함
-    const payload = { cctv_url, cctv_id };
-
-    const response = await fetch(endpoint, {
+    const response = await fetch("https://msteam5iseeu.ddns.net/people-detection/yolo_mosaic", {
       method: "POST",
-      headers: getAuthHeaders(), //Authorization
-      body: JSON.stringify(payload),
+      headers: getAuthHeaders(),  // 필요하면 인증 헤더
+      body: formData,
     });
 
     if (!response.ok) {
-      throw new Error(`API error: ${response.statusText}`);
+      throw new Error(`/yolo_mosaic failed: ${response.status} ${response.statusText}`);
     }
-    // 응답은 { videoStreamUrl, recognitionLog } 등의 데이터를 포함한다고 가정
-    return await response.json();
+
+    // 서버는 PNG 이미지 Blob을 반환 => 여기서 blob으로 받음
+    const resultBlob = await response.blob();
+    return resultBlob;
   } catch (error) {
-    console.error("Error calling people-detection API:", error);
+    console.error("Error in callYoloMosaic:", error);
     throw error;
   }
 }

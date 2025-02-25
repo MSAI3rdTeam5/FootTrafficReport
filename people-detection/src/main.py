@@ -347,7 +347,7 @@ async def yolo_mosaic(file: UploadFile = File(...), cctv_id: int = Form(...)):
         result_frame = await tracker.process_single_frame(frame_bgr, cctv_id=cctv_id)
 
         ret, encoded_img = cv2.imencode(".png", result_frame)
-        if not ret:
+        if not ret:                                                                                                                                                                                                                                              
             raise ValueError("Failed to encode result image")
 
         return Response(content=encoded_img.tobytes(), media_type="image/png")

@@ -6,9 +6,6 @@ import PrivacyOverlay from "./PrivacyOverlay";
 import ResponsiveNav from "../components/ResponsiveNav";
 import { getMemberProfile } from "../utils/api";
 
-// (1) 회원 ID를 하드코딩(또는 로그인 세션에서 가져옴)
-const MEMBER_ID = 1;
-
 function Dashboard() {
 
   // ------------------------------
@@ -16,16 +13,24 @@ function Dashboard() {
   // ------------------------------
   const [profile, setProfile] = useState(null);
 
+  // 로그인 사용자 정보 가져오기
   useEffect(() => {
-    getMemberProfile()
-      .then((data) => {
+    const fetchProfile = async () => {
+      try {
+        const response = await fetch('/api/members/me', {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+          }
+        });
+        if (!response.ok) throw new Error('Failed to fetch profile');
+        const data = await response.json();
         setProfile(data);
-      })
-      .catch((err) => {
+      } catch (err) {
         console.error("Failed to get profile:", err);
-      });
+      }
+    };
+    fetchProfile();
   }, []);
-  // {profile.id} or {profile.email} or {profile.name} or {profile.subscription_plan} => 로그인 사용자 정보 변수
 
   // 개인정보 오버레이
   const [privacyOpen, setPrivacyOpen] = useState(false);
@@ -72,9 +77,15 @@ function Dashboard() {
   // (A) CCTV 목록 가져오기
   // ------------------------------
   useEffect(() => {
+    if (!profile) return; // profile 없으면 실행하지 않음
+
     async function fetchUserCCTVs(memberId) {
       try {
-        const res = await fetch(`/api/cctvs/${memberId}`);
+        const res = await fetch(`/api/cctvs/${memberId}`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+          }
+        });
         if (!res.ok) {
           throw new Error(`CCTV List Fetch Error: ${res.status}`);
         }
@@ -86,7 +97,7 @@ function Dashboard() {
       }
     }
 
-    fetchUserCCTVs(MEMBER_ID).then((data) => {
+    fetchUserCCTVs(profile.id).then((data) => {
       console.log("cctv_info 목록:", data);
       setCctvList(data);
       if (data.length > 0) {
@@ -94,7 +105,7 @@ function Dashboard() {
         setSelectedCCTV(data[0].id);
       }
     });
-  }, []);
+  }, [profile]);
 
   // ---------------------------
   // (A) API 호출 함수 (예시)
@@ -315,6 +326,11 @@ function Dashboard() {
         }`}
       >
         {c.cctv_name}
+        {c.location && (
+          <span className="ml-2 text-xs text-gray-500 dark:text-gray-400">
+            ({c.location})
+          </span>
+        )}
       </button>
     );
   });
@@ -380,6 +396,7 @@ function Dashboard() {
       },
       legend: {
         show: true,
+        orient:"horizontal",
         top: 20,
         left: "center",
         data: ["총 방문자", "청소년층", "성인층", "노년층"],
@@ -473,6 +490,95 @@ function Dashboard() {
     chartInstance.setOption(option);
   };
 
+  // CCTV 드롭다운 상태
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  // 드롭다운 외부 클릭 감지
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // CCTV 선택 드롭다운 렌더링
+  const renderCCTVDropdown = () => {
+    const selectedCCTVName = cctvList.find(c => c.id === selectedCCTV)?.cctv_name || "CCTV 선택";
+    
+    return (
+      <div className="relative" ref={dropdownRef}>
+        <button
+          onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+          className="bg-white/80 backdrop-blur-sm dark:bg-gray-800/80 px-4 py-2 rounded-lg shadow-sm 
+                     border border-gray-200 dark:border-gray-700
+                     flex items-center justify-between w-64
+                     hover:bg-gray-50 dark:hover:bg-gray-700/90
+                     transition-all duration-150"
+        >
+          <span className="text-gray-700 dark:text-gray-200">{selectedCCTVName}</span>
+          <i className={`fas fa-chevron-down ml-2 transition-transform duration-200 
+                        ${isDropdownOpen ? 'rotate-180' : ''}`}></i>
+        </button>
+
+        {isDropdownOpen && (
+          <div className="absolute z-10 w-64 mt-2 bg-white/95 backdrop-blur-sm dark:bg-gray-800/95 
+                          rounded-lg shadow-lg border border-gray-200 dark:border-gray-700
+                          animate-slideDown origin-top">
+            {cctvList.map((c) => (
+              <button
+                key={c.id}
+                onClick={() => {
+                  setSelectedCCTV(c.id);
+                  setIsDropdownOpen(false);
+                }}
+                className={`w-full px-4 py-3 text-left 
+                           hover:bg-gray-50/90 dark:hover:bg-gray-700/90
+                           transition-colors duration-150 first:rounded-t-lg last:rounded-b-lg
+                           ${selectedCCTV === c.id ? 'bg-blue-50/90 dark:bg-blue-900/30' : ''}`}
+              >
+                <div className="font-medium text-gray-700 dark:text-gray-200">
+                  {c.cctv_name}
+                </div>
+                {c.location && (
+                  <div className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+                    {c.location}
+                  </div>
+                )}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // 기간 선택 탭 렌더링
+  const renderPeriodTabs = () => (
+    <div className="bg-gray-100/80 backdrop-blur-sm dark:bg-gray-800/80 p-1 rounded-lg inline-flex">
+      {periodList.map((p) => (
+        <button
+          key={p}
+          onClick={() => setSelectedPeriod(p)}
+          className={`relative px-6 py-2 rounded-md transition-all duration-200 
+                     ${selectedPeriod === p 
+                       ? 'text-gray-800 dark:text-white' 
+                       : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'}`}
+        >
+          {selectedPeriod === p && (
+            <span className="absolute inset-0 bg-white/90 dark:bg-gray-700/90 rounded-md 
+                           shadow-sm transition-all duration-200" 
+                  style={{ zIndex: 0 }}></span>
+          )}
+          <span className="relative z-10">{p}</span>
+        </button>
+      ))}
+    </div>
+  );
+
   return (
     /* 메인 컨테이너: 다크 모드 배경 + 최소 높이 */
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -488,11 +594,25 @@ function Dashboard() {
               통계 분석
             </h1>
 
-            {/* CCTV 선택 버튼들 */}
-            <div className="flex flex-wrap gap-4 mb-6">{cctvButtons}</div>
+            {/* 필터 섹션 - 수정된 부분 */}
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center space-x-4">
+                {renderCCTVDropdown()}
+                {renderPeriodTabs()}
+              </div>
+            </div>
 
-            {/* 기간 선택 버튼들 */}
-            <div className="flex flex-wrap gap-4 mb-8">{periodButtons}</div>
+            {/* CCTV 미설정 경고 */}
+            {cctvList.length === 0 && (
+              <div className="mb-8 bg-yellow-50 dark:bg-yellow-900 border-l-4 border-yellow-400 p-4">
+                <div className="flex items-center">
+                  <i className="fas fa-exclamation-triangle text-yellow-400 mr-3"></i>
+                  <p className="text-sm text-yellow-700 dark:text-yellow-200">
+                    등록된 CCTV가 없습니다. CCTV를 먼저 등록해주세요.
+                  </p>
+                </div>
+              </div>
+            )}
 
             {/* 하단 2-Column: 좌(현황통계), 우(차트) */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
