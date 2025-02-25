@@ -128,45 +128,6 @@ export function AppProvider({ children }) {
     }
   }
 
-  // // ------------------------------------------------------------
-  // // 2FPS 모자이크 (int cctvId)
-  // // ------------------------------------------------------------
-  // useEffect(() => {
-  //   if (!localStream) {
-  //     setMosaicImageUrl(null);
-  //     return;
-  //   }
-  //   const intervalId = setInterval(() => {
-  //     if (!localVideoRef.current) return;
-  //     if (isProcessingRef.current) return;
-
-  //     isProcessingRef.current = true;
-  //     const ctx = canvasRef.current.getContext("2d");
-  //     ctx.drawImage(localVideoRef.current, 0, 0, canvasRef.current.width, canvasRef.current.height);
-
-  //     canvasRef.current.toBlob(async (blob) => {
-  //       if (!blob) {
-  //         isProcessingRef.current = false;
-  //         return;
-  //       }
-  //       try {
-  //         // (A) callPeopleDetection로 /yolo_mosaic 호출
-  //         const resultBlob = await callPeopleDetection(blob, cctvId);
-
-  //         // (B) resultBlob -> ObjectURL
-  //         const imgUrl = URL.createObjectURL(resultBlob);
-  //         setMosaicImageUrl(imgUrl);
-  //       } catch (err) {
-  //         console.error("auto-mosaic error:", err);
-  //       } finally {
-  //         isProcessingRef.current = false;
-  //       }
-  //     }, "image/png");
-  //   }, 500);
-
-  //   return () => clearInterval(intervalId);
-  // }, [localStream, cctvId, setMosaicImageUrl, isProcessingRef]);
-
   // ------------------------------------------------------------
   // (E) Context Provider
   // ------------------------------------------------------------

@@ -199,6 +199,17 @@ def delete_member(member_id: int, db: Session = Depends(get_db)):
     db.commit()
     return {"message": f"member {member_id} deleted"}
 
+@router.post("/members/verify-password", response_model=dict)
+def verify_member_password(
+    password_data: dict = Body(...),
+    current_user: Member = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """비밀번호 확인 엔드포인트"""
+    # verify_password 함수를 사용하여 평문 비밀번호와 해시된 비밀번호 비교
+    if not verify_password(password_data["password"], current_user.password):
+        raise HTTPException(status_code=401, detail="Invalid password")
+    return {"message": "Password verified"}
 
 # -----------------------------------------------------------
 # 2) cctv_info 테이블 관련
@@ -332,21 +343,25 @@ async def create_cctv_data(
         "image_url": new_data.image_url
     }
 
-@router.get("/cctv_data/{data_id}", response_model=dict)
-def get_cctv_data(data_id: int, db: Session = Depends(get_db)):
-    row = db.query(CctvData).filter(CctvData.id == data_id).first()
-    if not row:
-        raise HTTPException(status_code=404, detail="Not found")
+@router.get("/cctv_data/{cctv_id}", response_model=List[dict])
+def get_cctv_data(cctv_id: int, db: Session = Depends(get_db)):
+    rows = db.query(CctvData).filter(CctvData.cctv_id == cctv_id).all()
 
-    return {
-        "id": row.id,
-        "cctv_id": row.cctv_id,
-        "detected_time": row.detected_time,
-        "person_label": row.person_label,
-        "gender": row.gender,
-        "age": row.age,
-        "image_url": row.image_url
-    }
+    if not rows:
+        return []
+    
+    results = []
+    for r in rows:
+        results.append({
+            "id": r.id,
+            "cctv_id": r.cctv_id,
+            "detected_time": r.detected_time,
+            "person_label": r.person_label,
+            "gender": r.gender,
+            "age": r.age,
+            "image_url": r.image_url
+        })
+    return results
 
 @router.get("/cctv_data", response_model=List[dict])
 def list_cctv_data(db: Session = Depends(get_db)):

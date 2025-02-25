@@ -12,6 +12,7 @@ RUN npm install
 # 서버 소스 복사
 COPY src ./src
 
+
 EXPOSE 4000
 
 CMD ["node", "src/index.js"]

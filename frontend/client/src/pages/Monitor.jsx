@@ -1,5 +1,3 @@
-// /home/azureuser/FootTrafficReport/frontend/client/src/pages/Monitor.jsx
-
 import React, { useState, useEffect, useRef, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import PrivacyOverlay from "./PrivacyOverlay";
@@ -50,6 +48,63 @@ function Monitor() {
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
 
+  // 로그인한 사용자 정보
+  const [currentUser, setCurrentUser] = useState(null);
+
+  // 삭제 관련 state 추가
+  const [deletingCamera, setDeletingCamera] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);  // 모달 이름 변경
+
+  // 페이지 로드 시 사용자 정보와 CCTV 목록 가져오기
+  useEffect(() => {
+    const fetchUserAndCameras = async () => {
+      try {
+        // 1. 현재 로그인한 사용자 정보 가져오기
+        const userResponse = await fetch('/api/members/me', {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+          }
+        });
+        
+        if (!userResponse.ok) {
+          throw new Error('사용자 정보를 가져올 수 없습니다.');
+        }
+        
+        const userData = await userResponse.json();
+        setCurrentUser(userData);
+
+        // 2. 사용자의 CCTV 목록 가져오기
+        const cctvResponse = await fetch(`/api/cctvs/${userData.id}`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+          }
+        });
+
+        if (!cctvResponse.ok) {
+          throw new Error('CCTV 목록을 가져올 수 없습니다.');
+        }
+
+        const cctvData = await cctvResponse.json();
+        // CCTV 목록을 cameraList 형식에 맞게 변환
+        const formattedCameraList = cctvData.map(cctv => ({
+          cameraId: cctv.id,
+          name: cctv.cctv_name,
+          type: cctv.api_url ? "cctv" : "webcam",
+          deviceId: cctv.api_url,
+          status: "connected"
+        }));
+        
+        setCameraList(formattedCameraList);
+
+      } catch (error) {
+        console.error("데이터 로딩 실패:", error);
+        alert("데이터를 불러오는데 실패했습니다.");
+      }
+    };
+
+    fetchUserAndCameras();
+  }, []);
+
   // ------------------------------------------------------------
   // "웹캠 연결" 버튼 => 웹캠 목록 모달 열기
   // ------------------------------------------------------------
@@ -77,14 +132,14 @@ function Monitor() {
   // "웹캠 선택" 모달 => "확인"
   // ------------------------------------------------------------
   const handleConfirmWebcamSelection = async () => {
-    if (!selectedDeviceId) {
+    if (!selectedDeviceId || !currentUser) {
       alert("카메라를 선택하세요!");
       return;
     }
     setWebcamModalOpen(false);
 
     try {
-      // (1) 로컬 스트림 획득
+      // 1. 로컬 스트림 획득
       const rawStream = await navigator.mediaDevices.getUserMedia({
         video: { 
           deviceId: { exact: selectedDeviceId },
@@ -94,55 +149,81 @@ function Monitor() {
         },
         audio: false,
       });
-      // (B) 전역 context에 localStream 세팅
+      
+      // 2. 선택된 장치 정보 가져오기
+      const selectedDevice = videoDevices.find(d => d.deviceId === selectedDeviceId);
+      const cameraName = selectedDevice?.label || "웹캠";
+
+      // 3. CCTV 정보를 백엔드에 저장
+      const cctvResponse = await fetch('/api/cctvs', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+        },
+        body: JSON.stringify({
+          member_id: currentUser.id,
+          cctv_name: cameraName,
+          location: "webcam",  // 웹캠의 경우 location을 'webcam'으로 설정
+        })
+      });
+
+      if (!cctvResponse.ok) {
+        throw new Error('CCTV 정보 저장 실패');
+      }
+
+      const cctvData = await cctvResponse.json();
+      
+      // 4. 전역 context에 localStream 세팅
       setLocalStream(rawStream);
+      setCctvId(cctvData.id);
 
-      // cctvId 예시로 2번 => 실제 카메라 ID
-      setCctvId(2);
+      // 5. cameraList에 새로운 웹캠 추가
+      setCameraList(prev => [...prev, {
+        cameraId: cctvData.id,
+        name: cameraName,
+        type: "webcam",
+        deviceId: selectedDeviceId,
+        status: "connected"
+      }]);
 
-      // (C) 이제 CCTVMonitoring 페이지로 이동
-      navigate("/cctv-monitoring");
-
-
-    //   // 로컬 프리뷰
-      // if (localVideoRef.current) {
-      //   localVideoRef.current.srcObject = rawStream;
-      //   await localVideoRef.current.play().catch((err) => {
-      //     console.warn("localVideo play error:", err);
-      //   });
-      // }
-      // console.log("[DBG] local webcam opened =>", rawStream.getTracks());
     } catch (err) {
-      console.error("getUserMedia 실패:", err);
-      alert("카메라 열기에 실패했습니다: " + err.message);
-      return;
+      console.error("카메라 설정 실패:", err);
+      alert("카메라 설정에 실패했습니다: " + err.message);
     }
-
-    // (2) SFU 연결 + produce
-    // try {
-    //   if (!socketRef.current || !deviceRef.current) {
-    //     console.log("[DBG] SFU 미연결 => handleConnectSFU()");
-    //     await handleConnectSFU();
-    //   }
-    //   console.log("[DBG] SFU 연결 상태 => produceVideoTrack");
-    //   await produceVideoTrack(rawStream);
-    // } catch (err) {
-    //   console.error("SFU produce error:", err);
-    // }
   };
 
+  // 비밀번호 확인 및 카메라 삭제 처리
+  const handleDeleteCamera = async () => {
+    try {
+      const deleteResponse = await fetch(`/api/cctvs/${deletingCamera.cameraId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+        }
+      });
 
-  // // ------------------------------------------------------------
-  // // localStream 연결 후 일정 시간 후 /cctv-monitoring으로 전환
-  // // ------------------------------------------------------------
-  // useEffect(() => {
-  //   if (localStream) {
-  //     const timer = setTimeout(() => {
-  //       navigate("/cctv-monitoring");
-  //     }, 5000);
-  //     return () => clearTimeout(timer);
-  //   }
-  // }, [localStream, navigate]);
+      if (!deleteResponse.ok) {
+        throw new Error('카메라 삭제 실패');
+      }
+
+      // 3. 목록에서 제거
+      setCameraList(prev => prev.filter(cam => cam.cameraId !== deletingCamera.cameraId));
+      
+      // 4. 모달 닫기 & 상태 초기화
+      setShowDeleteModal(false);
+      setDeletingCamera(null);
+
+    } catch (error) {
+      console.error("카메라 삭제 실패:", error);
+      alert("카메라 삭제에 실패했습니다.");
+    }
+  };
+
+  const handleDeleteClick = (camera) => {
+    setDeletingCamera(camera);
+    setShowDeleteModal(true);
+  };
 
   return (
     <div className="bg-gray-50 dark:bg-gray-900 min-h-screen flex flex-col">
@@ -184,7 +265,7 @@ function Monitor() {
             className="bg-white dark:bg-gray-800 dark:text-gray-200 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col items-center justify-center min-h-[200px] cursor-pointer hover:border-custom"
             onClick={handleOpenWebcamSelect}
           >
-            <i className="fas fa-webcam text-4xl text-custom mb-4"></i>
+            <i className="fas fa-video-plus text-4xl text-custom mb-4"></i>
             <span className="text-gray-700 dark:text-gray-300">웹캠 연결</span>
           </div>
           <div
@@ -254,7 +335,10 @@ function Monitor() {
         <canvas ref={canvasRef} width={640} height={480} style={{ display: "none" }} />
 
         {/* 연결된 장치 목록 */}
-        <ConnectedDevices cameraList={cameraList} />
+        <ConnectedDevices 
+          cameraList={cameraList} 
+          onDeleteClick={handleDeleteClick}
+        />
       </div>
 
       {/* 푸터 영역 */}
@@ -416,12 +500,80 @@ function Monitor() {
       {privacyOpen && (
         <PrivacyOverlay open={privacyOpen} onClose={handleClosePrivacy} />
       )}
+
+      {/* 비밀번호 확인 모달 */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white dark:bg-gray-800 dark:text-gray-200 w-full max-w-md p-6 rounded-lg relative border border-gray-200 dark:border-gray-700">
+            <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-gray-100">
+              카메라 삭제 확인
+            </h2>
+            <div className="mb-6">
+              <p className="text-gray-600 dark:text-gray-400 mb-2">
+                "{deletingCamera?.name}" 카메라를 정말 삭제하시겠습니까?
+              </p>
+              <p className="text-red-500 text-sm">
+                삭제된 데이터는 다시 복원할 수 없습니다.
+              </p>
+            </div>
+            <div className="flex justify-end space-x-2">
+              <button
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setDeletingCamera(null);
+                }}
+                className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+              >
+                취소
+              </button>
+              <button
+                onClick={handleDeleteCamera}
+                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+              >
+                삭제
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-// 연결된 장치 목록 (예시)
-function ConnectedDevices({ cameraList }) {
+// 연결된 장치 목록 (수정)
+function ConnectedDevices({ cameraList, onDeleteClick }) {
+  const navigate = useNavigate();
+  const { setLocalStream, setCctvId } = useContext(AppContext);
+
+  const handleCameraClick = async (camera) => {
+    if (camera.type === "webcam") {
+      try {
+        // 선택된 웹캠으로 스트림 다시 얻기
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { 
+            deviceId: { exact: camera.deviceId },
+            width: { ideal: 640 },
+            height: { ideal: 480 },
+            frameRate: { ideal: 30 },
+          },
+          audio: false,
+        });
+        
+        setLocalStream(stream);
+        setCctvId(camera.cameraId);
+        navigate("/cctv-monitoring");
+      } catch (err) {
+        console.error("카메라 연결 실패:", err);
+        alert("카메라 연결에 실패했습니다.");
+      }
+    }
+  };
+
+  const handleDeleteClick = (e, camera) => {
+    e.stopPropagation(); // 카메라 클릭 이벤트 전파 방지
+    onDeleteClick(camera);  // 부모의 핸들러 호출
+  };
+
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden mb-6">
       <div className="p-6">
@@ -437,15 +589,33 @@ function ConnectedDevices({ cameraList }) {
             {cameraList.map((cam) => (
               <li
                 key={cam.cameraId}
-                className="p-2 bg-gray-50 dark:bg-gray-700 rounded"
+                className="p-4 bg-gray-50 dark:bg-gray-700 rounded cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors relative group"
+                onClick={() => handleCameraClick(cam)}
               >
                 <div className="flex justify-between items-center">
-                  <span className="font-medium text-gray-700 dark:text-gray-200">
-                    {cam.cameraId}
-                  </span>
-                  <span className="text-xs text-gray-400 dark:text-gray-300">
-                    {cam.hlsUrl}
-                  </span>
+                  <div>
+                    <span className="font-medium text-gray-700 dark:text-gray-200">
+                      {cam.name}
+                    </span>
+                    <span className="ml-2 text-xs text-gray-400">
+                      (ID: {cam.cameraId})
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <span className={`px-2 py-1 rounded-full text-xs ${
+                      cam.status === "connected" 
+                        ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                        : "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200"
+                    }`}>
+                      {cam.status}
+                    </span>
+                    <button
+                      onClick={(e) => handleDeleteClick(e, cam)}
+                      className="opacity-0 group-hover:opacity-100 transition-opacity text-red-500 hover:text-red-700"
+                    >
+                      <i className="fas fa-times"></i>
+                    </button>
+                  </div>
                 </div>
               </li>
             ))}

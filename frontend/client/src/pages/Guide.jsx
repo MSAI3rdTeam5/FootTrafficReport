@@ -182,8 +182,8 @@ function Guide() {
         </aside>
 
         {/* 메인 컨텐츠 */}
-        <main className="md:ml-64 flex-1">
-          <div className="max-w-7xl mx-auto px-6 pt-8 pb-16">
+        <main className="flex-1">
+          <div className="max-w-7xl mx-auto px-6 pt-8 pb-16 md:ml-72">
             {/* #intro */}
             <section id="intro" className="mb-16">
               <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">
@@ -298,7 +298,7 @@ function Guide() {
                     <h3 className="text-lg font-bold mb-4">3.1. 기본 화면 구성</h3>
                     <div className="mb-6">
                       <img
-                        src="/monitoring.png"
+                        src="/monitering.png"
                         alt="모니터링 화면"
                         className="w-full rounded-lg mb-4"
                       />

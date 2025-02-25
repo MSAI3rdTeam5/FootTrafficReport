@@ -66,38 +66,31 @@ function CCTVMonitoring() {
   // ------------------------------------------------------------
   const fetchLogs = useCallback(async () => {
     try {
-      const response = await fetch("/api/cctv_data");
-      if (!response.ok) throw new Error("Failed to fetch logs");
+      const response = await fetch(`/api/cctv_data/${cctvId}`);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch logs for cctvId=${cctvId}`);
+      }
       const data = await response.json();
       console.log("Fetched logs:", data);
 
-      // 내림차순 정렬
-      data.sort(
-        (a, b) => new Date(b.detected_time) - new Date(a.detected_time)
-      );
-      setLogs(data.slice(0, 50));
-    } catch (err) {
-      console.error("fetchLogs error:", err);
+      setLogs((prevLogs) => {
+        const newLogs = [...data, ...prevLogs];
+        // 중복 제거
+        const uniqueLogs = newLogs.filter(
+          (log, index, self) =>
+            index === self.findIndex((t) => t.cctv_id === log.cctv_id && t.person_label === log.person_label)
+        );
+        // 감지 시각 내림차순
+        uniqueLogs.sort(
+          (a, b) => new Date(b.detected_time) - new Date(a.detected_time)
+        );
+        return uniqueLogs.slice(0, 50);
+      });
+    } catch (error) {
+      console.error("로그 데이터 가져오기 실패:", error);
     }
-  }, []);
+  }, [cctvId]);
 
-  //     setLogs((prevLogs) => {
-  //       const newLogs = [...data, ...prevLogs];
-  //       // 중복 제거
-  //       const uniqueLogs = newLogs.filter(
-  //         (log, index, self) =>
-  //           index === self.findIndex((t) => t.id === log.id)
-  //       );
-  //       // 감지 시각 내림차순
-  //       uniqueLogs.sort(
-  //         (a, b) => new Date(b.detected_time) - new Date(a.detected_time)
-  //       );
-  //       return uniqueLogs.slice(0, 50);
-  //     });
-  //   } catch (error) {
-  //     console.error("로그 데이터 가져오기 실패:", error);
-  //   }
-  // }, []);
 
   useEffect(() => {
     // 시계
@@ -142,13 +135,7 @@ function CCTVMonitoring() {
       await produceVideoTrack(localStream);
     })();
   }, [localStream]);
-  
-  // useEffect(() => {
-  //   if (localStream && cctvVideoRef.current) {
-  //     cctvVideoRef.current.srcObject = localStream;
-  //     cctvVideoRef.current.play().catch(err => console.warn("video play:", err));
-  //   }
-  // }, [localStream]);
+
 
   // mosaic 탭 → mosaicImageUrl 표시 (이미 AppContext에서 계속 업데이트)
   // logs → 5초간격 polling
@@ -268,15 +255,10 @@ function CCTVMonitoring() {
   // ------------------------------------------------------------
   // (E) 이미지 모달 열기
   // ------------------------------------------------------------
-  // const handleImageClick = useCallback((image_url) => {
-  //   setSelectedImage(image_url);
-  //   setIsModalOpen(true);
-  // }, []);
-
-  const handleImageClick = (image_url) => {
+  const handleImageClick = useCallback((image_url) => {
     setSelectedImage(image_url);
     setIsModalOpen(true);
-  };
+  }, []);
 
   const ImageModal = useMemo(() => {
     return ({ image_url, onClose }) => (

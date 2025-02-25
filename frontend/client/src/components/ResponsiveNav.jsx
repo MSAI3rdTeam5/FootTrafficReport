@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { getMemberProfile } from "../utils/api";
 import NotificationPanel from "./Notification";
+import SettingsPanel from "./SettingsPanel";
 
 function ResponsiveNav({ onOpenPrivacy }) {
 
@@ -11,11 +12,18 @@ function ResponsiveNav({ onOpenPrivacy }) {
   //알림 패널 표시 여부
   const [showNotifications, setShowNotifications] = useState(false);
 
-  const handleNotificationToggle = () => {
-    setShowNotifications((prev) => !prev);
+  // 설정 패널 표시 여부
+  const [showSettings, setShowSettings] = useState(false);
+
+  const handleSettingsToggle = () => {
+    setShowSettings((prev) => !prev);
+    setShowNotifications(false); // 알림 패널이 열려있으면 닫기
   };
 
-
+  const handleNotificationToggle = () => {
+    setShowNotifications((prev) => !prev);
+    setShowSettings(false); // 설정 패널이 열려있으면 닫기
+  };
 
   // 주석 해제하고 실제 프로필 정보 사용
   useEffect(() => {
@@ -103,7 +111,7 @@ function ResponsiveNav({ onOpenPrivacy }) {
             onClick={toggleDarkMode}
             className="px-3 py-2 rounded hover:bg-gray-200 dark:hover:bg-gray-600 dark:text-white"
           >
-            {isDarkMode ? "Light Mode" : "Dark Mode"}
+            <i className={`fas ${isDarkMode ? "fa-sun" : "fa-moon"} text-gray-600 dark:text-gray-200`} />
           </button>
 
           {/* 알림, 설정, 프로필 아이콘 (예시) */}
@@ -113,7 +121,10 @@ function ResponsiveNav({ onOpenPrivacy }) {
           >
             <i className="fas fa-bell text-gray-600 dark:text-gray-200"></i>
           </button>
-          <button className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
+          <button 
+            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
+            onClick={handleSettingsToggle}
+          >
             <i className="fas fa-cog text-gray-600 dark:text-gray-200"></i>
           </button>
           <div className="ml-2 flex items-center">
@@ -172,7 +183,10 @@ function ResponsiveNav({ onOpenPrivacy }) {
           >
             <i className="fas fa-bell text-gray-600 dark:text-gray-200"></i>
           </button>
-            <button className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
+            <button 
+              className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
+              onClick={handleSettingsToggle}
+            >
               <i className="fas fa-cog text-gray-600 dark:text-gray-200"></i>
             </button>
             <div className="flex items-center">
@@ -182,14 +196,14 @@ function ResponsiveNav({ onOpenPrivacy }) {
                 alt="사용자 프로필"
               />
               <span className="ml-2 text-sm font-medium text-gray-700 dark:text-gray-200">
-              {profile?.name || "사용자"}
+                {profile?.name || "사용자"}
               </span>
             </div>
           </div>
         </div>
       )}
-        {showNotifications && <NotificationPanel />}
-
+      {showNotifications && <NotificationPanel />}
+      {showSettings && <SettingsPanel profile={profile} />}
     </nav>
   );
 }
