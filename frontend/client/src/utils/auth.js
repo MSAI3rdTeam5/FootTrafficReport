@@ -44,6 +44,14 @@ export function getAuthHeaders() {
   return headers;
 }
 
+export function getAuthHeadersWithoutContentType() {
+  const token = getAccessToken();
+  const headers = { "Authorization": `Bearer ${token}` };
+  if (token) {
+    return headers;
+  }
+}
+
 
 // ------------------------------
 // 로그인 함수 (예: POST /api/login)

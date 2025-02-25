@@ -331,7 +331,7 @@ class PersonTracker:
 # (C) /yolo_mosaic 라우트:
 # ---------------------------------------------------------
 @app.post("/yolo_mosaic")
-async def yolo_mosaic(file: UploadFile = File(...), cctv_id: int = Form(...)):
+async def yolo_mosaic(file: UploadFile = File(...), cctv_id: str = Form(...)):
 
     """
     브라우저 Canvas -> 스켈레톤 + 얼굴 모자이크 + 성별/연령 태깅 -> PNG
@@ -344,7 +344,10 @@ async def yolo_mosaic(file: UploadFile = File(...), cctv_id: int = Form(...)):
             raise ValueError("Failed to decode image")
 
         tracker = PersonTracker()
-        result_frame = await tracker.process_single_frame(frame_bgr, cctv_id=cctv_id)
+        print("Got cctv_id raw =>", cctv_id)
+        cctv_id_int = int(cctv_id)
+        
+        result_frame = await tracker.process_single_frame(frame_bgr, cctv_id=cctv_id_int)
 
         ret, encoded_img = cv2.imencode(".png", result_frame)
         if not ret:                                                                                                                                                                                                                                              

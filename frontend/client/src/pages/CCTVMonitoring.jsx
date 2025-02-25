@@ -25,12 +25,13 @@ function CCTVMonitoring() {
       localStream,
       setLocalStream,
       mosaicImageUrl,
-      setMosaicImageUrl,
-      canvasRef,
-      isProcessingRef,
       cctvId
   } = useContext(AppContext);
 
+  // SFU 관련
+  const socketRef = useRef(null);
+  const deviceRef = useRef(null);
+  const [sendTransport, setSendTransport] = useState(null);
 
   // 탭 상태: "realtime" / "mosaic"
   const [activeTab, setActiveTab] = useState("realtime");
@@ -55,6 +56,10 @@ function CCTVMonitoring() {
   const [devices] = useState(["cam1", "cam2"]);
   const [currentDeviceIndex, setCurrentDeviceIndex] = useState(0);
   const currentDevice = devices[currentDeviceIndex];
+
+  // 비디오 태그 레퍼런스
+  const localVideoRef = useRef(null);
+  const remoteVideoRef = useRef(null);
 
   // ------------------------------------------------------------
   // (A) 시계 / 로그 주기적 fetch
@@ -130,6 +135,13 @@ function CCTVMonitoring() {
     }
   }, [localStream, navigate]);
 
+  useEffect(() => {
+    if (!localStream) return;
+    (async () => {
+      await handleConnectSFU();
+      await produceVideoTrack(localStream);
+    })();
+  }, [localStream]);
   
   // useEffect(() => {
   //   if (localStream && cctvVideoRef.current) {
@@ -176,7 +188,7 @@ function CCTVMonitoring() {
     const routerCaps = await new Promise((resolve, reject) => {
       s.emit("getRouterRtpCapabilities", {}, (res) => {
         if (!res.success) return reject(new Error(res.error));
-        resolve(res.rtpCapabilities);
+        else resolve(res.rtpCapabilities);
       });
     });
 
@@ -186,6 +198,7 @@ function CCTVMonitoring() {
     console.log("Mediasoup Device loaded => canProduceVideo =", dev.canProduce("video"));
   }
 
+  // Produce
   async function produceVideoTrack(rawStream) {
     if (!deviceRef.current || !socketRef.current) {
       console.warn("[WARN] SFU device/socket not ready.");
@@ -232,6 +245,7 @@ function CCTVMonitoring() {
     }
   }
 
+  // createTransport
   function createTransport(sock, direction) {
     return new Promise((resolve, reject) => {
       sock.emit("createTransport", { direction }, (res) => {

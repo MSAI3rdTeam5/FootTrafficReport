@@ -5,10 +5,6 @@ import { useNavigate } from "react-router-dom";
 import PrivacyOverlay from "./PrivacyOverlay";
 import ResponsiveNav from "../components/ResponsiveNav";
 
-// Socket.io + mediasoup-client
-import { io } from "socket.io-client";
-import { Device } from "mediasoup-client";
-
 // (NEW) AppContext
 import { AppContext } from "../context/AppContext";
 
@@ -19,18 +15,11 @@ function Monitor() {
   // (1) Context에서 가져오기
   // ------------------------------------------------------------
   const {
-    localStream,
     setLocalStream,
-    mosaicImageUrl,
-    setMosaicImageUrl,
     canvasRef,
-    isProcessingRef
+    setCctvId
   } = useContext(AppContext);
 
-  // ------------------------------------------------------------
-  // (2) 정수형 cctvId (default 0이든 1이든 자유)
-  // ------------------------------------------------------------
-  const [cctvId, setCctvId] = useState(0);
 
   // === 로컬 state ===
   const [qrVisible, setQrVisible] = useState(false);
@@ -53,11 +42,6 @@ function Monitor() {
   const [webcamModalOpen, setWebcamModalOpen] = useState(false);
   const [videoDevices, setVideoDevices] = useState([]);
   const [selectedDeviceId, setSelectedDeviceId] = useState("");
-
-  // SFU 관련
-  const socketRef = useRef(null);
-  const deviceRef = useRef(null);
-  const [sendTransport, setSendTransport] = useState(null);
 
   // remoteStream (옵션)
   const [remoteStream, setRemoteStream] = useState(null);
@@ -148,34 +132,6 @@ function Monitor() {
   };
 
 
-
-  // // ------------------------------------------------------------
-  // // 웹캠 연결 해제
-  // // ------------------------------------------------------------
-  const handleWebcamDisconnect = () => {
-    if (localStream) {
-      localStream.getTracks().forEach((t) => t.stop());
-    }
-    setLocalStream(null);
-
-    if (localVideoRef.current) {
-      localVideoRef.current.srcObject = null;
-    }
-    if (remoteVideoRef.current) {
-      remoteVideoRef.current.srcObject = null;
-    }
-
-    if (sendTransport) {
-      sendTransport.close();
-      setSendTransport(null);
-    }
-    if (socketRef.current) {
-      socketRef.current.disconnect();
-      socketRef.current = null;
-    }
-    deviceRef.current = null;
-  };
-
   // // ------------------------------------------------------------
   // // localStream 연결 후 일정 시간 후 /cctv-monitoring으로 전환
   // // ------------------------------------------------------------
@@ -251,7 +207,7 @@ function Monitor() {
         </div>
 
         {/* (2) 원본 미리보기 (WebRTC) */}
-        {(localStream || remoteStream) && (
+        {/* {(localStream || remoteStream) && (
           <div className="bg-white dark:bg-gray-800 dark:text-gray-200 p-4 rounded-lg border border-gray-200 dark:border-gray-700 mb-6">
             <h2 className="text-lg font-semibold mb-2 text-gray-900 dark:text-gray-100">
               웹캠 실시간 미리보기 (원본)
@@ -276,10 +232,10 @@ function Monitor() {
               className="mt-4 px-4 py-2 bg-red-500 text-white rounded"
             >
               웹캠 연결 종료
-            </button>
+            </button> */}
 
             {/* 모자이크 결과 (2FPS) */}
-            {mosaicImageUrl && (
+            {/* {mosaicImageUrl && (
               <div className="mt-6">
                 <h3 className="font-semibold mb-2 text-gray-900 dark:text-gray-100">
                   모자이크 결과 (2FPS)
@@ -292,7 +248,7 @@ function Monitor() {
               </div>
             )}
           </div>
-        )}
+        )} */}
 
         {/* Canvas for mosaic (숨김) */}
         <canvas ref={canvasRef} width={640} height={480} style={{ display: "none" }} />

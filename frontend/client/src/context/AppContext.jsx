@@ -19,12 +19,12 @@ export function AppProvider({ children }) {
   const isProcessingRef = useRef(false);
   const intervalRef = useRef(null);
 
+
   // ------------------------------------------------------------
   // (A) localStream 변경 시, 숨겨진 video 생성 + 연결
   // ------------------------------------------------------------
   useEffect(() => {
     if (!hiddenVideoRef.current) {
-      // 최초 1회 body에 숨은 video를 생성
       const videoEl = document.createElement("video");
       videoEl.style.display = "none";
       videoEl.playsInline = true;
@@ -36,11 +36,10 @@ export function AppProvider({ children }) {
 
     if (localStream) {
       hiddenVideoRef.current.srcObject = localStream;
-      hiddenVideoRef.current
-        .play()
-        .catch((err) => console.warn("[AppContext] hiddenVideo play err:", err));
+      hiddenVideoRef.current.play().catch((err) =>
+        console.warn("[AppContext] hiddenVideo play err:", err)
+      );
     } else {
-      // 스트림 해제
       if (hiddenVideoRef.current) {
         hiddenVideoRef.current.srcObject = null;
       }
@@ -72,9 +71,10 @@ export function AppProvider({ children }) {
 
     // 스트림이 생겼을 때 500ms 주기로 doMosaicCapture
     intervalRef.current = setInterval(() => {
-      if (!isProcessingRef.current) {
-        doMosaicCapture();
-      }
+      if (!hiddenVideoRef.current || !canvasRef.current) return;
+      if (isProcessingRef.current) return;
+
+      doAutoMosaicCapture();
     }, 500);
 
     // 언마운트 or localStream 변경 시 청소
@@ -90,28 +90,19 @@ export function AppProvider({ children }) {
   // ------------------------------------------------------------
   // (D) doMosaicCapture: hiddenVideo -> canvas -> blob -> /yolo_mosaic
   // ------------------------------------------------------------
-  async function doMosaicCapture() {
-    if (!hiddenVideoRef.current || !canvasRef.current) return;
-    if (!localStream) return;
-
-    const videoEl = hiddenVideoRef.current;
-    const canvas = canvasRef.current;
-
+  async function doAutoMosaicCapture() {
     isProcessingRef.current = true;
-
     try {
-      // 만약 videoWidth/videoHeight가 아직 0이면(실제 재생 전),
-      // 바로 해제 후 건너뜀 (안 그러면 계속 0x0 이미지를 보낼 수 있음)
+      const videoEl = hiddenVideoRef.current;
+      const canvas = canvasRef.current;
+
       if (videoEl.videoWidth < 1 || videoEl.videoHeight < 1) {
         isProcessingRef.current = false;
         return;
       }
 
-      // canvas 크기 동기화
       canvas.width = videoEl.videoWidth;
       canvas.height = videoEl.videoHeight;
-
-      // drawImage
       const ctx = canvas.getContext("2d");
       ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
 
@@ -120,69 +111,61 @@ export function AppProvider({ children }) {
           isProcessingRef.current = false;
           return;
         }
-
         try {
+          console.log("[callPeopleDetection] cctvId=", cctvId, typeof cctvId);
           const resultBlob = await callPeopleDetection(blob, cctvId);
           const url = URL.createObjectURL(resultBlob);
           setMosaicImageUrl(url);
         } catch (err) {
-          console.error("[AppContext] doMosaicCapture fetch error:", err);
+          console.error("[AppContext] mosaic capture error:", err);
         } finally {
           isProcessingRef.current = false;
         }
       }, "image/png");
     } catch (err) {
-      console.error("[AppContext] doMosaicCapture error:", err);
+      console.error("[AppContext] doAutoMosaicCapture error:", err);
+      isProcessingRef.current = false;
     }
   }
 
   // // ------------------------------------------------------------
   // // 2FPS 모자이크 (int cctvId)
   // // ------------------------------------------------------------
-  useEffect(() => {
-    if (!localStream) {
-      setMosaicImageUrl(null);
-      return;
-    }
-    const intervalId = setInterval(() => {
-      if (!localVideoRef.current) return;
-      if (isProcessingRef.current) return;
+  // useEffect(() => {
+  //   if (!localStream) {
+  //     setMosaicImageUrl(null);
+  //     return;
+  //   }
+  //   const intervalId = setInterval(() => {
+  //     if (!localVideoRef.current) return;
+  //     if (isProcessingRef.current) return;
 
-      isProcessingRef.current = true;
-      const ctx = canvasRef.current.getContext("2d");
-      ctx.drawImage(localVideoRef.current, 0, 0, canvasRef.current.width, canvasRef.current.height);
+  //     isProcessingRef.current = true;
+  //     const ctx = canvasRef.current.getContext("2d");
+  //     ctx.drawImage(localVideoRef.current, 0, 0, canvasRef.current.width, canvasRef.current.height);
 
-      canvasRef.current.toBlob(async (blob) => {
-        if (!blob) {
-          isProcessingRef.current = false;
-          return;
-        }
-        try {
-          const formData = new FormData();
-          formData.append("file", blob, "frame.png");
+  //     canvasRef.current.toBlob(async (blob) => {
+  //       if (!blob) {
+  //         isProcessingRef.current = false;
+  //         return;
+  //       }
+  //       try {
+  //         // (A) callPeopleDetection로 /yolo_mosaic 호출
+  //         const resultBlob = await callPeopleDetection(blob, cctvId);
 
-          // cctv_id를 int -> string
-          formData.append("cctv_id", cctvId.toString());
+  //         // (B) resultBlob -> ObjectURL
+  //         const imgUrl = URL.createObjectURL(resultBlob);
+  //         setMosaicImageUrl(imgUrl);
+  //       } catch (err) {
+  //         console.error("auto-mosaic error:", err);
+  //       } finally {
+  //         isProcessingRef.current = false;
+  //       }
+  //     }, "image/png");
+  //   }, 500);
 
-          const res = await fetch("/yolo_mosaic", {
-            method: "POST",
-            body: formData,
-          });
-          if (!res.ok) throw new Error(`/yolo_mosaic error: ${res.status}`);
-
-          const resultBlob = await res.blob();
-          const imgUrl = URL.createObjectURL(resultBlob);
-          setMosaicImageUrl(imgUrl);
-        } catch (err) {
-          console.error("auto-mosaic error:", err);
-        } finally {
-          isProcessingRef.current = false;
-        }
-      }, "image/png");
-    }, 500);
-
-    return () => clearInterval(intervalId);
-  }, [localStream, cctvId, setMosaicImageUrl, isProcessingRef]);
+  //   return () => clearInterval(intervalId);
+  // }, [localStream, cctvId, setMosaicImageUrl, isProcessingRef]);
 
   // ------------------------------------------------------------
   // (E) Context Provider
@@ -200,8 +183,8 @@ export function AppProvider({ children }) {
         setCctvId,
 
         // 필요 시 참조
-        canvasRef,
-        isProcessingRef,
+        // canvasRef,
+        // isProcessingRef,
       }}
     >
       {children}

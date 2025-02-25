@@ -1,6 +1,6 @@
 // client/src/utils/api.js
 import { apiRequest } from "../utils/apiWrapper";
-import { getAuthHeaders } from "../utils/auth";
+import { getAuthHeaders, getAuthHeadersWithoutContentType } from "../utils/auth";
 
 
 /**
@@ -24,7 +24,7 @@ export async function callPeopleDetection(fileBlob, cctvId) {
 
     const response = await fetch("https://msteam5iseeu.ddns.net/people-detection/yolo_mosaic", {
       method: "POST",
-      headers: getAuthHeaders(),  // 필요하면 인증 헤더
+      headers: getAuthHeadersWithoutContentType(),  // 필요하면 인증 헤더, 여기서 Content-Type이 들어가면 문제
       body: formData,
     });
 

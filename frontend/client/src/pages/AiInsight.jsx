@@ -12,9 +12,9 @@ dayjs.extend(timezone);
 import PrivacyOverlay from "./PrivacyOverlay";
 import ResponsiveNav from "../components/ResponsiveNav";
 
- 
 function AiInsight() {
-
+  // 프로필 상태 추가
+  const [profile, setProfile] = useState(null);
   const [privacyOpen, setPrivacyOpen] = useState(false);
   // (2) Nav에서 이 함수를 호출 -> 오버레이 열림
   const handleOpenPrivacy = () => setPrivacyOpen(true);
@@ -32,15 +32,9 @@ function AiInsight() {
   const [summaries, setSummaries] = useState([]);
   const [reportId, setReportId] = useState(null);
   const [cctvList, setCctvList] = useState([]);
- 
-  // 예시 CCTV 목록 (monitor.jsx 등에서 실제 등록 정보를 가져올 수도 있음)
-  // const cctvOptions = [
-  //   { id: 1, name: "정문 CCTV" },
-  //   { id: 2, name: "로비 CCTV" },
-  //   { id: 3, name: "주차장 CCTV" },
-  // ];
 
- 
+  // 하드코딩된 MEMBER_ID 제거
+
   // UTC 시간을 KST로 변환하는 함수
   const formatKST = (utcTime) => {
     return dayjs.utc(utcTime).tz("Asia/Seoul").format("YYYY-MM-DD HH:mm:ss");
@@ -49,7 +43,7 @@ function AiInsight() {
   const handleIsNewBusinessChange = (e) => {
     const value = e.target.value;
     setIsNewBusiness(value);
- 
+
     if (value === "아니오") {
       setBusinessType("예비창업자");
     } else {
@@ -57,33 +51,128 @@ function AiInsight() {
       setBusinessType("");
     }
   };
- 
- 
- 
- 
-  // // 보고서 가져오기
+
+  // 프로필과 보고서 정보 가져오기
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const token = localStorage.getItem('access_token');
+        if (!token) {
+          console.error('No access token found');
+          window.location.href = '/login';
+          return;
+        }
+
+        const response = await fetch('https://msteam5iseeu.ddns.net/api/members/me', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json'
+          }
+        });
+
+        if (response.status === 401) {
+          // 토큰이 만료된 경우 리프레시 토큰으로 새로운 액세스 토큰 발급
+          const refreshToken = localStorage.getItem('refresh_token'); // refreshToken -> refresh_token
+          if (refreshToken) {
+            const refreshResponse = await fetch('https://msteam5iseeu.ddns.net/api/refresh', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ refresh_token: refreshToken })
+            });
+
+            if (refreshResponse.ok) {
+              const { access_token } = await refreshResponse.json();
+              localStorage.setItem('access_token', access_token); // accessToken -> access_token
+              // 새 토큰으로 다시 프로필 요청
+              const retryResponse = await fetch('https://msteam5iseeu.ddns.net/api/members/me', {
+                headers: {
+                  'Authorization': `Bearer ${access_token}`,
+                  'Accept': 'application/json'
+                }
+              });
+              if (retryResponse.ok) {
+                const data = await retryResponse.json();
+                setProfile(data);
+                return;
+              }
+            }
+          }
+          // 리프레시 실패 시 로그인 페이지로 리다이렉트
+          window.location.href = '/login';
+          return;
+        }
+
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        const data = await response.json();
+        setProfile(data);
+
+        // 프로필 정보를 받아온 후 바로 보고서 정보도 가져오기
+        const result_report = await callRerportSummary(data.id);
+        const extractedSummaries = result_report.map(report => ({
+          id: report.id,
+          report_title: report.report_title || "제목 없음",
+          created_at: report.created_at,
+          keywords: report.summary?.keywords || [],
+          textSummary: report.summary?.summary || ""
+        }));
+        setSummaries(extractedSummaries);
+      } catch (err) {
+        console.error("Failed to get profile or reports:", err);
+        window.location.href = '/login';
+      }
+    };
+    fetchData();
+  }, []); // 컴포넌트 마운트 시 한 번만 실행
+
+  // CCTV 목록 가져오기 - profile.id 사용
+  useEffect(() => {
+    if (!profile) return; // profile 없으면 실행하지 않음
+
+    async function fetchUserCCTVs() {
+      try {
+        const res = await fetch(`https://msteam5iseeu.ddns.net/api/cctvs/${profile.id}`);
+        if (!res.ok) {
+          throw new Error(`CCTV List Fetch Error: ${res.status}`);
+        }
+        const data = await res.json();
+        setCctvList(data);
+        if (data.length > 0) {
+          setSelectedCCTV(data[0].id); // 첫 번째 CCTV 기본 선택
+        }
+      } catch (err) {
+        console.error(err);
+        setCctvList([]);
+      }
+    }
+    fetchUserCCTVs();
+  }, [profile]);
+
+  // 보고서 가져오기 - profile.id 사용
   const handleReport = async () => {
-    // const reportId = result.id;  
- 
+    if (!profile) return;
+
     try {
-      const result_report = await callRerportSummary(1); // memberid 넣어야됨됨
-      console.log("파일 가져오기:",result_report);
+      const result_report = await callRerportSummary(profile.id);
+      console.log("파일 가져오기:", result_report);
       const extractedSummaries = result_report.map(report => ({
         id: report.id,
         report_title: report.report_title || "제목 없음", // 제목이 없을 경우 기본값 설정
         created_at: report.created_at,
         keywords: report.summary?.keywords || [], // keywords가 없을 경우 빈 리스트 반환
         textSummary: report.summary?.summary || "" // summary가 없을 경우 빈 문자열 반환
-    }));
- 
-    console.log("추출된 Summary 데이터:", extractedSummaries);
- 
-    // 필요하면 상태로 저장
-    setSummaries(extractedSummaries);
+      }));
+
+      console.log("추출된 Summary 데이터:", extractedSummaries);
+
+      // 필요하면 상태로 저장
+      setSummaries(extractedSummaries);
     } catch (error) {
       console.error("Error", error);
     }
   };
+
   const isValidDateRange = () => {
     if (!startDate || !endDate) return false;
     const start = new Date(startDate);
@@ -91,13 +180,14 @@ function AiInsight() {
     const diffDays = (end - start) / (1000 * 60 * 60 * 24); // 일(day) 단위 차이 계산
     return diffDays >= 6;
   };
- 
-  // AI 보고서 생성 버튼
-  const handleGenerateReport = async() => {
-   
+
+  // AI 보고서 생성 버튼 - profile.id 사용
+  const handleGenerateReport = async () => {
+    if (!profile) return;
+
     const requestData = {
-      pdf_file : "report_generation.pdf",
-      member_id: 1,            // memberid => member_id로 변경
+      pdf_file: "report_generation.pdf",
+      member_id: profile.id,
       cctv_id: parseInt(selectedCCTV),
       report_title: reportTitle,
       persona: isNewBusiness === "네" ? businessType : "예비창업자",
@@ -116,10 +206,10 @@ function AiInsight() {
       await handleReport();
       const parsedResult = typeof result === "string" ? JSON.parse(result) : result; // 문자열이면 JSON으로 변환
       console.log("Parsed result:", parsedResult);
- 
+
       const id = parsedResult.id;
       setReportId(id);
-     
+
       alert("AI 보고서가 생성되었습니다");  // result.id == report.id
     } catch (error) {
       console.error("Error generating report:", error);
@@ -128,12 +218,11 @@ function AiInsight() {
       setIsLoading(false); // 로딩 해제
     }
   };
- 
- 
+
   // 보고서 다운로드 api
   const handleDownload = async (id) => {
     // const reportId = result.id;  // ⚡ 여기에 실제 report ID 넣기
- 
+
     try {
       await callReportDownload(id);
       console.log(`파일 다운로드 완료: ${id}`);
@@ -141,36 +230,19 @@ function AiInsight() {
       console.error("파일 다운로드 실패:", error);
     }
   };
- 
- 
- 
-  useEffect(() => {
-    handleReport();
-  }, []);
- 
-  const MEMBER_ID = 1; //여기도 강제로 집어넣은것 이 밑에 함수의 member_id도 수정필요
- 
-  //CCTV가져오는 함수
-  useEffect(() => {
-    async function fetchUserCCTVs() {
-      try {
-        const res = await fetch(`https://msteam5iseeu.ddns.net/api/cctvs/${MEMBER_ID}`);
-        if (!res.ok) {
-          throw new Error(`CCTV List Fetch Error: ${res.status}`);
-        }
-        const data = await res.json();
-        setCctvList(data);
-        if (data.length > 0) {
-          setSelectedCCTV(data[0].id); // 첫 번째 CCTV 기본 선택
-        }
-      } catch (err) {
-        console.error(err);
-        setCctvList([]);
-      }
-    }
-    fetchUserCCTVs(MEMBER_ID);
-  }, [MEMBER_ID]);
- 
+
+  // profile이 없을 때 보여줄 로딩 상태
+  if (!profile) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-gray-300 dark:border-gray-600 border-t-black dark:border-t-white rounded-full animate-spin mx-auto"></div>
+          <p className="mt-4 text-gray-600 dark:text-gray-300">사용자 정보를 불러오는 중...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-gray-50 dark:bg-gray-900 font-sans min-h-screen flex flex-col">
       {/* 상단 Nav */}

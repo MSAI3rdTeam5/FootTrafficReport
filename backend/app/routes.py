@@ -281,6 +281,20 @@ def delete_cctv(cctv_id: int, db: Session = Depends(get_db)):
     db.commit()
     return {"message": f"cctv {cctv_id} deleted"}
 
+@router.get("/cctvs/me", response_model=List[dict])
+def list_my_cctvs(current_user: Member = Depends(get_current_user), db: Session = Depends(get_db)):
+    """현재 로그인한 사용자의 CCTV 목록을 반환합니다."""
+    cctvs = db.query(CctvInfo).filter(CctvInfo.member_id == current_user.id).all()
+    return [
+        {
+            "id": c.id,
+            "member_id": c.member_id,
+            "cctv_name": c.cctv_name,
+            "api_url": c.api_url,
+            "location": c.location
+        } for c in cctvs
+    ]
+
 # -----------------------------------------------------------
 # 3) cctv_data 테이블 관련
 # -----------------------------------------------------------
@@ -605,3 +619,16 @@ def delete_report(report_id: int, db: Session = Depends(get_db)):
     db.delete(rp)
     db.commit()
     return {"message": f"report {report_id} deleted"}
+
+@router.get("/reports/me", response_model=List[dict])
+def get_my_reports(current_user: Member = Depends(get_current_user), db: Session = Depends(get_db)):
+    """현재 로그인한 사용자의 보고서 목록을 반환합니다."""
+    reports = db.query(Report).filter(Report.member_id == current_user.id).all()
+    return [
+        {
+            "id": r.id,
+            "report_title": r.report_title,
+            "summary": r.summary,
+            "created_at": r.created_at
+        } for r in reports
+    ]
