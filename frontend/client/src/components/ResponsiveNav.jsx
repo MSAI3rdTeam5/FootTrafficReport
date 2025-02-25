@@ -7,6 +7,7 @@ import { getMemberProfile } from "../utils/api";
 function ResponsiveNav({ onOpenPrivacy }) {
 
   const [profile, setProfile] = useState(null);
+  const [loadingProfile, setLoadingProfile] = useState(true);
 
   useEffect(() => {
     getMemberProfile()
@@ -15,8 +16,13 @@ function ResponsiveNav({ onOpenPrivacy }) {
       })
       .catch((err) => {
         console.error("Failed to get profile:", err);
+        // 프로필 없을 때 profile를 null로 남겨두면 => 로그인 안 된 상태
+      })
+      .finally(() => {
+        setLoadingProfile(false);
       });
   }, []);
+  // NAV 바에 if (!profile) return <div>Loading...</div> 있으면 안됌!!
   // {profile.id} or {profile.email} or {profile.name} or {profile.subscription_plan} => 로그인 사용자 정보 변수
   
   // (1) 모바일 메뉴 열림/닫힘 상태
@@ -87,22 +93,39 @@ function ResponsiveNav({ onOpenPrivacy }) {
             {isDarkMode ? "Light Mode" : "Dark Mode"}
           </button>
 
-          {/* 알림, 설정, 프로필 아이콘 (예시) */}
+          {/* 알림/설정 아이콘 */}
           <button className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 relative">
             <i className="fas fa-bell text-gray-600 dark:text-gray-200"></i>
           </button>
           <button className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
             <i className="fas fa-cog text-gray-600 dark:text-gray-200"></i>
           </button>
+
+          {/* (2) 프로필 영역 */}
           <div className="ml-2 flex items-center">
-            <img
-              className="h-8 w-8 rounded-full"
-              src="/기본프로필.png"
-              alt="사용자 프로필"
-            />
-            <span className="ml-2 text-sm font-medium text-gray-700 dark:text-gray-200">
-              김관리자
-            </span>
+            {/* 로딩 중 -> "로딩중..." 표시 */}
+            {loadingProfile ? (
+              <span className="text-sm text-gray-500 dark:text-gray-300">
+                로딩중...
+              </span>
+            ) : profile ? (
+              // 프로필 있으면
+              <>
+                <img
+                  className="h-8 w-8 rounded-full"
+                  src="/기본프로필.png"
+                  alt="사용자 프로필"
+                />
+                <span className="ml-2 text-sm font-medium text-gray-700 dark:text-gray-200">
+                  {profile.name}
+                </span>
+              </>
+            ) : (
+              // 프로필이 null => 미로그인 or 에러 => 로그인 링크
+              <Link to="/login" className="text-sm text-custom hover:underline">
+                로그인
+              </Link>
+            )}
           </div>
         </div>
 
@@ -117,7 +140,7 @@ function ResponsiveNav({ onOpenPrivacy }) {
           </button>
 
           <button
-            onClick={() => setMenuOpen(!menuOpen)}
+            onClick={() => setMenuOpen((prev) => !prev)}
             className="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
           >
             <i className="fas fa-bars text-gray-600 dark:text-gray-200"></i>
@@ -148,16 +171,28 @@ function ResponsiveNav({ onOpenPrivacy }) {
             <button className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
               <i className="fas fa-cog text-gray-600 dark:text-gray-200"></i>
             </button>
-            <div className="flex items-center">
-              <img
-                className="h-8 w-8 rounded-full"
-                src="/기본프로필.png"
-                alt="사용자 프로필"
-              />
-              <span className="ml-2 text-sm font-medium text-gray-700 dark:text-gray-200">
-                {profile.name}
+            
+            {/* 모바일 프로필 표시 */}
+            {loadingProfile ? (
+              <span className="text-sm text-gray-500 dark:text-gray-300">
+                로딩중...
               </span>
-            </div>
+            ) : profile ? (
+              <div className="flex items-center">
+                <img
+                  className="h-8 w-8 rounded-full"
+                  src="/기본프로필.png"
+                  alt="사용자 프로필"
+                />
+                <span className="ml-2 text-sm font-medium text-gray-700 dark:text-gray-200">
+                  {profile.name}
+                </span>
+              </div>
+            ) : (
+              <Link to="/login" className="text-sm text-custom hover:underline">
+                로그인
+              </Link>
+            )}
           </div>
         </div>
       )}

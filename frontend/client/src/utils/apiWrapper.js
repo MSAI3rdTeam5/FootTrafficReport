@@ -51,5 +51,6 @@ export async function apiRequest(url, options = {}) {
   }
   // 4) 정상 응답
   const data = await response.json();
+  console.log("profile data:", data);
   return data;
 }
