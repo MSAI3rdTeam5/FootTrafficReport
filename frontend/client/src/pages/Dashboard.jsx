@@ -50,9 +50,9 @@ function Dashboard() {
   const [selectedPeriod, setSelectedPeriod] = useState("오늘");
 
   // -----------------------------------------------
-  // 차트 모드 (시간대별/성별)
+  // 차트 모드 (시간대별/요일별/성별)
   // -----------------------------------------------
-  const chartModes = ["time", "gender"];
+  const chartModes = ["time", "weekday", "gender"];
   const [chartIndex, setChartIndex] = useState(0);
   const currentChart = chartModes[chartIndex];
 
@@ -273,15 +273,12 @@ function Dashboard() {
   // (E) 데이터 로드 + 차트 업데이트
   // -----------------------------------------------
   useEffect(() => {
-    if (selectedCCTV == null || !chartInstance) return; // 아직 CCTV 선택 안됨 or 차트 인스턴스 미생성
+    if (selectedCCTV == null || !chartInstance) return;
 
     const loadData = async () => {
-      
-      // 1) person_count/{selectedCCTV} 호출
       const data = await fetchPersonCounts(selectedCCTV);
-
-      // 2) 기간 필터
       let filtered = data;
+      
       if (selectedPeriod === "오늘") {
         filtered = filterTodayData(filtered);
       } else if (selectedPeriod === "어제") {
@@ -292,22 +289,21 @@ function Dashboard() {
         filtered = filterMonthData(filtered);
       }
 
-      // 3) 통계 계산
       const result = calculateStats(filtered);
       setStats(result);
 
-      // 차트 업데이트
       if (!chartInstance) return;
 
-      // 4) 차트 모드(시간대별, 성별)
+      // 차트 모드에 따라 적절한 차트 업데이트
       if (currentChart === "time") {
         updateLineChart(filtered);
+      } else if (currentChart === "weekday") {
+        updateWeekdayChart(filtered);
       } else {
         updatePieChart(filtered);
       }
     };
     loadData();
-    // dependencies
   }, [selectedCCTV, selectedPeriod, currentChart, chartInstance]);
 
   // ---------------------------------------------------
@@ -490,6 +486,115 @@ function Dashboard() {
     chartInstance.setOption(option);
   };
 
+  // -----------------------------------------------
+  // 요일별 차트 (수정)
+  // -----------------------------------------------
+  const updateWeekdayChart = (filteredData) => {
+    const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
+    const weekdayData = new Array(7).fill(0);
+    const weekdayTeenData = new Array(7).fill(0);
+    const weekdayAdultData = new Array(7).fill(0);
+    const weekdaySeniorData = new Array(7).fill(0);
+
+    // 데이터 그루핑 방식 수정
+    filteredData.forEach((row) => {
+      const date = new Date(row.timestamp);
+      const dayIndex = date.getDay();
+      
+      const minor = row.male_minor + row.female_minor;
+      const young = row.male_young_adult + row.female_young_adult;
+      const middle = row.male_middle_aged + row.female_middle_aged;
+      const total = minor + young + middle;
+
+      // 오늘/어제 데이터의 경우 해당 요일에만 값을 할당
+      if (selectedPeriod === "오늘" || selectedPeriod === "어제") {
+        weekdayData[dayIndex] = total;
+        weekdayTeenData[dayIndex] = minor;
+        weekdayAdultData[dayIndex] = young;
+        weekdaySeniorData[dayIndex] = middle;
+      } else {
+        // 1주일/1달 데이터는 기존처럼 누적
+        weekdayData[dayIndex] += total;
+        weekdayTeenData[dayIndex] += minor;
+        weekdayAdultData[dayIndex] += young;
+        weekdaySeniorData[dayIndex] += middle;
+      }
+    });
+
+    // 차트 옵션 설정
+    const option = {
+      tooltip: {
+        trigger: 'axis',
+        axisPointer: {
+          type: 'shadow'
+        }
+      },
+      legend: {
+        show: true,
+        orient: "horizontal",
+        top: 20,
+        left: "center",
+        data: ["총 방문자", "청소년층", "성인층", "노년층"],
+      },
+      grid: {
+        left: '3%',
+        right: '4%',
+        bottom: '3%',
+        containLabel: true
+      },
+      xAxis: [{
+        type: 'category',
+        data: weekdays,
+        axisTick: {
+          alignWithLabel: true
+        }
+      }],
+      yAxis: [{
+        type: 'value'
+      }],
+      series: [
+        {
+          name: '총 방문자',
+          type: 'bar',
+          data: weekdayData,
+          color: '#5470c6',
+          emphasis: {
+            focus: 'series'
+          }
+        },
+        {
+          name: '청소년층',
+          type: 'bar',
+          data: weekdayTeenData,
+          color: '#ee6666',
+          emphasis: {
+            focus: 'series'
+          }
+        },
+        {
+          name: '성인층',
+          type: 'bar',
+          data: weekdayAdultData,
+          color: '#73c0de',
+          emphasis: {
+            focus: 'series'
+          }
+        },
+        {
+          name: '노년층',
+          type: 'bar',
+          data: weekdaySeniorData,
+          color: '#3ba272',
+          emphasis: {
+            focus: 'series'
+          }
+        }
+      ]
+    };
+
+    chartInstance.setOption(option);
+  };
+
   // CCTV 드롭다운 상태
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -586,7 +691,7 @@ function Dashboard() {
       <ResponsiveNav onOpenPrivacy={handleOpenPrivacy} />
 
       {/* 메인 레이아웃 (화면 아래쪽) */}
-      <div className="flex bg-gray-50 dark:bg-gray-900 pt-16" style={{ minHeight: "calc(100vh - 4rem)" }}>
+      <div className="flex flex-col pt-16 bg-gray-50 dark:bg-gray-900" style={{ minHeight: "calc(100vh - 4rem)" }}>
         <main className="flex-1 overflow-y-auto">
           <div className="container mx-auto px-6 py-8">
             {/* 제목 */}
@@ -595,8 +700,8 @@ function Dashboard() {
             </h1>
 
             {/* 필터 섹션 - 수정된 부분 */}
-            <div className="flex items-center justify-between mb-8">
-              <div className="flex items-center space-x-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 gap-4">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                 {renderCCTVDropdown()}
                 {renderPeriodTabs()}
               </div>
@@ -690,6 +795,8 @@ function Dashboard() {
                   <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-200">
                     {currentChart === "time"
                       ? "시간대별 방문자 통계"
+                      : currentChart === "weekday"
+                      ? "요일별 방문자 통계"
                       : "성별 비율"}
                   </h2>
                   <div className="space-x-3">
@@ -711,8 +818,8 @@ function Dashboard() {
                 {/* Echarts 컨테이너 */}
                 <div
                   ref={chartRef}
-                  style={{ width: "100%", height: "360px" }}
-                  className="dark:bg-gray-800"
+                  style={{ height: "360px" }}
+                  className="w-full"
                 />
 
                 {/* 방문자=0 → 차트 덮는 오버레이 */}

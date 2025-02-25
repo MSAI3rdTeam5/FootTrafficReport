@@ -41,26 +41,30 @@ function NotificationPanel() {
     const [notifications, setNotifications] = useState([
         {
           id: 1,
-          text: "사용방법 숙지해주세요 ~ ",
+          text: "사용방법 숙지해주세요  ",
           createdAt: new Date().toISOString(),
           target: "/guide",
-          unread: true, // 처음엔 'unread = true'
+          unread: true, 
         },
         // 필요하다면 다른 알림도 추가
       ]);
     
     // 알림 항목 클릭 시
     const handleNotificationClick = (clickedNotification) => {
-        // 1) 페이지 이동
         if (clickedNotification.target) {
-        navigate(clickedNotification.target);
+            navigate(clickedNotification.target);
         }
 
-        // 2) 알림 상태 업데이트 (unread → false)
         setNotifications((prev) =>
-        prev.map((n) =>
-            n.id === clickedNotification.id ? { ...n, unread: false } : n
-        )
+            prev.map((n) =>
+                n.id === clickedNotification.id ? { ...n, unread: false } : n
+            )
+        );  
+    };
+
+    const handleMarkAllAsRead = () => {
+        setNotifications((prev) =>
+            prev.map((n) => ({ ...n, unread: false }))
         );
     };
 
@@ -68,7 +72,7 @@ function NotificationPanel() {
     <div className="fixed top-16 right-0 w-96 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
       <div className="p-4 border-b border-gray-200 flex justify-between items-center">
         <h3 className="text-lm font-medium">알림</h3>
-        <button className="text-xs text-gray-600 hover:text-custom !rounded-button">
+        <button className="text-xs text-gray-600 hover:text-custom !rounded-button" onClick={handleMarkAllAsRead}>
           전체 읽음 표시
         </button>
       </div>

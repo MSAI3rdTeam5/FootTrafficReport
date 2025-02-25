@@ -7,8 +7,6 @@ import ResponsiveNav from "../components/ResponsiveNav";
 import { AppContext } from "../context/AppContext";
 
 function Monitor() {
-  const navigate = useNavigate();
-
   // ------------------------------------------------------------
   // (1) Context에서 가져오기
   // ------------------------------------------------------------
@@ -20,10 +18,6 @@ function Monitor() {
 
 
   // === 로컬 state ===
-  const [qrVisible, setQrVisible] = useState(false);
-  const openQRModal = () => setQrVisible(true);
-  const closeQRModal = () => setQrVisible(false);
-
   const [deviceModalOpen, setDeviceModalOpen] = useState(false);
   const [deviceType, setDeviceType] = useState(null);
   const [deviceName, setDeviceName] = useState("");
@@ -40,13 +34,6 @@ function Monitor() {
   const [webcamModalOpen, setWebcamModalOpen] = useState(false);
   const [videoDevices, setVideoDevices] = useState([]);
   const [selectedDeviceId, setSelectedDeviceId] = useState("");
-
-  // remoteStream (옵션)
-  const [remoteStream, setRemoteStream] = useState(null);
-
-  // 비디오 태그 레퍼런스
-  const localVideoRef = useRef(null);
-  const remoteVideoRef = useRef(null);
 
   // 로그인한 사용자 정보
   const [currentUser, setCurrentUser] = useState(null);
@@ -227,9 +214,12 @@ function Monitor() {
 
   return (
     <div className="bg-gray-50 dark:bg-gray-900 min-h-screen flex flex-col">
+      {/* 네비게이션 */}
       <ResponsiveNav onOpenPrivacy={handleOpenPrivacy} />
 
+      {/* 메인 컨텐츠 */}
       <div className="flex-1 pt-20 max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* 헤더 */}
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
             CCTV 모니터링
@@ -248,11 +238,10 @@ function Monitor() {
         <div className="mb-4 text-gray-600 dark:text-gray-400">
           <span className="font-medium">환영합니다 관리자님!</span>
         </div>
-
         {/* 장치 연결 버튼들 */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
           <div
-            className="bg-white dark:bg-gray-800 dark:text-gray-200 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col items-center justify-center min-h-[200px] cursor-pointer hover:border-custom"
+            className="bg-white dark:bg-gray-800 dark:text-gray-200 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col items-center justify-center min-h-[160px] cursor-pointer hover:border-custom transition"
             onClick={() => {
               setDeviceType("CCTV");
               setDeviceModalOpen(true);
@@ -262,74 +251,13 @@ function Monitor() {
             <span className="text-gray-700 dark:text-gray-300">CCTV 연결</span>
           </div>
           <div
-            className="bg-white dark:bg-gray-800 dark:text-gray-200 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col items-center justify-center min-h-[200px] cursor-pointer hover:border-custom"
+            className="bg-white dark:bg-gray-800 dark:text-gray-200 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col items-center justify-center min-h-[160px] cursor-pointer hover:border-custom transition"
             onClick={handleOpenWebcamSelect}
           >
             <i className="fas fa-video-plus text-4xl text-custom mb-4"></i>
             <span className="text-gray-700 dark:text-gray-300">웹캠 연결</span>
           </div>
-          <div
-            className="bg-white dark:bg-gray-800 dark:text-gray-200 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col items-center justify-center min-h-[200px] cursor-pointer hover:border-custom"
-            onClick={openQRModal}
-          >
-            <i className="fas fa-mobile-alt text-4xl text-custom mb-4"></i>
-            <span className="text-gray-700 dark:text-gray-300">스마트폰 연결</span>
-          </div>
-          <div
-            className="bg-white dark:bg-gray-800 dark:text-gray-200 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col items-center justify-center min-h-[200px] cursor-pointer hover:border-custom"
-            onClick={() => {
-              setDeviceType("Blackbox");
-              setDeviceModalOpen(true);
-            }}
-          >
-            <i className="fas fa-car text-4xl text-custom mb-4"></i>
-            <span className="text-gray-700 dark:text-gray-300">블랙박스 연결</span>
-          </div>
         </div>
-
-        {/* (2) 원본 미리보기 (WebRTC) */}
-        {/* {(localStream || remoteStream) && (
-          <div className="bg-white dark:bg-gray-800 dark:text-gray-200 p-4 rounded-lg border border-gray-200 dark:border-gray-700 mb-6">
-            <h2 className="text-lg font-semibold mb-2 text-gray-900 dark:text-gray-100">
-              웹캠 실시간 미리보기 (원본)
-            </h2>
-            <div className="flex space-x-4">
-              <video
-                ref={localVideoRef}
-                autoPlay
-                playsInline
-                muted
-                style={{ width: "320px", background: "#000" }}
-              />
-              <video
-                ref={remoteVideoRef}
-                autoPlay
-                playsInline
-                style={{ width: "320px", background: "#333" }}
-              />
-            </div>
-            <button
-              onClick={handleWebcamDisconnect}
-              className="mt-4 px-4 py-2 bg-red-500 text-white rounded"
-            >
-              웹캠 연결 종료
-            </button> */}
-
-            {/* 모자이크 결과 (2FPS) */}
-            {/* {mosaicImageUrl && (
-              <div className="mt-6">
-                <h3 className="font-semibold mb-2 text-gray-900 dark:text-gray-100">
-                  모자이크 결과 (2FPS)
-                </h3>
-                <img
-                  src={mosaicImageUrl}
-                  alt="모자이크 결과"
-                  style={{ width: "320px", border: "1px solid #ccc" }}
-                />
-              </div>
-            )}
-          </div>
-        )} */}
 
         {/* Canvas for mosaic (숨김) */}
         <canvas ref={canvasRef} width={640} height={480} style={{ display: "none" }} />
@@ -344,31 +272,11 @@ function Monitor() {
       {/* 푸터 영역 */}
       <footer className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
         <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="text-center text-sm text-gray-500 dark:text-gray-400">
+          <div className="text-center text-base text-gray-500 dark:text-gray-400">
             © 2025 I See U. All rights reserved.
           </div>
         </div>
       </footer>
-
-      {/* QR 모달 */}
-      {qrVisible && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="bg-white dark:bg-gray-800 dark:text-gray-200 p-6 rounded border border-gray-200 dark:border-gray-700">
-            <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-gray-100">
-              스마트폰 연결
-            </h3>
-            <p className="text-gray-600 dark:text-gray-300 mb-4">
-              이 QR 코드를 스캔하세요.
-            </p>
-            <button
-              onClick={closeQRModal}
-              className="px-4 py-2 bg-black text-white rounded"
-            >
-              닫기
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* 장치등록 모달 */}
       {deviceModalOpen && (
@@ -390,7 +298,7 @@ function Monitor() {
               }}
             >
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label className="block text-base font-medium text-gray-700 dark:text-gray-300">
                   장치 이름
                 </label>
                 <input
@@ -402,7 +310,7 @@ function Monitor() {
                 />
               </div>
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label className="block text-base font-medium text-gray-700 dark:text-gray-300">
                   IP
                 </label>
                 <input
@@ -414,7 +322,7 @@ function Monitor() {
                 />
               </div>
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label className="block text-base font-medium text-gray-700 dark:text-gray-300">
                   Port
                 </label>
                 <input
@@ -462,11 +370,11 @@ function Monitor() {
               <p className="text-red-500">사용 가능한 카메라가 없습니다.</p>
             ) : (
               <>
-                <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+                <p className="text-base text-gray-600 dark:text-gray-300 mb-4">
                   사용할 카메라 장치를 선택하세요
                 </p>
                 <select
-                  className="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 rounded-md px-3 py-2 text-sm mb-4"
+                  className="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 rounded-md px-3 py-2 text-base mb-4"
                   value={selectedDeviceId}
                   onChange={(e) => setSelectedDeviceId(e.target.value)}
                 >
@@ -479,13 +387,13 @@ function Monitor() {
                 <div className="flex justify-end space-x-2">
                   <button
                     onClick={() => setWebcamModalOpen(false)}
-                    className="rounded-button border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600"
+                    className="rounded-button border border-gray-300 dark:border-gray-600 px-4 py-2 text-base text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600"
                   >
                     취소
                   </button>
                   <button
                     onClick={handleConfirmWebcamSelection}
-                    className="rounded-button bg-black text-white px-4 py-2 text-sm hover:bg-black/90"
+                    className="rounded-button bg-black text-white px-4 py-2 text-base hover:bg-black/90"
                   >
                     확인
                   </button>
@@ -512,7 +420,7 @@ function Monitor() {
               <p className="text-gray-600 dark:text-gray-400 mb-2">
                 "{deletingCamera?.name}" 카메라를 정말 삭제하시겠습니까?
               </p>
-              <p className="text-red-500 text-sm">
+              <p className="text-red-500 text-base">
                 삭제된 데이터는 다시 복원할 수 없습니다.
               </p>
             </div>
@@ -566,9 +474,12 @@ function ConnectedDevices({ cameraList, onDeleteClick }) {
         console.error("카메라 연결 실패:", err);
         alert("카메라 연결에 실패했습니다.");
       }
-    }
+    } 
+    // } else if (camera.type === "cctv") {
+    //   connectIpCamera(camera);
+    // }
   };
-
+  
   const handleDeleteClick = (e, camera) => {
     e.stopPropagation(); // 카메라 클릭 이벤트 전파 방지
     onDeleteClick(camera);  // 부모의 핸들러 호출

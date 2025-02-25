@@ -28,6 +28,9 @@ function CCTVMonitoring() {
       cctvId
   } = useContext(AppContext);
 
+  // 압영상 데이터 관련
+  const [camData, setCamData] = useState(null);
+
   // SFU 관련
   const socketRef = useRef(null);
   const deviceRef = useRef(null);
@@ -145,11 +148,12 @@ function CCTVMonitoring() {
   // ------------------------------------------------------------
   useEffect(() => {
     if (activeTab === "realtime" && cctvVideoRef.current) {
+      cctvVideoRef.current.srcObject = localStream;
       cctvVideoRef.current
         .play()
         .catch((err) => console.warn("re-play error:", err));
     }
-  }, [activeTab]);
+  }, [activeTab, localStream]);
 
   // ------------------------------------------------------------
   // SFU 연결
@@ -280,13 +284,6 @@ function CCTVMonitoring() {
     );
   }, []);
 
-  // ------------------------------------------------------------
-  // (F) 로그 새로고침
-  // ------------------------------------------------------------
-  const handleRefresh = useCallback(() => {
-    setLogs([]);
-    fetchLogs();
-  }, [fetchLogs]);
 
   // ------------------------------------------------------------
   // (G) 녹화 로직
@@ -297,50 +294,62 @@ function CCTVMonitoring() {
     setIsRecording(!isRecording);
   };
 
+  // (A) "원본 영상"을 직접 captureStream()
   const startRecording = () => {
-    const video = cctvVideoRef.current;
-    if (!video) return;
+    const videoElem = cctvVideoRef.current;
+    if (!videoElem) return;
 
-    // <canvas> 캡처
-    const canvas = document.createElement("canvas");
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    const ctx = canvas.getContext("2d");
+    // videoElem이 재생 중인지( videoWidth>0 ) 확인
+    // 만약 아직 0x0 이면, loadedmetadata 이벤트 후 시도.
+    if (videoElem.videoWidth < 1 || videoElem.videoHeight < 1) {
+      console.warn("Video not ready for captureStream");
+      return;
+    }
 
-    const drawFrame = () => {
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      requestAnimationFrame(drawFrame);
-    };
-    drawFrame();
+    // 1) captureStream(30) => 초당 30fps 캡처(선택적)
+    const stream = videoElem.captureStream(30);    
 
-    const stream = canvas.captureStream();
+    // 2) MediaRecorder
     const recorder = new MediaRecorder(stream, {
       mimeType: "video/webm;codecs=vp9,opus",
     });
-    setMediaRecorder(recorder);
 
-    recorder.ondataavailable = (e) => {
-      if (e.data && e.data.size > 0) {
-        setRecordedChunks((prev) => [...prev, e.data]);
+    // 녹화조각 수집
+    const chunks = [];
+    recorder.ondataavailable = (evt) => {
+      if (evt.data && evt.data.size > 0) {
+        chunks.push(evt.data);
       }
     };
+
+    // 녹화 끝났을 때 => Blob 다운로드
+    recorder.onstop = () => {
+      const blob = new Blob(chunks, { type: "video/webm" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.style.display = "none";
+      a.href = url;
+      a.download = "recording.webm";
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      // reset or keep chunks if needed
+    };
+
+    // 상태 업데이트
+    setRecordedChunks(chunks);
+    setMediaRecorder(recorder);
+
+    // 3) start
     recorder.start();
+    console.log("Recording started");
   };
 
+  // (B) 녹화 중지
   const stopRecording = () => {
     if (!mediaRecorder) return;
     mediaRecorder.stop();
-    setTimeout(() => {
-      const blob = new Blob(recordedChunks, { type: "video/webm" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      document.body.appendChild(a);
-      a.style = "display: none";
-      a.href = url;
-      a.download = "recording.webm";
-      a.click();
-      window.URL.revokeObjectURL(url);
-    }, 100);
+    console.log("Recording stopped");
   };
 
   // ------------------------------------------------------------
@@ -390,19 +399,19 @@ function CCTVMonitoring() {
   // ------------------------------------------------------------
   // (I) 카메라 전환 (예시)
   // ------------------------------------------------------------
-  const switchDeviceFn = (direction) => {
-    let newIndex;
-    if (direction === "next") {
-      newIndex = (currentDeviceIndex + 1) % devices.length;
-    } else {
-      newIndex = (currentDeviceIndex - 1 + devices.length) % devices.length;
-    }
-    setCurrentDeviceIndex(newIndex);
+  // const switchDeviceFn = (direction) => {
+  //   let newIndex;
+  //   if (direction === "next") {
+  //     newIndex = (currentDeviceIndex + 1) % devices.length;
+  //   } else {
+  //     newIndex = (currentDeviceIndex - 1 + devices.length) % devices.length;
+  //   }
+  //   setCurrentDeviceIndex(newIndex);
 
-    if (onSwitchDevice) {
-      onSwitchDevice(newIndex);
-    }
-  };
+  //   if (onSwitchDevice) {
+  //     onSwitchDevice(newIndex);
+  //   }
+  // };
 
     // // ------------------------------------------------------------
   // // 웹캠 연결 해제
@@ -435,180 +444,187 @@ function CCTVMonitoring() {
 
 
   return (
-    <div className="fixed inset-0 flex bg-gray-100 dark:bg-gray-900 font-sans">
-      {/* 왼쪽 (영상 + 탭) */}
-      <div className="flex-1 p-6 flex flex-col">
-        {/* 상단 헤더 */}
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center space-x-4">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
-              CCTV {cctvId}
-            </h2>
-            <span className="bg-green-500 px-2 py-1 rounded-full text-white text-sm">
-              라이브
-            </span>
-          </div>
-          <div className="flex items-center space-x-4 text-gray-800 dark:text-gray-200">
-            <span className="text-lg">{currentTime}</span>
+    // 최상위: 반응형 레이아웃
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex flex-col">
+      {/* 상단 헤더 or NavBar가 따로 있다면 제거/조정 */}
+      <header className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+        <div className="flex items-center space-x-4">
+          <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+            CCTV {cctvId}
+          </h2>
+          <span className="bg-green-500 px-2 py-1 rounded-full text-white text-sm">
+            라이브
+          </span>
+        </div>
+        <div className="flex items-center space-x-4 text-gray-800 dark:text-gray-200">
+          <span className="text-md">{currentTime}</span>
+          <button
+            onClick={handleWebcamDisconnect}
+            className="rounded bg-black text-white px-4 py-2"
+          >
+            <i className="fas fa-times mr-2"></i>닫기
+          </button>
+        </div>
+      </header>
+
+      {/* 메인: md 이상에서 (왼쪽 영상 + 오른쪽 로그), 모바일에서는 수직 스택 */}
+      <div className="flex-1 flex flex-col md:flex-row">
+        {/* 왼쪽: 영상 영역 */}
+        <div className="flex-1 p-4 flex flex-col">
+          {/* 탭 버튼 */}
+          <div className="flex space-x-2 mb-4">
             <button
-              onClick={handleWebcamDisconnect}
-              className="rounded bg-custom text-white px-4 py-2"
+              onClick={() => setActiveTab("realtime")}
+              className={`px-4 py-2 rounded ${
+                activeTab === "realtime"
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-300 dark:bg-gray-700 text-black dark:text-gray-200"
+              }`}
             >
-              <i className="fas fa-times mr-2"></i>닫기
+              원본 영상
+            </button>
+            <button
+              onClick={() => setActiveTab("mosaic")}
+              className={`px-4 py-2 rounded ${
+                activeTab === "mosaic"
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-300 dark:bg-gray-700 text-black dark:text-gray-200"
+              }`}
+            >
+              모자이크 영상
             </button>
           </div>
-        </div>
 
-        {/* 탭 버튼 */}
-        <div className="flex space-x-2 mb-4">
-          <button
-            onClick={() => setActiveTab("realtime")}
-            className={`px-4 py-2 rounded ${
-              activeTab === "realtime"
-                ? "bg-blue-600 text-white"
-                : "bg-gray-300 dark:bg-gray-700 text-black dark:text-gray-200"
-            }`}
-          >
-            원본 영상
-          </button>
-          <button
-            onClick={() => setActiveTab("mosaic")}
-            className={`px-4 py-2 rounded ${
-              activeTab === "mosaic"
-                ? "bg-blue-600 text-white"
-                : "bg-gray-300 dark:bg-gray-700 text-black dark:text-gray-200"
-            }`}
-          >
-            모자이크 영상
-          </button>
-        </div>
-
-        {/* 영상 영역 */}
-        <div className="flex-1 bg-black rounded-lg overflow-hidden relative">
-          {activeTab === "realtime" && (
-            <>
-              <video
-                ref={cctvVideoRef}
-                autoPlay
-                playsInline
-                muted
-                className="w-full h-full object-contain bg-black"
-              />
-              {/* 녹화/스냅샷 오버레이 */}
-              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4 flex justify-between items-center text-white">
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={handleRecordToggle}
-                    className={`px-4 py-2 rounded ${
-                      isRecording ? "bg-blue-600" : "bg-red-600"
-                    } hover:bg-opacity-80 transition`}
-                  >
-                    <i
-                      className={`fas ${
-                        isRecording ? "fa-stop" : "fa-circle"
-                      } mr-2`}
-                    ></i>
-                    {isRecording ? "녹화 끝" : "녹화 시작"}
-                  </button>
-                  <button
-                    onClick={takeSnapshot}
-                    className="px-4 py-2 rounded bg-green-600 hover:bg-green-700 transition"
-                  >
-                    <i className="fas fa-camera mr-2"></i>스냅샷
-                  </button>
-                </div>
-                <div className="flex items-center">
-                  <select className="rounded bg-gray-700 text-sm px-3 py-1 border-none">
-                    <option>HD (720p)</option>
-                    <option>FHD (1080p)</option>
-                    <option>4K (2160p)</option>
-                  </select>
-                </div>
-              </div>
-            </>
-          )}
-
-          {activeTab === "mosaic" && (
-            <div className="w-full h-full flex items-center justify-center bg-black">
-              {mosaicImageUrl ? (
-                <img
-                  src={mosaicImageUrl}
-                  alt="모자이크 화면"
-                  className="max-w-full max-h-full object-contain"
+          {/* 영상 컨테이너 */}
+          <div className="flex-1 bg-black rounded-lg overflow-hidden relative">
+            {/* 원본 탭 */}
+            {activeTab === "realtime" && (
+              <>
+                <video
+                  ref={cctvVideoRef}
+                  autoPlay
+                  playsInline
+                  muted
+                  // 자식 내부에서는 오버레이
+                  className="w-full h-full object-contain bg-black"
                 />
-              ) : (
-                <p className="text-gray-300">모자이크 영상이 없습니다.</p>
-              )}
-            </div>
-          )}
-        </div>
+                {/* 녹화/스냅샷 오버레이 */}
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4 flex justify-between items-center text-white">
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={handleRecordToggle}
+                      className={`px-4 py-2 rounded ${
+                        isRecording ? "bg-blue-600" : "bg-red-600"
+                      } hover:bg-opacity-80 transition`}
+                    >
+                      <i
+                        className={`fas ${
+                          isRecording ? "fa-stop" : "fa-circle"
+                        } mr-2`}
+                      ></i>
+                      {isRecording ? "녹화 끝" : "녹화 시작"}
+                    </button>
+                    <button
+                      onClick={takeSnapshot}
+                      className="px-4 py-2 rounded bg-green-600 hover:bg-green-700 transition"
+                    >
+                      <i className="fas fa-camera mr-2"></i>스냅샷
+                    </button>
+                  </div>
+                  <div className="flex items-center">
+                    <select className="rounded bg-gray-700 text-sm px-3 py-1 border-none">
+                      <option>HD (720p)</option>
+                      <option>FHD (1080p)</option>
+                      <option>4K (2160p)</option>
+                    </select>
+                  </div>
+                </div>
+              </>
+            )}
 
-        {/* 하단 버튼 (이전/다음 카메라 등) */}
-        <div className="flex items-center justify-end mt-4 space-x-2">
-          <button className="rounded bg-gray-600 hover:bg-gray-700 text-white px-4 py-2">
-            이전 카메라
-          </button>
-          <button className="rounded bg-gray-600 hover:bg-gray-700 text-white px-4 py-2">
-            다음 카메라
-          </button>
-        </div>
-      </div>
-
-      {/* 오른쪽 로그 패널 */}
-      <div className="w-96 bg-white dark:bg-gray-800 dark:text-gray-200 p-6 shadow-lg border-l border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">
-            실시간 로그
-          </h3>
-          <div className="flex items-center space-x-2">
-            <select className="rounded bg-gray-100 dark:bg-gray-700 dark:text-gray-200 px-3 py-1 text-sm border-none">
-              <option>모든 이벤트</option>
-              <option>움직임 감지</option>
-              <option>알림</option>
-            </select>
-            <button
-              className="rounded bg-black text-white px-3 py-1 text-sm"
-              onClick={() => {
-                setLogs([]);
-                fetchLogs();
-              }}
-            >
-              <i className="fas fa-sync-alt"></i>
-            </button>
-          </div>
-        </div>
-
-        <div className="flex-1 overflow-y-auto space-y-3">
-          {logs.map((log) => (
-            <div
-              key={log.id}
-              className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg"
-            >
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-500 dark:text-gray-300">
-                  {new Date(log.detected_time).toLocaleTimeString("ko-KR", {
-                    hour12: true,
-                  })}
-                </span>
-                <span className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-100 text-xs px-2 py-1 rounded-full">
-                  감지
-                </span>
+            {/* 모자이크 탭 */}
+            {activeTab === "mosaic" && (
+              <div className="w-full h-full flex items-center justify-center bg-black">
+                {mosaicImageUrl ? (
+                  <img
+                    src={mosaicImageUrl}
+                    alt="모자이크 화면"
+                    className="w-full h-full object-contain"
+                  />
+                ) : (
+                  <p className="text-gray-300">모자이크 영상이 없습니다.</p>
+                )}
               </div>
-              <p className="mt-1 text-sm text-gray-700 dark:text-gray-200">
-                {log.person_label
-                  ? getLogMessage(log)
-                  : "Unknown event"}
-              </p>
-              {log.image_url && (
-                <button
-                  onClick={() => handleImageClick(log.image_url)}
-                  className="mt-2 text-blue-600 dark:text-blue-300 hover:underline"
-                >
-                  감지된 이미지 보기
-                </button>
-              )}
+            )}
+          </div>
+
+          {/* (하단) 이전/다음 카메라 버튼 */}
+          {/* <div className="mt-4 flex justify-end space-x-2">
+            <button className="rounded bg-gray-600 hover:bg-gray-700 text-white px-4 py-2">
+              이전 카메라
+            </button>
+            <button className="rounded bg-gray-600 hover:bg-gray-700 text-white px-4 py-2">
+              다음 카메라
+            </button>
+          </div> */}
+        </div>
+
+        {/* 오른쪽: 로그 패널 (md:w-96 => 데스크톱에서 폭 24rem, 모바일에서 w-full) */}
+        <div className="w-full md:w-96 bg-white dark:bg-gray-800 dark:text-gray-200 p-6 shadow-lg border-t md:border-t-0 md:border-l border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+              실시간 로그
+            </h3>
+            <div className="flex items-center space-x-2">
+              <select className="rounded bg-gray-100 dark:bg-gray-700 dark:text-gray-200 px-3 py-1 text-sm border-none">
+                <option>모든 이벤트</option>
+                <option>움직임 감지</option>
+                <option>알림</option>
+              </select>
+              <button
+                className="rounded bg-black text-white px-3 py-1 text-sm"
+                onClick={() => {
+                  setLogs([]);
+                  // fetchLogs();
+                }}
+              >
+                <i className="fas fa-sync-alt"></i>
+              </button>
             </div>
-          ))}
+          </div>
+
+          <div className="flex-1 overflow-y-auto space-y-3">
+            {logs.map((log) => (
+              <div
+                key={log.id}
+                className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-500 dark:text-gray-300">
+                    {new Date(log.detected_time).toLocaleTimeString("ko-KR", {
+                      hour12: true,
+                    })}
+                  </span>
+                  <span className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-100 text-xs px-2 py-1 rounded-full">
+                    감지
+                  </span>
+                </div>
+                <p className="mt-1 text-sm text-gray-700 dark:text-gray-200">
+                  {log.person_label
+                    ? getLogMessage(log)
+                    : "Unknown event"}
+                </p>
+                {log.image_url && (
+                  <button
+                    onClick={() => handleImageClick(log.image_url)}
+                    className="mt-2 text-blue-600 dark:text-blue-300 hover:underline"
+                  >
+                    감지된 이미지 보기
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 

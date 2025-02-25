@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, Form, status, Body
+from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, Form, status, Body, File
 from sqlalchemy.orm import Session
 from typing import Optional, List
 from datetime import datetime
@@ -10,7 +10,7 @@ from .models import (
     PersonCount, Auth, Withdrawal, Report
 )
 from pydantic import BaseModel
-from .azure_blob import upload_image_to_azure
+from .azure_blob import upload_image_to_azure, upload_video_to_azure
 from .hashing import get_password_hash, verify_password # 해싱 함수
 from .jwt_utils import create_jwt_token # 토큰 발급 함수
 import os
@@ -231,13 +231,54 @@ def create_cctv(data: CctvInfoCreate, db: Session = Depends(get_db)):
     new_cctv = CctvInfo(
         member_id=data.member_id,
         cctv_name=data.cctv_name,
-        api_url=data.api_url,  # 추가
         location=data.location,
+        api_url=data.api_url,  # 추가
     )
     db.add(new_cctv)
     db.commit()
     db.refresh(new_cctv)
     return {"message": "cctv created", "id": new_cctv.id}
+
+
+@router.post("/cctvs/upload_video")
+async def upload_video(
+    member_id: int = Form(...),
+    cctv_name: str = Form(...),
+    video_file: UploadFile = File(...),
+    db: Session = Depends(get_db)
+):
+    """
+    1) 영상 파일(UploadFile) -> Azure Blob Storage
+    2) DB에는 api_url=blobUrl
+    3) CCTVInfo(또는 cctv_info) 테이블에 row insert
+    returns: JSON => { id, cctv_name, type='video', api_url=... }
+    """
+
+    # 1) 파일 바이트 읽기
+    file_bytes = await video_file.read()
+    # 2) Azure 업로드 -> blob url
+    video_url = upload_video_to_azure(file_bytes, member_id)  # or cctv_id
+
+    # 3) DB 저장 => cctv_info 테이블
+    #   - (type='video') 라고 명시. 
+    #   - cctv_id 대신, "member_id"는 누가 올렸는지, PK는 새로.
+    new_cctv = CctvInfo(
+        member_id=member_id,
+        cctv_name=cctv_name,
+        type="video",
+        api_url=video_url,   # blob + SAS 
+        # plus other fields: created_at=...
+    )
+    db.add(new_cctv)
+    db.commit()
+    db.refresh(new_cctv)
+
+    return {
+        "id": new_cctv.id,
+        "cctv_name": new_cctv.cctv_name,
+        "type": new_cctv.type,
+        "api_url": new_cctv.api_url
+    }
 
 @router.get("/cctvs/{member_id}", response_model=List[dict])
 def list_cctvs(member_id: int,db: Session = Depends(get_db)):

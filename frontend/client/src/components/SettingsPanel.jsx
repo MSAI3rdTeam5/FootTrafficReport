@@ -13,7 +13,7 @@ function SettingsPanel({ profile }) {
   return (
     <div className="fixed top-16 right-0 w-96 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 z-50">
       <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-        <h3 className="text-lg font-medium text-gray-900 dark:text-white">설정</h3>
+        <h3 className="text-lm font-medium text-gray-900 dark:text-white">설정</h3>
       </div>
 
       <div className="p-4">
