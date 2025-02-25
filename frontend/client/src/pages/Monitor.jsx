@@ -1,8 +1,10 @@
 // /home/azureuser/FootTrafficReport/frontend/client/src/pages/Monitor.jsx
 
 import React, { useState, useEffect, useRef, useContext } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import PrivacyOverlay from "./PrivacyOverlay";
+import ResponsiveNav from "../components/ResponsiveNav";
+import { getMemberProfile } from "../utils/api";
 
 // Socket.io + mediasoup-client
 import { io } from "socket.io-client";
@@ -12,16 +14,7 @@ import { Device } from "mediasoup-client";
 import { AppContext } from "../context/AppContext";
 
 function Monitor() {
-  const location = useLocation();
   const navigate = useNavigate();
-
-  // ------------------------------------------------------------
-  // 탭 활성 로직 (location.pathname 비교)
-  // ------------------------------------------------------------
-  const isMonitorActive = location.pathname === "/monitor";
-  const isDashboardActive = location.pathname === "/dashboard";
-  const isAiInsightActive = location.pathname === "/ai-insight";
-  const isGuideActive = location.pathname === "/guide";
 
   // ------------------------------------------------------------
   // (NEW) Context에서 가져오기
@@ -51,10 +44,11 @@ function Monitor() {
   const [devicePort, setDevicePort] = useState("");
 
   const [privacyOpen, setPrivacyOpen] = useState(false);
-  const openPrivacy = () => setPrivacyOpen(true);
-  const closePrivacy = () => setPrivacyOpen(false);
+    // (2) Nav에서 이 함수를 호출 -> 오버레이 열림
+  const handleOpenPrivacy = () => setPrivacyOpen(true);
+    // (3) 오버레이 닫기
+  const handleClosePrivacy = () => setPrivacyOpen(false);
 
-  const [displayName, setDisplayName] = useState("김관리자");
   const [cameraList, setCameraList] = useState([]);
 
   // SFU 관련
@@ -70,14 +64,25 @@ function Monitor() {
   // ------------------------------------------------------------
   // 로그인된 유저 표시
   // ------------------------------------------------------------
-  useEffect(() => {
-    fetch("/api/user", { credentials: "include" })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (data && data.displayName) setDisplayName(data.displayName);
-      })
-      .catch((err) => console.error(err));
-  }, []);
+//   const [profile, setProfile] = useState(null);
+//   const [loading, setLoading] = useState(true);
+
+//  useEffect(() => {
+//     getMemberProfile()
+//       .then((data) => {
+//         setProfile(data);
+//       })
+//       .catch((err) => {
+//         console.error("Failed to get profile:", err);
+//         setProfile(null); // 또는 그대로 null
+//       })
+//       .finally(() => {
+//         setLoading(false);
+//       });
+//   }, []);
+
+//   if (!profile) return <div>Loading...</div>;
+  // {profile.id} or {profile.email} or {profile.name} or {profile.subscription_plan} => 로그인 사용자 정보 변수
 
   // ------------------------------------------------------------
   // "웹캠 연결" 버튼 => 웹캠 목록 모달 열기
@@ -327,111 +332,11 @@ function Monitor() {
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans">
-      <nav className="bg-white shadow">
-        <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16 items-center">
-            {/* 왼쪽 로고 + 탭 메뉴 */}
-            <div className="flex items-center space-x-8">
-              <span className="text-xl font-bold text-black">I See U</span>
-              <div className="flex space-x-3">
-                <Link
-                  to="/monitor"
-                  className={`inline-flex items-center px-1 pt-1 nav-link ${
-                    isMonitorActive ? "bg-black text-white font-medium" : "text-gray-500 hover:text-black"
-                  }`}
-                  style={{
-                    padding: "0.5rem 1rem",
-                    borderRadius: "0.375rem",
-                    transition: "all 0.3s ease",
-                    backgroundColor: isMonitorActive ? "#000000" : "#f3f4f6",
-                    color: isMonitorActive ? "#ffffff" : "#000000",
-                  }}
-                >
-                  내 모니터링
-                </Link>
-                <Link
-                  to="/dashboard"
-                  className={`inline-flex items-center px-1 pt-1 nav-link ${
-                    isDashboardActive ? "bg-black text-white font-medium" : "text-gray-500 hover:text-black"
-                  }`}
-                  style={{
-                    padding: "0.5rem 1rem",
-                    borderRadius: "0.375rem",
-                    transition: "all 0.3s ease",
-                    backgroundColor: isDashboardActive ? "#000000" : "#f3f4f6",
-                    color: isDashboardActive ? "#ffffff" : "#000000",
-                  }}
-                >
-                  통계 분석
-                </Link>
-                <Link
-                  to="/ai-insight"
-                  className={`inline-flex items-center px-1 pt-1 nav-link ${
-                    isAiInsightActive ? "bg-black text-white font-medium" : "text-gray-500 hover:text-black"
-                  }`}
-                  style={{
-                    padding: "0.5rem 1rem",
-                    borderRadius: "0.375rem",
-                    transition: "all 0.3s ease",
-                    backgroundColor: isAiInsightActive ? "#000000" : "#f3f4f6",
-                    color: isAiInsightActive ? "#ffffff" : "#000000",
-                  }}
-                >
-                  AI 인사이트
-                </Link>
-                <Link
-                  to="/guide"
-                  className={`inline-flex items-center px-1 pt-1 nav-link ${
-                    isGuideActive ? "bg-black text-white font-medium" : "text-gray-500 hover:text-black"
-                  }`}
-                  style={{
-                    padding: "0.5rem 1rem",
-                    borderRadius: "0.375rem",
-                    transition: "all 0.3s ease",
-                    backgroundColor: isGuideActive ? "#000000" : "#f3f4f6",
-                    color: isGuideActive ? "#ffffff" : "#000000",
-                  }}
-                >
-                  사용 방법
-                </Link>
-
-                <button
-                  type="button"
-                  onClick={openPrivacy}
-                  className="inline-flex items-center px-1 pt-1 nav-link text-gray-500 hover:text-black"
-                  style={{
-                    padding: "0.5rem 1rem",
-                    borderRadius: "0.375rem",
-                    transition: "all 0.3s ease",
-                    backgroundColor: "#f3f4f6",
-                    color: "#000000",
-                  }}
-                >
-                  개인정보법 안내
-                </button>
-              </div>
-            </div>
-
-            {/* 오른쪽 상단 사용자 정보 */}
-            <div className="flex items-center">
-              <button className="p-2 rounded-full hover:bg-gray-100 relative">
-                <i className="fas fa-bell text-gray-600"></i>
-                <span className="absolute top-1 right-1 bg-red-500 rounded-full w-2 h-2" />
-              </button>
-              <button className="ml-3 p-2 rounded-full hover:bg-gray-100">
-                <i className="fas fa-cog text-gray-600"></i>
-              </button>
-              <div className="ml-4 flex items-center">
-                <img className="h-8 w-8 rounded-full" src="/기본프로필.png" alt="사용자 프로필" />
-                <span className="ml-2 text-sm font-medium text-gray-700">{displayName}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </nav>
+      {/* 공통 네비 바 */}
+      <ResponsiveNav onOpenPrivacy={handleOpenPrivacy} />
 
       {/* 메인 컨텐츠 */}
-      <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-8xl pt-20 mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-2xl font-bold text-gray-900">CCTV 모니터링</h1>
           <button
@@ -442,7 +347,7 @@ function Monitor() {
           </button>
         </div>
         <div className="mb-4 text-gray-600">
-          <span className="font-medium">환영합니다 {displayName}님!</span>
+          <span className="font-medium">환영합니다 관리자님!</span>
         </div>
 
         {/* (1) 장치 연결 버튼들 */}
@@ -668,7 +573,7 @@ function Monitor() {
       )}
 
       {/* 개인정보법 안내 오버레이 */}
-      {privacyOpen && <PrivacyOverlay open={privacyOpen} onClose={closePrivacy} />}
+      {privacyOpen && <PrivacyOverlay open={privacyOpen} onClose={handleClosePrivacy} />}
     </div>
   );
 }
@@ -676,18 +581,18 @@ function Monitor() {
 // 연결된 장치 목록 (예시)
 function ConnectedDevices({ cameraList }) {
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden mb-6">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden mb-6">
       <div className="p-6">
-        <h2 className="text-xl font-bold text-gray-900 mb-4">연결된 장치</h2>
+        <h2 className="text-xl font-bold text-gray-900 dark:text-gray-200 mb-4">연결된 장치</h2>
         {cameraList.length === 0 ? (
-          <p className="text-gray-500">아직 등록된 카메라가 없습니다.</p>
+          <p className="text-gray-500 dark:text-gray-400">아직 등록된 카메라가 없습니다.</p>
         ) : (
           <ul className="space-y-3">
             {cameraList.map((cam) => (
-              <li key={cam.cameraId} className="p-2 bg-gray-50 rounded">
+              <li key={cam.cameraId} className="p-2 bg-gray-50 dark:bg-gray-700 rounded">
                 <div className="flex justify-between items-center">
-                  <span className="font-medium text-gray-700">{cam.cameraId}</span>
-                  <span className="text-xs text-gray-400">{cam.hlsUrl}</span>
+                  <span className="font-medium text-gray-700 dark:text-gray-200">{cam.cameraId}</span>
+                  <span className="text-xs text-gray-400 dark:text-gray-300">{cam.hlsUrl}</span>
                 </div>
               </li>
             ))}

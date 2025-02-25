@@ -41,30 +41,34 @@ function Login() {
     }
   };
 
+
   return (
-    <div className="bg-gray-50 min-h-screen flex flex-col">
+    <div className="bg-gray-50 dark:bg-gray-900 min-h-screen flex flex-col">
       {/* 중앙 영역 */}
       <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full space-y-8">
           {/* 상단 로고/타이틀 영역 */}
           <div className="text-center">
             <h1 className="text-4xl font-bold text-custom mb-2">I See U</h1>
-            <p className="text-gray-600 text-sm mb-8">CCTV 영상 분석 솔루션</p>
+            <p className="text-gray-600 dark:text-gray-300 text-sm mb-8">
+              CCTV 영상 분석 솔루션
+            </p>
           </div>
 
           {/* 로그인 폼 영역 */}
-          <div className="bg-white p-8 rounded-lg shadow-sm border border-gray-200">
+          <div className="bg-white dark:bg-gray-800 dark:text-gray-200 p-8 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 transition-colors">
             <form className="space-y-6" onSubmit={handleSubmit}>
+              {/* 아이디 입력 */}
               <div>
                 <label
                   htmlFor="email"
-                  className="block text-sm font-medium text-gray-700 mb-1"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
                 >
                   아이디
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <i className="fas fa-user text-gray-400"></i>
+                    <i className="fas fa-user text-gray-400 dark:text-gray-500"></i>
                   </div>
                   <input
                     id="email"
@@ -73,22 +77,23 @@ function Login() {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-button placeholder-gray-400 focus:outline-none focus:ring-custom focus:border-custom text-sm"
+                    className="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-button placeholder-gray-400 dark:bg-gray-700 dark:text-gray-200 focus:outline-none focus:ring-custom focus:border-custom text-sm"
                     placeholder="이메일 주소를 입력하세요"
                   />
                 </div>
               </div>
 
+              {/* 비밀번호 입력 */}
               <div>
                 <label
                   htmlFor="password"
-                  className="block text-sm font-medium text-gray-700 mb-1"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
                 >
                   비밀번호
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <i className="fas fa-lock text-gray-400"></i>
+                    <i className="fas fa-lock text-gray-400 dark:text-gray-500"></i>
                   </div>
                   <input
                     id="password"
@@ -97,12 +102,13 @@ function Login() {
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-button placeholder-gray-400 focus:outline-none focus:ring-custom focus:border-custom text-sm"
+                    className="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-button placeholder-gray-400 dark:bg-gray-700 dark:text-gray-200 focus:outline-none focus:ring-custom focus:border-custom text-sm"
                     placeholder="비밀번호를 입력하세요"
                   />
                 </div>
               </div>
 
+              {/* 로그인 버튼 */}
               <button
                 type="submit"
                 className="w-full flex justify-center py-2 px-4 text-sm font-medium rounded-button text-white bg-custom hover:bg-custom/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-custom"
@@ -112,7 +118,10 @@ function Login() {
             </form>
 
             <div className="mt-6 flex items-center justify-between">
-              <Link to="/signup" className="text-sm text-custom hover:text-custom/90">
+              <Link
+                to="/signup"
+                className="text-sm text-custom hover:text-custom/90"
+              >
                 회원가입
               </Link>
               <a href="#" className="text-sm text-custom hover:text-custom/90">
@@ -121,59 +130,16 @@ function Login() {
             </div>
 
             {/* 소셜 로그인 섹션 */}
-            <div className="mt-6 border-t pt-4">
-              <p className="text-xs text-gray-500 mb-3">
+            <div className="mt-6 border-t border-gray-200 dark:border-gray-600 pt-4">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
                 또는 소셜 계정으로 로그인
               </p>
               <div className="flex flex-col items-center space-y-2">
-                {/* 1) 구글 로그인 버튼 */}
-                <GoogleLogin onSuccess={handleGoogleSuccess} onError={() => console.error("Google Login Error")} />
-                <a
-                  href="http://localhost:4000/auth/google"
-                  className="relative inline-block w-[240px] h-[30px] hover:opacity-90"
-                >
-                  <img
-                    src="/google.png"
-                    alt="Google 로그인"
-                    className="absolute inset-0 w-full h-full object-contain"
-                  />
-                </a>
-
-                {/* 2) 페이스북 로그인 버튼 */}
-                <a
-                  href="http://localhost:3000/auth/facebook"
-                  className="relative inline-block w-[240px] h-[30px] hover:opacity-90"
-                >
-                  <img
-                    src="/facebook.png"
-                    alt="Facebook 로그인"
-                    className="absolute inset-0 w-full h-full object-contain"
-                  />
-                </a>
-
-                {/* 3) 카카오 로그인 버튼 */}
-                <a
-                  href="http://localhost:3000/auth/kakao"
-                  className="relative inline-block w-[240px] h-[30px] hover:opacity-90"
-                >
-                  <img
-                    src="/kakao.png"
-                    alt="Kakao 로그인"
-                    className="absolute inset-0 w-full h-full object-contain"
-                  />
-                </a>
-
-                {/* 4) 네이버 로그인 버튼 */}
-                <a
-                  href="http://localhost:3000/auth/naver"
-                  className="relative inline-block w-[240px] h-[30px] hover:opacity-90"
-                >
-                  <img
-                    src="/naver.png"
-                    alt="Naver 로그인"
-                    className="absolute inset-0 w-full h-full object-contain"
-                  />
-                </a>
+                {/* 1) 구글 로그인 버튼 (@react-oauth/google) */}
+                <GoogleLogin
+                  onSuccess={handleGoogleSuccess}
+                  onError={() => console.error("Google Login Error")}
+                />
               </div>
             </div>
           </div>
@@ -181,7 +147,7 @@ function Login() {
       </div>
 
       {/* 푸터 영역 */}
-      <footer className="py-4 text-center text-gray-500 text-sm">
+      <footer className="py-4 text-center text-gray-500 dark:text-gray-400 text-sm">
         <p>&copy; 2024 I See U. All rights reserved.</p>
         <p className="mt-1">Version 1.0.0</p>
       </footer>

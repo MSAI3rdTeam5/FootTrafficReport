@@ -1,7 +1,7 @@
 // /home/azureuser/FootTrafficReport/frontend/client/src/App.jsx
 
 import React from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 
 // 전역 Context (AppContext) import
 import { AppProvider } from "./context/AppContext";
@@ -13,8 +13,8 @@ import Dashboard from "./pages/Dashboard";
 import Guide from "./pages/Guide";
 import AiInsight from "./pages/AiInsight";
 import LiveStreamPlayer from "./pages/LiveStreamPlayer";
-// import Chatbot from "./pages/Chatbot";
-// import GuidePage from "./pages/Chatbot_guide";
+import Chatbot from "./pages/Chatbot";
+import GuidePage from "./pages/Chatbot_guide";
 
 // 새로 추가한 CCTVMonitoring
 import CCTVMonitoring from "./pages/CCTVMonitoring";
@@ -39,10 +39,10 @@ function App() {
         <Route path="/ai-insight" element={<ProtectedRoute><AiInsight /></ProtectedRoute>} />
 
         {/* "/chatbotpage" - 챗봇 가이드(메인) 페이지 */}
-        {/* <Route path="/chatbot" element={<ProtectedRoute><GuidePage /></ProtectedRoute>} /> */}
+        <Route path="/chatbot" element={<ProtectedRoute><GuidePage /></ProtectedRoute>} />
 
         {/* "/chatbot" - 챗봇 화면 */}
-        {/* <Route path="/chatbotpage" element={<ProtectedRoute><Chatbot /></ProtectedRoute>} /> */}
+        <Route path="/chatbotpage" element={<ProtectedRoute><Chatbot /></ProtectedRoute>} />
 
         {/* "/dashboard" - 통계 분석 화면 */}
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
