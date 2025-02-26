@@ -21,26 +21,35 @@
 - LLM 모델
 
 ## 서비스
-![서비스 시연 영상](images/프로젝트_5팀_I_SEE_U_시연영상.mov)
+- 내 모니터링
+  ![Web Page](images/Monitering.png)
+- CCTV 확인
+  ![Web Page](images/Logpage.png)
+- Dashboaed
+  ![Web Page](images/Dashboard.png)
+- AI 인사이트
+   ![Web Page](images/AIinsight.png)
+- 챗봇
+  ![Web Page](images/Chatbot_page.png)
 
 ## 서비스 아키텍처
 - **Web page**  
-  ![Web Page](images/Pasted_image_20250225182030.png)
+  ![Web Page](images/WebPage.png)
 
 - **Server**  
-  ![Server](images/Pasted_image_20250225182330.png)
+  ![Server](images/Server.png)
 
 - **Database**  
-  ![Database](images/Pasted_image_20250225182347.png)
+  ![Database](images/Database.png)
 
 - **CV-model**  
-  ![CV Model](images/Pasted_image_20250225183013.png)
+  ![CV Model](images/CV_model.png)
 
 - **Report-generator**  
-  ![Report Generator](images/Pasted_image_20250225182421.png)
+  ![Report Generator](images/Report_generater.png)
 
 - **Chatbot**  
-  ![Chatbot](images/Pasted_image_20250225182430.png)
+  ![Chatbot](images/Chatbot.png)
 
 ## 프로젝트 구조도
 ```
