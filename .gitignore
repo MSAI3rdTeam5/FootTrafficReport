@@ -1,2 +1,66 @@
-report-generation/chan/.env
-report-generation/hyunjun/.env
+# people-detection Ignore outputs
+people-detection/outputs/
+
+# Report-generation 관련 민감정보
+report-generation/.env
+
+# chatbot 관련 민감정보
+chatbot/.env
+
+# Backend 관련 파일
+docker-compose.yml
+
+frontend/server/.env
+
+# 1) Python 일반
+__pycache__/
+*.py[cod]
+*.egg
+*.egg-info
+dist/
+build/
+*.log
+*.sqlite3
+*.pyc
+*.pyo
+
+# 2) 가상환경
+venv/
+.venv/
+env/
+
+# 3) 환경변수 및 민감정보
+.env
+*.env
+
+# 4) Docker 볼륨 / 임시 폴더
+db_data/
+logs/
+
+# 5) OS 특수 파일
+.DS_Store
+Thumbs.db
+
+# 6) Alembic 캐시 (마이그레이션 파일은 커밋)
+backend/alembic/versions/__pycache__/
+backend/alembic/__pycache__/
+
+# Frontend 관련
+# 로그 파일
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# node_modules (모든 폴더의)
+**/node_modules
+
+# 프론트엔드 빌드 폴더 (예: Vite의 경우, dist)
+dist
+dist-ssr
+*.local
+
+# Server 관련 (frontend/server 폴더에 있는 .env)
+server/.env
