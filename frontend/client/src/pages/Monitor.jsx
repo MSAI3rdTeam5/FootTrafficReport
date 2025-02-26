@@ -1,70 +1,77 @@
-// src/pages/Monitor.jsx
+// /home/azureuser/FootTrafficReport/frontend/client/src/pages/Monitor.jsx
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
 import PrivacyOverlay from "./PrivacyOverlay";
 import CCTVMonitoring from "./CCTVMonitoring";
 
-// API 호출 헬퍼 함수 (예: 사람 감지용)
-// import { callPeopleDetection } from "../utils/api"; // 필요 시 사용
+// Socket.io + mediasoup-client
+import { io } from "socket.io-client";
+import { Device } from "mediasoup-client";
+// CV 서비스 API 호출 (사람 감지)
+import { callPeopleDetection } from "../utils/api";
 
 function Monitor() {
   const location = useLocation();
 
-  // 1) QR 모달 상태
+  // === QR 모달 ===
   const [qrVisible, setQrVisible] = useState(false);
-  const [qrTimestamp, setQrTimestamp] = useState(Date.now());
   const openQRModal = () => setQrVisible(true);
   const closeQRModal = () => setQrVisible(false);
-  const refreshQR = () => setQrTimestamp(Date.now());
 
-  // 2) 장치등록 모달 상태
+  // === 장치 등록 모달 ===
   const [deviceModalOpen, setDeviceModalOpen] = useState(false);
   const [deviceType, setDeviceType] = useState(null);
-
-  // 폼 입력(장치정보)
   const [deviceName, setDeviceName] = useState("");
   const [deviceIP, setDeviceIP] = useState("");
   const [devicePort, setDevicePort] = useState("");
-  const [deviceUser, setDeviceUser] = useState("");
-  const [devicePass, setDevicePass] = useState("");
 
-  // 등록된 카메라 목록 관리
-  const [cameraList, setCameraList] = useState([
-    {
-      cameraId: "cam1",
-      name: "카메라 #1 - 명동 중앙거리",
-      videoSrc: "/videos/05_seoul.mp4",
-    },
-    {
-      cameraId: "cam2",
-      name: "카메라 #2 - 에스컬레이터",
-      videoSrc: "/videos/01_에스컬레이터.mp4",
-    },
-  ]);
+  // === 개인정보 오버레이 ===
+  const [privacyOpen, setPrivacyOpen] = useState(false);
+  const openPrivacy = () => setPrivacyOpen(true);
+  const closePrivacy = () => setPrivacyOpen(false);
 
-  // 선택된 카메라와 오버레이 상태 관리
-  const [selectedCamera, setSelectedCamera] = useState(null); // 선택된 카메라 정보
-  const [overlayVisible, setOverlayVisible] = useState(false); // 오버레이 상태
+  // === 로그인된 유저 표시 이름 ===
+  const [displayName, setDisplayName] = useState("김관리자");
+  useEffect(() => {
+    console.log("[DBG] useEffect -> fetch /api/user");
+    fetch("/api/user", { credentials: "include" })
+      .then((res) => {
+        if (!res.ok) {
+          console.log("[DBG] /api/user 404 or error. status =", res.status);
+          return null;
+        }
+        return res.json();
+      })
+      .then((data) => {
+        if (data && data.displayName) setDisplayName(data.displayName);
+      })
+      .catch((err) => console.error(err));
+  }, []);
 
-  // 장치 클릭 시 동작
-  const handleDeviceClick = (camera) => {
-    setSelectedCamera(camera); // 선택된 카메라 설정
-    setOverlayVisible(true); // 오버레이 열기
+  // === 등록된 카메라 목록 ===
+  const [cameraList, setCameraList] = useState([]);
+
+  // === 페이지 탭 강조 로직 ===
+  const isMonitorActive = location.pathname === "/monitor";
+  const isDashboardActive = location.pathname === "/dashboard";
+  const isAiInsightActive = location.pathname === "/ai-insight";
+  const isChatbotActive = location.pathname === "/chatbot";
+  const isGuideActive = location.pathname === "/guide";
+
+  // === 장치등록 모달 함수 ===
+  const openDeviceModal = (type) => {
+    setDeviceType(type);
+    setDeviceModalOpen(true);
+  };
+  const closeDeviceModal = () => {
+    setDeviceModalOpen(false);
+    setDeviceType(null);
+    setDeviceName("");
+    setDeviceIP("");
+    setDevicePort("");
   };
 
-  // 오버레이 닫기
-  const closeOverlay = () => {
-    setSelectedCamera(null); // 선택된 카메라 초기화
-    setOverlayVisible(false); // 오버레이 닫기
-  };
-
-  const handleSwitchDevice = (newIndex) => {
-    const newCamera = cameraList[newIndex];
-    setSelectedCamera(newCamera);
-  };
-
-  // [수정점] 실제 등록 함수
   const handleSubmitDevice = async (e) => {
     e.preventDefault();
     console.log("[장치 등록]", {
@@ -92,8 +99,6 @@ function Monitor() {
       });
       const data = await res.json();
       if (data.success) {
-        console.log("카메라 등록 성공:", data);
-        // data.hlsUrl 등을 UI에 표시하거나, cameraList에 추가
         setCameraList((prev) => [...prev, { cameraId, hlsUrl: data.hlsUrl }]);
       } else {
         alert(data.error || "카메라 등록 실패");
@@ -101,59 +106,331 @@ function Monitor() {
     } catch (err) {
       console.error("Failed to register camera:", err);
     }
-
     closeDeviceModal();
   };
 
-  // 탭 강조 로직
-  const isMonitorActive = location.pathname === "/monitor";
-  const isDashboardActive = location.pathname === "/dashboard";
-  const isAiInsightActive = location.pathname === "/ai-insight";
-  const isGuideActive = location.pathname === "/guide";
+  // -----------------------------------------------------
+  // SFU & mediasoup 관련: socket과 device를 useRef로 관리
+  // -----------------------------------------------------
+  const socketRef = useRef(null);
+  const deviceRef = useRef(null);
+  const [sendTransport, setSendTransport] = useState(null);
+  // raw local stream (원본)
+  const [localStream, setLocalStream] = useState(null);
+  // processed stream (모자이크 처리된 캔버스 스트림)
+  const [processedStream, setProcessedStream] = useState(null);
+  const [remoteStream, setRemoteStream] = useState(null); // 추후 consume 시 사용
 
-  // 개인정보법 안내 오버레이 상태
-  const [privacyOpen, setPrivacyOpen] = useState(false);
-  const openPrivacy = () => setPrivacyOpen(true);
-  const closePrivacy = () => setPrivacyOpen(false);
+  const localVideoRef = useRef(null);
+  const remoteVideoRef = useRef(null);
 
-  // ---- [추가] 로그인된 사용자의 displayName 관리 ----
-  const [displayName, setDisplayName] = useState("김관리자");
+  // Offscreen 캔버스 및 처리 관련 refs
+  const canvasRef = useRef(null);
+  const processingIntervalRef = useRef(null);
+
+  // detectionBoxes: CV 서비스에서 받은 얼굴 영역 정보 (예: [{ x, y, width, height }, ...])
+  const [detectionBoxes, setDetectionBoxes] = useState([]);
+  const detectionBoxesRef = useRef([]);
   useEffect(() => {
-    // 서버에서 현재 유저 정보 가져오기 (예시)
-    fetch("/api/user", { credentials: "include" })
-      .then((res) => {
-        if (!res.ok) return null; // 로그인 안 된 상태
-        return res.json();
-      })
-      .then((data) => {
-        if (data && data.displayName) {
-          setDisplayName(data.displayName);
-        }
-      })
-      .catch((err) => {
-        console.error("Failed to fetch user info:", err);
-      });
+    detectionBoxesRef.current = detectionBoxes;
+  }, [detectionBoxes]);
+
+  // CV 서비스 API를 주기적으로 호출하여 감지 결과 업데이트 (예시: 1초마다)
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      try {
+        // 실제 사용 시 적절한 cctv_url, cctv_id를 전달해야 합니다.
+        const result = await callPeopleDetection("dummy_url", "dummy_id");
+        // result.detectionBoxes가 얼굴 영역 정보라고 가정 (예: [{ x, y, width, height }, ...])
+        setDetectionBoxes(result.detectionBoxes || []);
+      } catch (error) {
+        console.error("Error in detection polling:", error);
+      }
+    }, 1000);
+    return () => clearInterval(interval);
   }, []);
 
-  // // [수정점] 등록된 카메라 목록 관리
-  // const [cameraList, setCameraList] = useState([
-  //   // 예시로 몇 개 넣을 수도 있음
-  //   // { cameraId: "cam1", hlsUrl: "/hls/cam1/playlist.m3u8" }
-  // ]);
+  // === 웹캠 선택 모달 상태 ===
+  const [webcamModalOpen, setWebcamModalOpen] = useState(false);
+  const [videoDevices, setVideoDevices] = useState([]);
+  const [selectedDeviceId, setSelectedDeviceId] = useState("");
 
-  // [수정점] 장치 연결 모달 열기/닫기
-  const openDeviceModal = (type) => {
-    setDeviceType(type);
-    setDeviceModalOpen(true);
+  // (A) "웹캠 연결" 버튼 클릭 시 – 먼저 getUserMedia({video: true})로 권한 팝업 띄우고 장치 목록 확보
+  const handleOpenWebcamSelect = async () => {
+    console.log("[DBG] handleOpenWebcamSelect start");
+    try {
+      const tempStream = await navigator.mediaDevices.getUserMedia({
+        video: true,
+      });
+      console.log("[DBG] 임시 스트림 획득:", tempStream.getTracks());
+      tempStream.getTracks().forEach((t) => t.stop());
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const videoInputs = devices.filter((d) => d.kind === "videoinput");
+      console.log("[DBG] Found video inputs =>", videoInputs);
+      setVideoDevices(videoInputs);
+      if (videoInputs.length > 0) {
+        setSelectedDeviceId(videoInputs[0].deviceId);
+      } else {
+        alert("사용 가능한 웹캠(비디오 장치)이 없습니다.");
+      }
+      setWebcamModalOpen(true);
+    } catch (err) {
+      console.error("[ERR] handleOpenWebcamSelect => getUserMedia error:", err);
+      alert(
+        "카메라 권한이 거부되었거나 접근할 수 없습니다.\n브라우저/OS 설정에서 카메라 허용을 확인해 주세요."
+      );
+    }
   };
-  const closeDeviceModal = () => {
-    setDeviceModalOpen(false);
-    setDeviceType(null);
-    setDeviceName("");
-    setDeviceIP("");
-    setDevicePort("");
-    setDeviceUser("");
-    setDevicePass("");
+
+  // (B) "웹캠 선택" 후 "확인" – 선택한 장치로 SFU 연결 및 스트림 전송
+  const handleConfirmWebcamSelection = async () => {
+    console.log(
+      "[DBG] handleConfirmWebcamSelection. selectedDeviceId=",
+      selectedDeviceId
+    );
+    if (!selectedDeviceId) {
+      alert("카메라를 선택하세요!");
+      return;
+    }
+    setWebcamModalOpen(false);
+    if (!socketRef.current || !deviceRef.current) {
+      console.log(
+        "[DBG] SFU 미연결 또는 device 미로드 => handleConnectSFUAndProduce 호출"
+      );
+      await handleConnectSFUAndProduce(selectedDeviceId);
+    } else {
+      console.log("[DBG] SFU 이미 연결됨 => 바로 produce 실행");
+      await handleStartWebcamWithDevice(selectedDeviceId);
+    }
+  };
+
+  // (C) SFU 연결 + device 로드 + produce 동시에 실행
+  async function handleConnectSFUAndProduce(deviceId) {
+    console.log("[DBG] handleConnectSFU 시작...");
+    const s = io("https://msteam5iseeu.ddns.net", {
+      path: "/socket.io",
+      transports: ["websocket", "polling"],
+    });
+    socketRef.current = s;
+    await new Promise((resolve, reject) => {
+      s.on("connect", () => {
+        console.log("[SFU] socket connected:", s.id);
+        resolve();
+      });
+      s.on("connect_error", (err) => {
+        console.error("[SFU] socket connect error:", err);
+        reject(err);
+      });
+    });
+    const routerCaps = await getRouterCaps(s);
+    console.log("[DBG] routerCaps 획득:", routerCaps);
+    const dev = new Device();
+    await dev.load({ routerRtpCapabilities: routerCaps });
+    deviceRef.current = dev;
+    console.log(
+      "Mediasoup Device loaded. canProduceVideo =",
+      dev.canProduce("video")
+    );
+    console.log("[DBG] handleConnectSFU 완료");
+    await handleStartWebcamWithDevice(deviceId);
+  }
+
+  function getRouterCaps(sock) {
+    console.log("[DBG] getRouterCaps 시작...");
+    return new Promise((resolve, reject) => {
+      sock.emit("getRouterRtpCapabilities", {}, (res) => {
+        if (!res.success) {
+          reject(new Error(res.error));
+        } else {
+          resolve(res.rtpCapabilities);
+        }
+      });
+    });
+  }
+
+  // (D) 선택한 장치로 실제 getUserMedia, 오프스크린 캔버스 처리, transport 및 producer 생성
+  async function handleStartWebcamWithDevice(deviceId) {
+    console.log("[DBG] handleStartWebcamWithDevice. deviceId=", deviceId);
+    const dev = deviceRef.current;
+    const sock = socketRef.current;
+    if (!dev || !sock) {
+      console.warn("[WARN] SFU 관련 정보 부족");
+      return;
+    }
+    const constraints = {
+      video: {
+        deviceId: { exact: deviceId },
+        width: { ideal: 640 },
+        height: { ideal: 480 },
+        frameRate: { ideal: 30 },
+      },
+      audio: false,
+    };
+    console.log("[DBG] getUserMedia constraints=", constraints);
+    let rawStream;
+    try {
+      rawStream = await navigator.mediaDevices.getUserMedia(constraints);
+      console.log("[DBG] getUserMedia 성공");
+    } catch (err) {
+      console.error("getUserMedia 실패:", err);
+      alert("스트림 획득 오류: " + err.message);
+      return;
+    }
+    // (1) 로컬 미리보기용 원본 스트림 저장
+    setLocalStream(rawStream);
+
+    // (2) Offscreen 캔버스 생성 및 처리:
+    //   - 원본 영상을 캔버스에 그린 후, CV 서비스로부터 받은 detectionBoxes(얼굴 영역)에 대해서만 모자이크 효과 적용
+    const videoTrack = rawStream.getVideoTracks()[0];
+    const settings = videoTrack.getSettings();
+    const width = settings.width || 640;
+    const height = settings.height || 480;
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    canvasRef.current = canvas;
+    const ctx = canvas.getContext("2d");
+
+    // 주기적으로 캔버스에 원본 영상을 그리면서, detectionBoxes 영역에만 모자이크 처리 적용
+    const pixelation = 16; // 값이 클수록 모자이크 효과 강함
+    const videoElem = document.createElement("video");
+    videoElem.srcObject = rawStream;
+    videoElem
+      .play()
+      .catch((err) => console.warn("videoElem play() error:", err));
+
+    processingIntervalRef.current = setInterval(() => {
+      // 전체 원본 영상 그리기
+      ctx.drawImage(videoElem, 0, 0, width, height);
+      // detectionBoxesRef.current에 있는 각 얼굴 영역에 대해 모자이크 처리
+      detectionBoxesRef.current.forEach((box) => {
+        // box: { x, y, width, height } – 이 값은 영상의 픽셀 단위로 가정
+        const { x, y, width: w, height: h } = box;
+        // 임시 캔버스에 해당 영역을 축소 후 다시 확대하여 픽셀화 효과 적용
+        const tempCanvas = document.createElement("canvas");
+        tempCanvas.width = w / pixelation;
+        tempCanvas.height = h / pixelation;
+        const tempCtx = tempCanvas.getContext("2d");
+        tempCtx.drawImage(
+          canvas,
+          x,
+          y,
+          w,
+          h,
+          0,
+          0,
+          tempCanvas.width,
+          tempCanvas.height
+        );
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(
+          tempCanvas,
+          0,
+          0,
+          tempCanvas.width,
+          tempCanvas.height,
+          x,
+          y,
+          w,
+          h
+        );
+      });
+    }, 33); // 약 30fps
+
+    // (3) 생성된 캔버스 스트림 (모자이크 처리된 영상) 저장
+    const mosaicStream = canvas.captureStream(30);
+    setProcessedStream(mosaicStream);
+
+    // (4) 로컬 미리보기에 processedStream 표시
+    if (localVideoRef.current) {
+      localVideoRef.current.srcObject = mosaicStream;
+      localVideoRef.current
+        .play()
+        .catch((err) => console.warn("localVideo play() error:", err));
+    }
+
+    // (5) SFU 전송: 모자이크 처리된 스트림 사용
+    const transportParams = await createTransport(sock, "send");
+    const transport = dev.createSendTransport(transportParams);
+    transport.on("connect", ({ dtlsParameters }, callback, errback) => {
+      sock.emit(
+        "connectTransport",
+        { transportId: transport.id, dtlsParameters },
+        (res) => {
+          if (!res.success) {
+            errback(res.error);
+          } else {
+            callback();
+          }
+        }
+      );
+    });
+    transport.on("produce", (produceParams, callback, errback) => {
+      sock.emit(
+        "produce",
+        {
+          transportId: transport.id,
+          kind: produceParams.kind,
+          rtpParameters: produceParams.rtpParameters,
+        },
+        (res) => {
+          if (!res.success) {
+            errback(res.error);
+          } else {
+            callback({ id: res.producerId });
+          }
+        }
+      );
+    });
+    setSendTransport(transport);
+    console.log("SendTransport 생성됨, id=", transport.id);
+    try {
+      const producer = await transport.produce({
+        track: mosaicStream.getVideoTracks()[0],
+      });
+      console.log("Producer 생성됨, id =", producer.id);
+    } catch (err) {
+      console.error("produce 오류:", err);
+    }
+  }
+
+  function createTransport(sock, direction) {
+    return new Promise((resolve, reject) => {
+      sock.emit("createTransport", { direction }, (res) => {
+        if (!res.success) {
+          reject(new Error(res.error));
+        } else {
+          resolve(res.transportParams);
+        }
+      });
+    });
+  }
+
+  // (F) 연결 해제
+  const handleWebcamDisconnect = () => {
+    console.log("[DBG] handleWebcamDisconnect: 스트림 중지 및 연결 해제");
+    if (localStream) {
+      localStream.getTracks().forEach((track) => track.stop());
+    }
+    if (processedStream) {
+      processedStream.getTracks().forEach((track) => track.stop());
+    }
+    setLocalStream(null);
+    setProcessedStream(null);
+    setRemoteStream(null);
+    if (localVideoRef.current) localVideoRef.current.srcObject = null;
+    if (remoteVideoRef.current) remoteVideoRef.current.srcObject = null;
+    if (processingIntervalRef.current)
+      clearInterval(processingIntervalRef.current);
+    if (sendTransport) {
+      sendTransport.close();
+      setSendTransport(null);
+    }
+    if (socketRef.current) {
+      socketRef.current.disconnect();
+      socketRef.current = null;
+    }
+    deviceRef.current = null;
   };
 
   return (
@@ -162,11 +439,9 @@ function Monitor() {
       <nav className="bg-white shadow">
         <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16 items-center">
-            {/* 왼쪽: "I See U" + 탭 */}
             <div className="flex items-center space-x-8">
               <span className="text-xl font-bold text-black">I See U</span>
               <div className="flex space-x-3">
-                {/* 내 모니터링 (현재 화면) */}
                 <Link
                   to="/monitor"
                   className={`inline-flex items-center px-1 pt-1 nav-link ${
@@ -178,14 +453,12 @@ function Monitor() {
                     padding: "0.5rem 1rem",
                     borderRadius: "0.375rem",
                     transition: "all 0.3s ease",
-                    backgroundColor: isMonitorActive ? "#000000" : "#f3f4f6",
-                    color: isMonitorActive ? "#ffffff" : "#000000",
+                    backgroundColor: isMonitorActive ? "#000" : "#f3f4f6",
+                    color: isMonitorActive ? "#fff" : "#000",
                   }}
                 >
                   내 모니터링
                 </Link>
-
-                {/* 통계 분석 */}
                 <Link
                   to="/dashboard"
                   className={`inline-flex items-center px-1 pt-1 nav-link ${
@@ -197,14 +470,12 @@ function Monitor() {
                     padding: "0.5rem 1rem",
                     borderRadius: "0.375rem",
                     transition: "all 0.3s ease",
-                    backgroundColor: isDashboardActive ? "#000000" : "#f3f4f6",
-                    color: isDashboardActive ? "#ffffff" : "#000000",
+                    backgroundColor: isDashboardActive ? "#000" : "#f3f4f6",
+                    color: isDashboardActive ? "#fff" : "#000",
                   }}
                 >
                   통계 분석
                 </Link>
-
-                {/* AI 인사이트 */}
                 <Link
                   to="/ai-insight"
                   className={`inline-flex items-center px-1 pt-1 nav-link ${
@@ -216,8 +487,8 @@ function Monitor() {
                     padding: "0.5rem 1rem",
                     borderRadius: "0.375rem",
                     transition: "all 0.3s ease",
-                    backgroundColor: isAiInsightActive ? "#000000" : "#f3f4f6",
-                    color: isAiInsightActive ? "#ffffff" : "#000000",
+                    backgroundColor: isAiInsightActive ? "#000" : "#f3f4f6",
+                    color: isAiInsightActive ? "#fff" : "#000",
                   }}
                 >
                   AI 인사이트
@@ -227,7 +498,7 @@ function Monitor() {
                 <Link
                   to="/chatbot"
                   className={`inline-flex items-center px-1 pt-1 nav-link ${
-                    isAiInsightActive
+                    isChatbotActive
                       ? "bg-black text-white font-medium"
                       : "text-gray-500 hover:text-black"
                   }`}
@@ -235,14 +506,15 @@ function Monitor() {
                     padding: "0.5rem 1rem",
                     borderRadius: "0.375rem",
                     transition: "all 0.3s ease",
-                    backgroundColor: isAiInsightActive ? "#000000" : "#f3f4f6",
-                    color: isAiInsightActive ? "#ffffff" : "#000000",
+                    backgroundColor: isChatbotActive ? "#000000" : "#f3f4f6",
+                    color: isChatbotActive ? "#ffffff" : "#000000",
                   }}
                 >
                   챗봇
                 </Link>
 
                 {/* 사용 방법 */}
+
                 <Link
                   to="/guide"
                   className={`inline-flex items-center px-1 pt-1 nav-link ${
@@ -254,14 +526,12 @@ function Monitor() {
                     padding: "0.5rem 1rem",
                     borderRadius: "0.375rem",
                     transition: "all 0.3s ease",
-                    backgroundColor: isGuideActive ? "#000000" : "#f3f4f6",
-                    color: isGuideActive ? "#ffffff" : "#000000",
+                    backgroundColor: isGuideActive ? "#000" : "#f3f4f6",
+                    color: isGuideActive ? "#fff" : "#000",
                   }}
                 >
                   사용 방법
                 </Link>
-
-                {/* 개인정보법 안내 (오버레이) */}
                 <button
                   type="button"
                   onClick={openPrivacy}
@@ -271,15 +541,13 @@ function Monitor() {
                     borderRadius: "0.375rem",
                     transition: "all 0.3s ease",
                     backgroundColor: "#f3f4f6",
-                    color: "#000000",
+                    color: "#000",
                   }}
                 >
                   개인정보법 안내
                 </button>
               </div>
             </div>
-
-            {/* 오른쪽: 알림 - 설정 - 사용자 */}
             <div className="flex items-center">
               <button className="p-2 rounded-full hover:bg-gray-100 relative">
                 <i className="fas fa-bell text-gray-600"></i>
@@ -317,10 +585,7 @@ function Monitor() {
         <div className="mb-4 text-gray-600">
           <span className="font-medium">환영합니다 {displayName}님!</span>
         </div>
-
-        {/* 연결 방식 4개 박스 */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
-          {/* CCTV 연결 */}
           <div
             className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 flex flex-col items-center justify-center min-h-[200px] cursor-pointer hover:border-custom"
             onClick={() => openDeviceModal("CCTV")}
@@ -328,15 +593,13 @@ function Monitor() {
             <i className="fas fa-video text-4xl text-custom mb-4"></i>
             <span className="text-gray-700">CCTV 연결</span>
           </div>
-          {/* 웹캠 연결 */}
           <div
             className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 flex flex-col items-center justify-center min-h-[200px] cursor-pointer hover:border-custom"
-            onClick={openQRModal}
+            onClick={handleOpenWebcamSelect}
           >
             <i className="fas fa-webcam text-4xl text-custom mb-4"></i>
             <span className="text-gray-700">웹캠 연결</span>
           </div>
-          {/* 스마트폰 연결 */}
           <div
             className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 flex flex-col items-center justify-center min-h-[200px] cursor-pointer hover:border-custom"
             onClick={openQRModal}
@@ -344,7 +607,6 @@ function Monitor() {
             <i className="fas fa-mobile-alt text-4xl text-custom mb-4"></i>
             <span className="text-gray-700">스마트폰 연결</span>
           </div>
-          {/* 블랙박스 연결 */}
           <div
             className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 flex flex-col items-center justify-center min-h-[200px] cursor-pointer hover:border-custom"
             onClick={() => openDeviceModal("Blackbox")}
@@ -354,11 +616,37 @@ function Monitor() {
           </div>
         </div>
 
-        {/* 등록된 카메라 목록 표시 */}
-        <ConnectedDevices
-          cameraList={cameraList}
-          onDeviceClick={handleDeviceClick}
-        />
+        {/* 웹캠 영상 미리보기 (모자이크 처리된 영상 송출) */}
+        {(processedStream || remoteStream) && (
+          <div className="bg-white p-4 rounded-lg border mb-6">
+            <h2 className="text-lg font-semibold mb-2">
+              웹캠 실시간 미리보기 (모자이크 처리됨)
+            </h2>
+            <div className="flex space-x-4">
+              <video
+                ref={localVideoRef}
+                autoPlay
+                playsInline
+                muted
+                style={{ width: "320px", background: "#000" }}
+              />
+              <video
+                ref={remoteVideoRef}
+                autoPlay
+                playsInline
+                style={{ width: "320px", background: "#333" }}
+              />
+            </div>
+            <button
+              onClick={handleWebcamDisconnect}
+              className="mt-4 px-4 py-2 bg-red-500 text-white rounded"
+            >
+              웹캠 연결 종료
+            </button>
+          </div>
+        )}
+
+        <ConnectedDevices cameraList={cameraList} />
       </div>
 
       {/* CCTVMonitoring 컴포넌트를 조건부로 렌더링 */}
@@ -378,181 +666,78 @@ function Monitor() {
         </div>
       </footer>
 
-      {/* ====== QR 모달 ====== */}
+      {/* QR 모달 */}
       {qrVisible && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="relative bg-white rounded-lg shadow-lg p-8 w-full max-w-md">
-            {/* 닫기 버튼 */}
-            <button
-              className="absolute top-4 right-4 text-gray-400 hover:text-custom transition-colors rounded-button p-2"
-              onClick={closeQRModal}
-            >
-              <i className="fas fa-times text-xl"></i>
-            </button>
-
-            {/* 새로고침 버튼 */}
-            <button
-              className="absolute top-4 left-4 text-gray-400 hover:text-custom transition-colors rounded-button p-2"
-              onClick={refreshQR}
-              title="QR 새로고침"
-            >
-              <i className="fas fa-sync-alt text-xl"></i>
-            </button>
-
-            <div className="text-center mb-6">
-              <h1 className="text-2xl font-bold text-gray-800">QR 코드 스캔</h1>
-              <div className="mt-2 text-sm text-gray-500">연결 대기 중...</div>
-            </div>
-
-            <div className="relative w-64 h-64 mx-auto mb-6">
-              <div className="absolute inset-0 border-2 border-custom rounded-lg"></div>
-              <img
-                src={`https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=https://example.com&t=${qrTimestamp}`}
-                alt="QR Code"
-                className="w-full h-full p-3"
-              />
-              <div className="absolute -top-2 -left-2 w-4 h-4 border-t-2 border-l-2 border-custom" />
-              <div className="absolute -top-2 -right-2 w-4 h-4 border-t-2 border-r-2 border-custom" />
-              <div className="absolute -bottom-2 -left-2 w-4 h-4 border-b-2 border-l-2 border-custom" />
-              <div className="absolute -bottom-2 -right-2 w-4 h-4 border-b-2 border-r-2 border-custom" />
-            </div>
-
-            <div className="text-center text-sm text-gray-600 leading-relaxed max-w-sm mx-auto">
-              <p>
-                모바일 또는 웹캠 카메라로 해당 QR 코드를 촬영하시면 간편하게
-                실시간 연동이 가능합니다
-              </p>
-            </div>
-
-            <div className="mt-6 flex items-center justify-center space-x-2">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="text-sm text-gray-500">스캔 준비 완료</span>
-            </div>
+          <div className="bg-white p-6 rounded">
+            <h3 className="text-lg font-semibold mb-2">스마트폰 연결</h3>
+            <p>이 QR 코드를 스캔하세요.</p>
+            <button onClick={closeQRModal}>닫기</button>
           </div>
         </div>
       )}
 
-      {/* ====== 장치등록 모달 ====== */}
+      {/* 장치등록 모달 */}
       {deviceModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
           <div className="bg-white w-full max-w-md p-6 rounded-lg relative">
-            {/* 닫기 버튼 */}
             <button
               onClick={closeDeviceModal}
               className="absolute top-4 right-4 text-gray-400 hover:text-custom"
             >
               <i className="fas fa-times text-xl"></i>
             </button>
-
             <h2 className="text-xl font-bold mb-4">
               {deviceType === "CCTV" ? "CCTV 연결 정보" : "블랙박스 연결 정보"}
             </h2>
-
-            <div className="text-sm text-gray-600 mb-4">
-              {deviceType === "CCTV" ? (
-                <>
-                  <p>
-                    IP 카메라 / NVR 등과 연결하기 위해 IP 주소와 포트, 계정
-                    정보를 입력하세요.
-                  </p>
-                  <p>ONVIF나 RTSP 등 프로토콜을 사용할 수 있습니다.</p>
-                  <p className="mt-2 text-xs text-gray-400">
-                    (예: rtsp://192.168.0.10:554, 포트포워딩 필요)
-                  </p>
-                </>
-              ) : (
-                <>
-                  <p>
-                    블랙박스를 네트워크로 연결하거나, 제조사 클라우드 계정을
-                    통해 실시간 영상을 볼 수 있습니다.
-                  </p>
-                  <p className="mt-2 text-xs text-gray-400">
-                    (예: cloud.blackbox.com 계정 / IP 직접 연결 등)
-                  </p>
-                </>
-              )}
-            </div>
-
-            {/* [수정점] 실제 등록 함수와 연결 */}
             <form onSubmit={handleSubmitDevice}>
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700">
                   장치 이름
                 </label>
                 <input
                   type="text"
                   value={deviceName}
                   onChange={(e) => setDeviceName(e.target.value)}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-custom focus:border-custom"
-                  placeholder={
-                    deviceType === "CCTV"
-                      ? "예) 정문 CCTV"
-                      : "예) 차량 블랙박스"
-                  }
+                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+                  placeholder="예: 복도1 카메라"
                 />
               </div>
-
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  IP / 도메인
+                <label className="block text-sm font-medium text-gray-700">
+                  IP
                 </label>
                 <input
                   type="text"
                   value={deviceIP}
                   onChange={(e) => setDeviceIP(e.target.value)}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-custom focus:border-custom"
-                  placeholder="예) 192.168.0.10 or mydevice.example.com"
+                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+                  placeholder="예: 192.168.0.10"
                 />
               </div>
-
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  포트
+                <label className="block text-sm font-medium text-gray-700">
+                  Port
                 </label>
                 <input
                   type="text"
                   value={devicePort}
                   onChange={(e) => setDevicePort(e.target.value)}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-custom focus:border-custom"
-                  placeholder="예) 554"
+                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+                  placeholder="예: 554"
                 />
               </div>
-
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  계정 (ID)
-                </label>
-                <input
-                  type="text"
-                  value={deviceUser}
-                  onChange={(e) => setDeviceUser(e.target.value)}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-custom focus:border-custom mb-2"
-                  placeholder="예) admin"
-                />
-
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  비밀번호
-                </label>
-                <input
-                  type="password"
-                  value={devicePass}
-                  onChange={(e) => setDevicePass(e.target.value)}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-custom focus:border-custom"
-                  placeholder="패스워드"
-                />
-              </div>
-
               <div className="flex justify-end space-x-2 mt-6">
                 <button
                   type="button"
                   onClick={closeDeviceModal}
-                  className="rounded-button border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  className="border border-gray-300 px-4 py-2 rounded"
                 >
                   취소
                 </button>
                 <button
                   type="submit"
-                  className="rounded-button bg-black text-white px-4 py-2 text-sm hover:bg-black/90"
+                  className="bg-black text-white px-4 py-2 rounded"
                 >
                   등록
                 </button>
@@ -562,19 +747,67 @@ function Monitor() {
         </div>
       )}
 
+      {/* "웹캠 선택" 모달 */}
+      {webcamModalOpen && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white w-full max-w-md p-6 rounded-lg relative">
+            <button
+              onClick={() => setWebcamModalOpen(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-custom"
+            >
+              <i className="fas fa-times text-xl"></i>
+            </button>
+            <h2 className="text-xl font-bold mb-4">웹캠 선택</h2>
+            {videoDevices.length === 0 ? (
+              <p className="text-red-500">사용 가능한 카메라가 없습니다.</p>
+            ) : (
+              <>
+                <p className="text-sm text-gray-600 mb-4">
+                  사용할 카메라 장치를 선택하세요
+                  <br />
+                  (가상 카메라 선택 시 검정 화면이 표시될 수 있습니다)
+                </p>
+                <select
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm mb-4"
+                  value={selectedDeviceId}
+                  onChange={(e) => setSelectedDeviceId(e.target.value)}
+                >
+                  {videoDevices.map((dev) => (
+                    <option key={dev.deviceId} value={dev.deviceId}>
+                      {dev.label || `Camera (${dev.deviceId})`}
+                    </option>
+                  ))}
+                </select>
+                <div className="flex justify-end space-x-2">
+                  <button
+                    onClick={() => setWebcamModalOpen(false)}
+                    className="rounded-button border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    취소
+                  </button>
+                  <button
+                    onClick={handleConfirmWebcamSelection}
+                    className="rounded-button bg-black text-white px-4 py-2 text-sm hover:bg-black/90"
+                  >
+                    확인
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* 개인정보법 안내 오버레이 */}
       {privacyOpen && (
         <PrivacyOverlay open={privacyOpen} onClose={closePrivacy} />
       )}
-
-      {/* ====== 실시간 영상 오버레이 ====== */}
-      {/* 현재 코드와 동일: videoOverlayData 등 활용 시 */}
     </div>
   );
 }
 
-// ConnectedDevices 컴포넌트
-function ConnectedDevices({ cameraList, onDeviceClick }) {
+// 연결된 장치 목록 예시 컴포넌트
+function ConnectedDevices({ cameraList }) {
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden mb-6">
       <div className="p-6">
@@ -589,22 +822,12 @@ function ConnectedDevices({ cameraList, onDeviceClick }) {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
             {cameraList.map((cam) => (
-              <div
-                key={cam.cameraId}
-                className="relative bg-black rounded-lg overflow-hidden shadow cursor-pointer min-h-[200px]"
-                onClick={() => onDeviceClick(cam)}
-              >
-                {/* 카메라 화면 */}
-                <div className="aspect-w-16 aspect-h-9">
-                  <img
-                    src={
-                      cam.cameraId === "cam1"
-                        ? cam.thumbnail || "../dist/정문.png"
-                        : cam.thumbnail || "../dist/주차장.png"
-                    } // 카메라 ID에 따라 기본 이미지 설정
-                    alt={cam.name}
-                    className="object-contain w-full h-full"
-                  />
+              <li key={cam.cameraId} className="p-2 bg-gray-50 rounded">
+                <div className="flex justify-between items-center">
+                  <span className="font-medium text-gray-700">
+                    {cam.cameraId}
+                  </span>
+                  <span className="text-xs text-gray-400">{cam.hlsUrl}</span>
                 </div>
 
                 {/* 정보 오버레이 */}
@@ -630,7 +853,7 @@ function ConnectedDevices({ cameraList, onDeviceClick }) {
                     </div>
                   </div>
                 </div>
-              </div>
+              </li>
             ))}
           </div>
         )}

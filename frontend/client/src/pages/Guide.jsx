@@ -91,7 +91,7 @@ function Guide() {
                 <Link
                   to="/chatbot"
                   className={`inline-flex items-center px-1 pt-1 nav-link ${
-                    isAiInsightActive
+                    isChatbotActive
                       ? "bg-black text-white font-medium"
                       : "text-gray-500 hover:text-black"
                   }`}
@@ -99,8 +99,8 @@ function Guide() {
                     padding: "0.5rem 1rem",
                     borderRadius: "0.375rem",
                     transition: "all 0.3s ease",
-                    backgroundColor: isAiInsightActive ? "#000000" : "#f3f4f6",
-                    color: isAiInsightActive ? "#ffffff" : "#000000",
+                    backgroundColor: isChatbotActive ? "#000000" : "#f3f4f6",
+                    color: isChatbotActive ? "#ffffff" : "#000000",
                   }}
                 >
                   챗봇

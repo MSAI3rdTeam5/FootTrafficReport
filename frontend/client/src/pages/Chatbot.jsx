@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { chatbot_recall } from "../services/chatbotService";
-import LogoutButton from "../components/LogoutButton"; // 경로 확인 필수
+import { getChatbotResponse } from "../utils/api";
+import html2canvas from "html2canvas";
+import { jsPDF } from "jspdf";
 
 function ChatbotPage() {
   const location = useLocation();
@@ -17,12 +18,44 @@ function ChatbotPage() {
   const isChatbotActive = location.pathname === "/chatbot";
   const isGuideActive = location.pathname === "/guide";
 
-  // 대화 목록
-  const [conversations, setConversations] = useState([]);
-  const [activeConversationId, setActiveConversationId] = useState(null);
+  //초기 대화
+  const daysOfWeek = ["일", "월", "화", "수", "목", "금", "토"];
+  const now = new Date();
+  const month = now.getMonth() + 1;
+  const date = now.getDate();
+  const dayOfWeek = daysOfWeek[now.getDay()];
 
-  // 메시지 입력
-  const [messages, setMessages] = useState([]);
+  const initialConversationId = Date.now();
+  const initialConversation = {
+    id: initialConversationId,
+    title: `대화 1 - ${month}월 ${date}일(${dayOfWeek})`,
+    date: now.toLocaleString("ko-KR", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    }),
+    messages: [
+      {
+        id: initialConversationId + 1,
+        sender: "bot",
+        text: "안녕하세요 ! 저는 AI 정책 추천 챗봇 입니다. ",
+      },
+      {
+        id: initialConversationId + 2,
+        sender: "bot",
+        text: "정확한 추천을 위해, 거주 지역(시/도, 시/군/구)·신분(예비창업자, 소상공인 등)·관심 업종 등을 구체적으로 포함해 질문해 주세요.",
+      },
+    ],
+  };
+
+  const [conversations, setConversations] = useState([initialConversation]);
+  const [activeConversationId, setActiveConversationId] = useState(
+    initialConversationId
+  );
+
+  // 입력창 상태
   const [inputMessage, setInputMessage] = useState("");
 
   // 목록 표시/숨기기 상태
@@ -38,11 +71,22 @@ function ChatbotPage() {
 
   // 새 대화 버튼
   const handleNewConversation = () => {
+    const daysOfWeek = ["일", "월", "화", "수", "목", "금", "토"];
+
     const now = new Date();
     const newId = Date.now();
+    const month = now.getMonth() + 1;
+    const date = now.getDate();
+    const dayOfWeek = daysOfWeek[now.getDay()];
+
+    const conversationNumber = conversations.length + 1;
+
+    // 예: "대화 #1 - 2월 21일(금)"
+    const newTitle = `대화 ${conversationNumber} - ${month}월 ${date}일(${dayOfWeek})`;
+
     const newConv = {
       id: newId,
-      title: `새 대화 ${conversations.length + 1}`,
+      title: newTitle,
       date: now.toLocaleString("ko-KR", {
         year: "numeric",
         month: "2-digit",
@@ -54,7 +98,12 @@ function ChatbotPage() {
         {
           id: newId + 1,
           sender: "bot",
-          text: "새로운 대화를 시작합니다! 무엇을 도와드릴까요?",
+          text: "안녕하세요 ! 저는 AI 정책 추천 챗봇 입니다. ",
+        },
+        {
+          id: newId + 2,
+          sender: "bot",
+          text: "정확한 추천을 위해, 거주 지역(시/도, 시/군/구)·신분(예비창업자, 소상공인 등)·관심 업종 등을 구체적으로 포함해 질문해 주세요.",
         },
       ],
     };
@@ -83,16 +132,12 @@ function ChatbotPage() {
       )
     );
 
-    // 사용자의 입력값을 임시 변수에 저장한 후 입력창 초기화
-    const currentQuestion = inputMessage;
-    setInputMessage("");
-
     // 로딩(타이핑) 상태 메시지 추가 (옵션)
     const typingMsgId = Date.now() + 1;
     const typingMsg = {
       id: typingMsgId,
       sender: "bot",
-      text: "챗봇이 응답을 준비 중입니다...",
+      text: "응답을 준비 중입니다...",
     };
 
     setConversations((prev) =>
@@ -105,25 +150,32 @@ function ChatbotPage() {
 
     try {
       // 실제 백엔드 API 호출
-      const answer = await chatbot_recall(currentQuestion);
+      const answer = await getChatbotResponse(inputMessage);
 
-      // 타이핑 메시지 제거 후 실제 응답 메시지 추가
+      // 봇 응답 메시지와 저장 안내 메시지를 생성합니다.
+      const newAnswerMessage = {
+        id: Date.now(),
+        sender: "bot",
+        text: answer,
+      };
+      const newSaveMessage = {
+        id: Date.now() + 1,
+        sender: "bot",
+        text: "채팅 내용을 저장하고 싶으면 오른쪽 상단 '다운로드' 버튼을 눌러주세요.",
+      };
+
       setConversations((prev) =>
-        prev.map((conv) => {
-          if (conv.id === activeConversationId) {
-            return {
-              ...conv,
-              messages: conv.messages
-                .filter((msg) => msg.id !== typingMsgId)
-                .concat({
-                  id: Date.now(),
-                  sender: "bot",
-                  text: answer,
-                }),
-            };
-          }
-          return conv;
-        })
+        prev.map((conv) =>
+          conv.id === activeConversationId
+            ? {
+                ...conv,
+                messages: conv.messages
+                  .filter((msg) => msg.id !== typingMsgId)
+                  // .concat({ id: Date.now(), sender: "bot", text: answer }),
+                  .concat([newAnswerMessage, newSaveMessage]),
+              }
+            : conv
+        )
       );
     } catch (error) {
       console.error("챗봇 응답 에러:", error);
@@ -147,11 +199,6 @@ function ChatbotPage() {
     }
   };
 
-  // 대화 이름 바꾸기 (임시 구현)
-  const handleRenameConversation = (id) => {
-    alert("대화 이름 바꾸기는 아직 구현되지 않았습니다.");
-  };
-
   // 목록 토글 버튼
   const toggleList = () => {
     setShowList((prev) => !prev);
@@ -167,6 +214,63 @@ function ChatbotPage() {
     setConversations((prev) => prev.filter((c) => c.id !== id));
     if (activeConversationId === id) {
       setActiveConversationId(null);
+    }
+  };
+
+  //PDF 다운로드
+  const handleDownloadPDF = async () => {
+    if (!activeConversation) {
+      alert("내보낼 대화가 없습니다.");
+      return;
+    }
+
+    const chatElement = document.getElementById("chatContainer");
+    if (!chatElement) {
+      alert("대화 영역을 찾을 수 없습니다.");
+      return;
+    }
+
+    const originalStyles = {
+      height: chatElement.style.height,
+      maxHeight: chatElement.style.maxHeight,
+      overflow: chatElement.style.overflow,
+    };
+
+    try {
+      chatElement.style.height = "auto";
+      chatElement.style.maxHeight = "none";
+      chatElement.style.overflow = "visible";
+
+      await new Promise((r) => setTimeout(r, 100));
+
+      const canvas = await html2canvas(chatElement, { scale: 2 });
+      const imgData = canvas.toDataURL("image/png");
+
+      const pdf = new jsPDF("p", "pt", "a4");
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+
+      const imgProps = pdf.getImageProperties(imgData);
+      const imgWidth = imgProps.width;
+      const imgHeight = imgProps.height;
+
+      const today = new Date();
+      const formattedDate = today.toISOString().split("T")[0];
+
+      let newHeight = (imgHeight * pdfWidth) / imgWidth;
+      if (newHeight > pdfHeight) {
+        newHeight = pdfHeight;
+      }
+
+      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, newHeight);
+      pdf.save(`ISeeU_Chat${formattedDate}.pdf`);
+    } catch (err) {
+      console.error("PDF 생성 에러:", err);
+      alert("PDF 생성 중 오류가 발생했습니다.");
+    } finally {
+      chatElement.style.height = originalStyles.height;
+      chatElement.style.maxHeight = originalStyles.maxHeight;
+      chatElement.style.overflow = originalStyles.overflow;
     }
   };
 
@@ -319,8 +423,39 @@ function ChatbotPage() {
 
                   {/* 드롭다운 메뉴 */}
                   {isOpen && (
-                    <div className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-lg p-2 z-50">
-                      <LogoutButton />
+                    <div
+                      className="absolute right-0 top-full mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5"
+                      role="menu"
+                    >
+                      <a
+                        href="#"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        role="menuitem"
+                      >
+                        프로필 설정
+                      </a>
+                      <a
+                        href="#"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        role="menuitem"
+                      >
+                        계정 관리
+                      </a>
+                      <a
+                        href="#"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        role="menuitem"
+                      >
+                        알림 설정
+                      </a>
+                      <div className="border-t border-gray-100 my-1"></div>
+                      <a
+                        href="#"
+                        className="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                        role="menuitem"
+                      >
+                        로그아웃
+                      </a>
                     </div>
                   )}
                 </div>
@@ -430,7 +565,7 @@ function ChatbotPage() {
                           {/* 점 세 개 눌렀을 때 나오는 드롭다운 메뉴 */}
                           {activeMenuId === conv.id && (
                             <div className="absolute top-8 right-2 w-32 bg-white border border-gray-200 rounded shadow-md z-10">
-                              <button
+                              {/* <button
                                 className="w-full text-left px-4 py-2 text-sm text-black hover:bg-gray-100"
                                 onClick={(e) => {
                                   e.stopPropagation();
@@ -439,7 +574,7 @@ function ChatbotPage() {
                                 }}
                               >
                                 이름 바꾸기
-                              </button>
+                              </button> */}
                               <button
                                 className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 text-red-500"
                                 onClick={(e) => {
@@ -448,7 +583,7 @@ function ChatbotPage() {
                                   toggleMenu(conv.id);
                                 }}
                               >
-                                삭제
+                                대화내용 삭제
                               </button>
                             </div>
                           )}
@@ -483,20 +618,46 @@ function ChatbotPage() {
                   </h3>
                 </div>
                 <div className="flex space-x-2">
-                  <button className="p-2 text-gray-500 hover:text-gray-700 rounded">
-                    <i className="fas fa-download"></i>
-                  </button>
-                  <button className="p-2 text-gray-500 hover:text-gray-700 rounded">
-                    <i className="fas fa-ellipsis-v"></i>
-                  </button>
+                  {/* 다운로드 버튼 + 툴팁 */}
+                  <div className="relative group">
+                    <button
+                      className="p-2 text-gray-500 hover:text-gray-700 rounded"
+                      onClick={handleDownloadPDF}
+                    >
+                      <i className="fas fa-download"></i>
+                    </button>
+                    {/* 툴팁 */}
+                    <div
+                      className="
+                        absolute
+                        whitespace-nowrap
+                        bg-black
+                        text-white
+                        text-xs
+                        rounded
+                        px-2
+                        py-1
+                        opacity-0
+                        group-hover:opacity-100
+                        transition-opacity
+                        duration-300
+                        -top-5
+                        left-1/2
+                        transform
+                        -translate-x-1/2
+                      "
+                    >
+                      다운로드
+                    </div>
+                  </div>
                 </div>
               </div>
 
               {/* 메시지 목록 (스크롤) */}
-              <div className="flex-1 p-6 overflow-y-auto">
+              <div id="chatContainer" className="flex-1 p-6 overflow-y-auto">
                 {!activeConversation ? (
                   <div className="text-gray-500">
-                    메시지를 입력하면 새 대화가 시작됩니다.
+                    메시지를 입력하면 대화가 시작됩니다.
                   </div>
                 ) : (
                   <div className="space-y-6">
@@ -540,7 +701,7 @@ function ChatbotPage() {
                     className="flex-1 form-input border-gray-300 focus:border-custom focus:ring-custom rounded-lg resize-none"
                     placeholder={
                       activeConversation
-                        ? "메시지를 입력하세요..."
+                        ? "메시지를 입력해주세요. "
                         : "대화를 먼저 선택해주세요."
                     }
                     rows={3}
