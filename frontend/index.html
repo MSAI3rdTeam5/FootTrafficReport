@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>I See U - 로그인</title>
+    <!-- Google Fonts -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Font Awesome -->
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <!--
+      Tailwind는 로컬로 설정되어 있으므로 CDN은 불필요.
+      필요한 경우:
+      <script src="https://cdn.tailwindcss.com/3.4.5"></script>
+    -->
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <!-- (1) webrtc-adapter를 먼저 로드 -->
+    <script src="/adapter/adapter.js"></script>
+
+    <!-- (2) Janus.js: 전역 스크립트로 로드 (기존 코드) -->
+    <script src="/janus/janus.js"></script>
+
+    <!-- (3) Vite main script (React or Vue 등에서 사용) -->
+    <script type="module" src="/src/main.jsx"></script>
+
+    <!-- (4) Socket.io 클라이언트 스크립트: Node 서버가 /socket.io/socket.io.js 제공 -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      // 즉시실행 함수로 감싸서 전역 스코프 오염 방지 (선택)
+      (function() {
+        // Socket.io 초기화
+        //  - '/socket.io' 경로로 접근할 때, Nginx에서 media-sfu:3000/socket.io 로 프록시
+        const socket = io('/', {
+          path: '/socket.io', // nginx에서 /socket.io/ -> media-sfu:3000/socket.io 로 라우팅
+          transports: ['websocket'], // 필요 시 추가
+        });
+
+        // 연결 성공
+        socket.on('connect', () => {
+          console.log('Socket.io connected! socket.id=', socket.id);
+        });
+
+        // 연결 해제
+        socket.on('disconnect', (reason) => {
+          console.log('Socket.io disconnected:', reason);
+        });
+
+        // 예시: 서버에서 "message" 이벤트를 보낼 경우
+        socket.on('message', (msg) => {
+          console.log('[socket.io] message:', msg);
+        });
+      })();
+    </script>
+  </body>
+</html>
