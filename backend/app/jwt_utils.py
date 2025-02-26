@@ -7,7 +7,7 @@ import os
 JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
 REFRESH_SECRET= os.getenv("REFRESH_SECRET")
 
-def create_jwt_token(data: dict, key_type : str, expires_in: int = 300) -> str:
+def create_jwt_token(data: dict, key_type : str, expires_in: int = 3600) -> str:
     """
     data: { "sub": user_email_or_id, ... }  # payload
     expires_in: 토큰 만료시간(초) (기본 3600*3=3시간)

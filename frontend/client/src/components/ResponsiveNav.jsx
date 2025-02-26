@@ -114,7 +114,11 @@ function ResponsiveNav({ onOpenPrivacy }) {
             onClick={toggleDarkMode}
             className="px-3 py-2 rounded hover:bg-gray-200 dark:hover:bg-gray-600 dark:text-white"
           >
-            {isDarkMode ? "Light Mode" : "Dark Mode"}
+            {isDarkMode ? (
+              <i className="fas fa-sun text-yellow-500"></i>
+            ) : (
+              <i className="fas fa-moon text-gray-600"></i>
+            )}
           </button>
 
           {/* 알림, 설정, 프로필 아이콘 */}
@@ -199,12 +203,15 @@ function ResponsiveNav({ onOpenPrivacy }) {
 
         {/* 햄버거 버튼 (모바일) */}
         <div className="md:hidden flex items-center">
-          {/* 다크 모드 버튼을 모바일에서도 보여주려면 여기에 배치할 수도 있음 */}
           <button
             onClick={toggleDarkMode}
             className="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 mr-2"
           >
-            <i className={`fas ${isDarkMode ? "fa-sun" : "fa-moon"} text-gray-600 dark:text-gray-200`} />
+            {isDarkMode ? (
+              <i className="fas fa-sun text-yellow-500"></i>
+            ) : (
+              <i className="fas fa-moon text-gray-600"></i>
+            )}
           </button>
 
           <button

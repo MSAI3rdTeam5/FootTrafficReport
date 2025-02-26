@@ -6,6 +6,7 @@ FROM node:18
 #    (mediasoup는 C++ 컴파일이 필요하므로 g++, make, python3 등 필수)
 RUN apt-get update && apt-get install -y \
     python3 python3-pip \
+    iputils-ping \
     g++ make libssl-dev liburing-dev pkg-config \
     && rm -rf /var/lib/apt/lists/*
 

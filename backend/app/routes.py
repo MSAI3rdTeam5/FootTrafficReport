@@ -99,8 +99,8 @@ def login_user(data: LoginRequest, db: Session = Depends(get_db)):
     if not verify_password(data.password, user.password):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
-    # Access Token (짧은 만료, 예: 300초=5분)
-    access_token = create_jwt_token({"sub": user.email}, key_type="access", expires_in=300)
+    # Access Token (짧은 만료, 예: 3600초=3시간)
+    access_token = create_jwt_token({"sub": user.email}, key_type="access", expires_in=3600)
 
     # Refresh Token (긴 만료, 예: 7일=604800초)
     refresh_token = create_jwt_token({"sub": user.email}, key_type="refresh", expires_in=604800)
