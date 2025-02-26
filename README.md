@@ -1,4 +1,5 @@
 # 팀 ISEEU: MS AI SCHOOL 5기 3차 5팀 프로젝트
+
 ## 프로젝트 개요
 ### 팀 정보
 - **프로젝트명:** CV 기반 유동인구 데이터베이스화 및 LLM 활용 보고서 및 대시보드 개발
@@ -12,31 +13,34 @@
 4. 전처리된 정책문서를 바탕으로 정보를 제공하는 챗봇 개발
 
 ## 기술 스택
-- 프론트
-- 백앤드
+- 프론트엔드
+- 백엔드
 - 서버
-- 데이터 베이스
+- 데이터베이스
 - CV 모델
 - LLM 모델
 
 ## 서비스
-![[프로젝트 5팀(I SEE U )_시연영상.mov]]
+![서비스 시연 영상](images/프로젝트_5팀_I_SEE_U_시연영상.mov)
 
 ## 서비스 아키텍처
-- **Web page**
-![[Pasted image 20250225182030.png]]
-- **Server**
-![[Pasted image 20250225182330.png]]
-- **Database**
-![[Pasted image 20250225182347.png]]
-- **CV-model**
-![[Pasted image 20250225183013.png]]
-- **Report-generater**
-![[Pasted image 20250225182421.png]]
-- Chatbot
-![[Pasted image 20250225182430.png]]
+- **Web page**  
+  ![Web Page](images/Pasted_image_20250225182030.png)
 
+- **Server**  
+  ![Server](images/Pasted_image_20250225182330.png)
 
+- **Database**  
+  ![Database](images/Pasted_image_20250225182347.png)
+
+- **CV-model**  
+  ![CV Model](images/Pasted_image_20250225183013.png)
+
+- **Report-generator**  
+  ![Report Generator](images/Pasted_image_20250225182421.png)
+
+- **Chatbot**  
+  ![Chatbot](images/Pasted_image_20250225182430.png)
 
 ## 프로젝트 구조도
 ```
@@ -117,13 +121,13 @@ FOOTTRAFFICREPORT [SSH: 20.39.188.60]
 │   │   │   │   │── index.js
 │   │   │   │   │── passportConfig.js
 │   │   │   │   │── signaling.js
-│   │   │── .env
-│   │   │── Dockerfile
-│   │   │── package-lock.json
-│   │   │── package.json
-│   │   │── .dockerignore
-│   │   │── .gitmessage.txt
-│   │   │── LICENSE
+│   │── .env
+│   │── Dockerfile
+│   │── package-lock.json
+│   │── package.json
+│   │── .dockerignore
+│   │── .gitmessage.txt
+│   │── LICENSE
 │── media-server/
 │   │── .dockerignore
 │   │── Dockerfile
@@ -167,6 +171,4 @@ FOOTTRAFFICREPORT [SSH: 20.39.188.60]
 │── docker-compose.yml
 │── LICENSE
 │── package-lock.json
-
-
 ```
