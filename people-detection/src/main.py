@@ -13,7 +13,7 @@ import pandas as pd
 import aiohttp
 import asyncio
 import numpy as np
-import base64
+import aiofiles
  
 app = FastAPI()
  
@@ -48,8 +48,9 @@ class AzureAPI:
     async def analyze_image(self, image_path):
         if not self.session:
             await self.start()
-        with open(image_path, "rb") as image_file:
-            image_data = image_file.read()
+
+        async with aiofiles.open(image_path, "rb") as image_file:
+            image_data = await image_file.read()
         async with self.session.post(self.url, headers=self.headers, data=image_data) as response:
             result = await response.json()
         return self.normalize_predictions(result['predictions'])
@@ -347,26 +348,26 @@ class PersonTracker:
 Test code 할때는 __name__ == "__main__"으로 실행 (detect_people 함수는 주석 처리)
 웹으로 호출해서 실제 cctv에서 실행할때는 detect_people로 실행 (__name__ == "__main__" 주석 처리)
 '''
-# 웹으로 호출되는 함수
-@app.post("/detect")
-async def detect_people(request: DetectionRequest):
-    try:
-        tracker = PersonTracker(
-            model_path='FootTrafficReport/people-detection/model/yolo11n-pose.pt'
-        )
-        result = await tracker.detect_and_track(source=request.cctv_url, cctv_id=request.cctv_id)
-        return result
+# # 웹으로 호출되는 함수
+# @app.post("/detect")
+# async def detect_people(request: DetectionRequest):
+#     try:
+#         tracker = PersonTracker(
+#             model_path='FootTrafficReport/people-detection/model/yolo11n-pose.pt'
+#         )
+#         result = await tracker.detect_and_track(source=request.cctv_url, cctv_id=request.cctv_id)
+#         return result
    
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=str(e))
  
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8500)
+# if __name__ == "__main__":
+#     import uvicorn
+#     uvicorn.run(app, host="0.0.0.0", port=8500)
  
  
-# #Test할때 하는 작업 (cctv_id는 임의로 설정)
-# if __name__ == '__main__':
-#     source = "../data/videos/05_seoul.mp4"
-#     tracker = PersonTracker(model_path='../model/yolo11n-pose.pt')
-#     asyncio.run(tracker.detect_and_track(source=source, cctv_id=1))
+#Test할때 하는 작업 (cctv_id는 임의로 설정)
+if __name__ == '__main__':
+    source = "../data/videos/05_seoul.mp4"
+    tracker = PersonTracker(model_path='../model/yolo11n-pose.pt')
+    asyncio.run(tracker.detect_and_track(source=source, cctv_id=1))
