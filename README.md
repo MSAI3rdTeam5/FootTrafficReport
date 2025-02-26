@@ -49,7 +49,7 @@
   ![Report Generator](images/Report_generater.png)
 
 - **Chatbot**  
-  ![Chatbot](images/Chatbot.png)
+  ![Chatbot](images/Chat_bot.png)
 
 ## 프로젝트 구조도
 ```
