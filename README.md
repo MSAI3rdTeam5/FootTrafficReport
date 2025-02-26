@@ -13,43 +13,52 @@
 4. 전처리된 정책문서를 바탕으로 정보를 제공하는 챗봇 개발
 
 ## 기술 스택
-- 프론트엔드
-- 백엔드
-- 서버
-- 데이터베이스
-- CV 모델
-- LLM 모델
+- 프론트엔드: 
+<img src="https://img.shields.io/badge/React-61DAFB?style=flat&logo=react&logoColor=white"/> <img src="https://img.shields.io/badge/Tailwind%20CSS-06B6D4?style=flat&logo=tailwindcss&logoColor=white"/> <img src="https://img.shields.io/badge/Vite-646CFF?style=flat&logo=vite&logoColor=white"/> <img src="https://img.shields.io/badge/WebRTC-333333?style=flat&logo=webrtc&logoColor=white"/> <img src="https://img.shields.io/badge/Socket.io-010101?style=flat&logo=socketdotio&logoColor=white"/>
+
+- 백엔드: 
+<img src="https://img.shields.io/badge/Docker-2496ED?style=flat&logo=docker&logoColor=white"/> <img src="https://img.shields.io/badge/NGINX-009639?style=flat&logo=nginx&logoColor=white"/> <img src="https://img.shields.io/badge/FastAPI-009688?style=flat&logo=fastapi&logoColor=white"/>
+- 데이터베이스: 
+<img src="https://img.shields.io/badge/PostgreSQL-4169E1?style=flat&logo=postgresql&logoColor=white"/> <img src="https://img.shields.io/badge/Redis-FF4438?style=flat&logo=redis&logoColor=white"/> <img src="https://img.shields.io/badge/Celery-37814A?style=flat&logo=celery&logoColor=white"/> <img src="https://img.shields.io/badge/SQLAlchemy-D71F00?style=flat&logo=sqlalchemy&logoColor=white"/>
+- CV 모델: 
+<img src="https://img.shields.io/badge/YOLO11%20nano-111F68?style=flat&logo=yolo&logoColor=white"/> <img src="https://img.shields.io/badge/OpenCV-5C3EE8?style=flat&logo=opencv&logoColor=white"/> <img src="https://img.shields.io/badge/AIOHTTP-2C5BB4?style=flat&logo=aiohttp&logoColor=white"/> <img src="https://img.shields.io/badge/PyTorch-EE4C2C?style=flat&logo=aiohttp&logoColor=white"/>
+- LLM 모델: 
+<img src="https://img.shields.io/badge/GPT_o3_mini-412991?style=flat&logo=openai&logoColor=white"/> <img src="https://img.shields.io/badge/Pandas-150458?style=flat&logo=pandas&logoColor=white"/>
 
 ## 서비스
-- 내 모니터링
-  ![Web Page](images/Monitering.png)
-- CCTV 확인
-  ![Web Page](images/Log_page.png)
-- Dashboaed
-  ![Web Page](images/Dashboard.png)
-- AI 인사이트
-   ![Web Page](images/AIinsight.png)
-- 챗봇
-  ![Web Page](images/Chatbot_page.png)
+- 내 모니터링  
+  <img src="images/Monitering.png" width="200">
+
+- CCTV 확인  
+  <img src="images/Log_page.png" width="600">
+
+- Dashboard  
+  <img src="images/Dashboard.png" width="600">
+
+- AI 인사이트  
+  <img src="images/AIinsight.png" width="600">
+
+- 챗봇  
+  <img src="images/Chatbot_page.png" width="600">
 
 ## 서비스 아키텍처
 - **Web page**  
-  ![Web Page](images/WebPage.png)
+  <img src="images/WebPage.png" width="600">
 
 - **Server**  
-  ![Server](images/Server.png)
+  <img src="images/Server.png" width="600">
 
 - **Database**  
-  ![Database](images/Database.png)
+  <img src="images/Database.png" width="600">
 
 - **CV-model**  
-  ![CV Model](images/CV_model.png)
+  <img src="images/CV_model.png" width="600">
 
 - **Report-generator**  
-  ![Report Generator](images/Report_generater.png)
+  <img src="images/Report_generater.png" width="600">
 
 - **Chatbot**  
-  ![Chatbot](images/Chat_bot.png)
+  <img src="images/Chat_bot.png" width="600">
 
 ## 프로젝트 구조도
 ```
@@ -130,13 +139,13 @@ FOOTTRAFFICREPORT [SSH: 20.39.188.60]
 │   │   │   │   │── index.js
 │   │   │   │   │── passportConfig.js
 │   │   │   │   │── signaling.js
-│   │── .env
-│   │── Dockerfile
-│   │── package-lock.json
-│   │── package.json
-│   │── .dockerignore
-│   │── .gitmessage.txt
-│   │── LICENSE
+│   │   │── .env
+│   │   │── Dockerfile
+│   │   │── package-lock.json
+│   │   │── package.json
+│   │   │── .dockerignore
+│   │   │── .gitmessage.txt
+│   │   │── LICENSE
 │── media-server/
 │   │── .dockerignore
 │   │── Dockerfile
@@ -181,3 +190,6 @@ FOOTTRAFFICREPORT [SSH: 20.39.188.60]
 │── LICENSE
 │── package-lock.json
 ```
+
+
+
