@@ -46,15 +46,6 @@ function Guide() {
 
       {/* 메인 래퍼 (사이드바 + 컨텐츠) */}
       <div className="flex-1 flex">
-<<<<<<< HEAD
-        {/* 사이드바 */}
-        <aside
-          ref={sidebarRef}
-          className="
-            hidden md:block   /* 모바일에서 숨기고, md 이상에서 보여줌 */
-            w-64
-            bg-white dark:bg-gray-800 dark:text-gray-200
-=======
         {/* 사이드바 스타일 개선 */}
         <aside
           ref={sidebarRef}
@@ -63,21 +54,12 @@ function Guide() {
             w-72  /* 너비 증가 */
             bg-gradient-to-b from-white to-gray-50  /* 그라데이션 배경 */
             dark:from-gray-800 dark:to-gray-900
->>>>>>> hotfix
             border-r border-gray-200 dark:border-gray-700
             fixed
             h-full
             overflow-y-auto
             transition-all
             duration-300
-<<<<<<< HEAD
-            shadow
-            z-20
-          "
-          style={{ top: "64px", height: `${window.innerHeight}px` }} // 초기 스타일
-        >
-          <div className="p-6">
-=======
             shadow-lg  /* 그림자 강화 */
             z-20
             backdrop-blur-sm  /* 블러 효과 */
@@ -85,18 +67,12 @@ function Guide() {
           style={{ top: "64px", height: `${window.innerHeight}px` }}
         >
           <div className="p-8"> {/* 패딩 증가 */}
->>>>>>> hotfix
             <nav>
               <h3 className="text-sm font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-4">
                 안내서 목차
               </h3>
               <ul className="space-y-3"> {/* 간격 조정 */}
                 <li>
-<<<<<<< HEAD
-                  <a
-                    href="#intro"
-                    className="block px-4 py-2 text-custom hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
-=======
                   <a 
                     href="#intro" 
                     className="
@@ -118,92 +94,61 @@ function Guide() {
                       hover:border-gray-200
                       dark:hover:border-gray-600
                     "
->>>>>>> hotfix
                   >
                     <i className="fas fa-home mr-3 text-custom"></i>
                     앱 소개
                   </a>
                 </li>
                 <li>
-<<<<<<< HEAD
-                  <a
-                    href="#device"
-                    className="block px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
-=======
                   <a 
                     href="#device" 
                     className="block px-4 py-3 text-lg font-medium rounded-xl transition-all duration-200
                       hover:bg-gray-100 dark:hover:bg-gray-700 hover:shadow-md hover:translate-x-1
                       text-gray-700 dark:text-gray-300 border border-transparent hover:border-gray-200 dark:hover:border-gray-600"
->>>>>>> hotfix
                   >
                     <i className="fas fa-video mr-3 text-custom"></i>
                     장치 등록 방법
                   </a>
                 </li>
                 <li>
-<<<<<<< HEAD
-                  <a
-                    href="#monitor"
-                    className="block px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
-=======
                   <a 
                     href="#monitor" 
                     className="block px-4 py-3 text-lg font-medium rounded-xl transition-all duration-200
                       hover:bg-gray-100 dark:hover:bg-gray-700 hover:shadow-md hover:translate-x-1
                       text-gray-700 dark:text-gray-300 border border-transparent hover:border-gray-200 dark:hover:border-gray-600"
->>>>>>> hotfix
                   >
                     <i className="fas fa-desktop mr-3 text-custom"></i>
                     실시간 모니터링
                   </a>
                 </li>
                 <li>
-<<<<<<< HEAD
-                  <a
-                    href="#stats"
-                    className="block px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
-=======
                   <a 
                     href="#stats" 
                     className="block px-4 py-3 text-lg font-medium rounded-xl transition-all duration-200
                       hover:bg-gray-100 dark:hover:bg-gray-700 hover:shadow-md hover:translate-x-1
                       text-gray-700 dark:text-gray-300 border border-transparent hover:border-gray-200 dark:hover:border-gray-600"
->>>>>>> hotfix
                   >
                     <i className="fas fa-chart-bar mr-3 text-custom"></i>
                     통계 분석 활용
                   </a>
                 </li>
                 <li>
-<<<<<<< HEAD
-                  <a
-                    href="#faq"
-                    className="block px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
-=======
                   <a 
                     href="#ai-insight" 
                     className="block px-4 py-3 text-lg font-medium rounded-xl transition-all duration-200
                       hover:bg-gray-100 dark:hover:bg-gray-700 hover:shadow-md hover:translate-x-1
                       text-gray-700 dark:text-gray-300 border border-transparent hover:border-gray-200 dark:hover:border-gray-600"
->>>>>>> hotfix
                   >
                     <i className="fas fa-robot mr-3 text-custom"></i>
                     AI 인사이트
                   </a>
                 </li>
                 <li>
-<<<<<<< HEAD
-                  <a
-                    href="#extra"
-                    className="block px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
-=======
                   <a 
                     href="#chatbot" 
                     className="block px-4 py-3 text-lg font-medium rounded-xl transition-all duration-200
                       hover:bg-gray-100 dark:hover:bg-gray-700 hover:shadow-md hover:translate-x-1
                       text-gray-700 dark:text-gray-300 border border-transparent hover:border-gray-200 dark:hover:border-gray-600"
->>>>>>> hotfix
                   >
                     <i className="fas fa-comments mr-3 text-custom"></i>
                     정책 문답 챗봇
@@ -237,13 +182,8 @@ function Guide() {
         </aside>
 
         {/* 메인 컨텐츠 */}
-<<<<<<< HEAD
-        <main className="md:ml-64 flex-1">
-          <div className="max-w-7xl mx-auto px-6 pt-8 pb-16">
-=======
         <main className="flex-1">
           <div className="max-w-7xl mx-auto px-6 pt-8 pb-16 md:ml-72">
->>>>>>> hotfix
             {/* #intro */}
             <section id="intro" className="mb-16">
               <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">
@@ -286,19 +226,11 @@ function Guide() {
                       </li>
                       <li className="flex items-center">
                         <i className="fas fa-clock text-custom mr-3"></i>
-<<<<<<< HEAD
-                        피크 시간대·체류 시간 분석
-                      </li>
-                      <li className="flex items-center">
-                        <i className="fas fa-file-download text-custom mr-3"></i>
-                        보고서 다운로드
-=======
                         정책 문답 챗봇 서비스
                       </li>
                       <li className="flex items-center">
                         <i className="fas fa-file-download text-custom mr-3"></i>
                         AI 리포트 생성 및및 다운로드
->>>>>>> hotfix
                       </li>
                     </ul>
                   </div>
@@ -360,35 +292,6 @@ function Guide() {
                 3. 실시간 모니터링 화면 사용법
               </h2>
               <div className="bg-white dark:bg-gray-800 dark:text-gray-200 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
-<<<<<<< HEAD
-                <div className="mb-6">
-                    <img
-                      src="/가이드1.png"
-                      alt="모니터링 화면"
-                      className="w-full rounded-lg mb-4"
-                    />
-                  </div>
-                  <div className="space-y-4">
-                    <p>
-                      내 모니터링 화면 혹은 통계 분석 화면 내의 "실시간 모니터링"
-                      섹션에서, 등록된 화면(2×2 블록 등)을 확인할 수 있습니다.
-                    </p>
-                    <p>
-                      원하는 화면을 클릭해 체크박스를 선택할 수 있습니다. 선택된
-                      화면은 하단 목록에 표시됩니다.
-                    </p>
-                    <p>
-                      "새 장치 연결" 버튼을 통해 다른 디바이스도 지속해서 추가
-                      가능.
-                    </p>
-                    <div className="bg-blue-50 border-l-4 border-black p-4 mt-4">
-                      <p className="text-sm">
-                        <i className="fas fa-info-circle text-black mr-2"></i>TIP:
-                        네트워크 상태가 불안정하면 영상이 끊길 수 있습니다.
-                        가능하면 유선 LAN 또는 안정된 Wi-Fi를 이용해주세요.
-                      </p>
-                    </div>
-=======
                 <div className="space-y-8">
                   {/* 3.1 기본 화면 구성 */}
                   <div>
@@ -436,8 +339,8 @@ function Guide() {
                       네트워크 상태가 불안정하면 영상이 끊길 수 있습니다.
                       가능하면 유선 LAN 또는 안정된 Wi-Fi를 이용해주세요.
                     </p>
->>>>>>> hotfix
                   </div>
+                </div>
               </div>
             </section>
 
@@ -450,61 +353,6 @@ function Guide() {
                 <div className="grid grid-cols-2 gap-6 mb-8">
                     <div>
                       <h3 className="text-lg font-bold mb-4">
-<<<<<<< HEAD
-                        4.1. 시간대별 방문자 통계
-                      </h3>
-                      <img
-                        src="/가이드2.png"
-                        alt="시간대별 방문자 통계"
-                        className="w-full rounded-lg"
-                      />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-bold mb-4">4.2. 현황 통계</h3>
-                      <div className="space-y-4">
-                        <div className="bg-gray-50 p-4 rounded-lg">
-                          <div className="flex justify-between items-center">
-                            <span>오늘 방문자</span>
-                            <span className="text-green-500">+15.2%</span>
-                          </div>
-                          <div className="text-2xl font-bold mt-2">2,458명</div>
-                        </div>
-                        <div className="bg-gray-50 p-4 rounded-lg">
-                          <div className="flex justify-between items-center">
-                            <span>평균 체류 시간</span>
-                            <span className="text-red-500">-5.3%</span>
-                          </div>
-                          <div className="text-2xl font-bold mt-2">32분</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-bold mb-4">4.3. 최근 인사이트</h3>
-                    <div className="space-y-4">
-                      <div className="border border-gray-200 rounded-lg p-4">
-                        <div className="flex justify-between items-center">
-                          <span className="font-medium">
-                            점심 시간대 피크 분석
-                          </span>
-                          <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">
-                            완료
-                          </span>
-                        </div>
-                        <p className="text-sm text-gray-600 mt-2">
-                          12:00~13:00 방문자 증가율 분석 완료
-                        </p>
-                      </div>
-                      <div className="border border-gray-200 rounded-lg p-4">
-                        <div className="flex justify-between items-center">
-                          <span className="font-medium">매장 체류 시간 분석</span>
-                          <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
-                            진행중
-                          </span>
-                        </div>
-                        <p className="text-sm text-gray-600 mt-2">
-                          주간 체류 시간 패턴 분석중
-=======
                         4.1. 실시간 통계 대시보드
                       </h3>
                       <ul className="space-y-3 text-gray-600 dark:text-gray-300">
@@ -540,13 +388,10 @@ function Guide() {
                           • 남성/여성 방문자 비율 파이차트<br />
                           • 시간대별 성별 방문 패턴 분석<br />
                           • 주 방문 성별 통계
->>>>>>> hotfix
                         </p>
                       </div>
                     </div>
                   </div>
-<<<<<<< HEAD
-=======
               </div>
             </section>
 
@@ -583,7 +428,6 @@ function Guide() {
                     </ul>
                   </div>
                 </div>
->>>>>>> hotfix
               </div>
             </section>
 
@@ -635,64 +479,6 @@ function Guide() {
             {/* FAQ 섹션 수정 */}
             <section id="faq" className="mb-16">
               <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">
-<<<<<<< HEAD
-                5. FAQ &amp; 주의사항
-              </h2>
-              <div className="bg-white dark:bg-gray-800 dark:text-gray-200 rounded-lg shadow border border-gray-200 dark:border-gray-700">
-                <div className="divide-y divide-gray-200 dark:divide-gray-700">
-                  <details className="p-6 group">
-                      <summary className="flex justify-between items-center cursor-pointer">
-                        <span className="font-medium">포트포워딩이 뭔가요?</span>
-                        <span className="transition group-open:rotate-180">
-                          <i className="fas fa-chevron-down"></i>
-                        </span>
-                      </summary>
-                      <p className="mt-4 text-gray-600">
-                        외부에서 내부망 CCTV에 접속하려면 공유기
-                        설정(포트포워딩)이 필요합니다.
-                      </p>
-                    </details>
-                    <details className="p-6 group">
-                      <summary className="flex justify-between items-center cursor-pointer">
-                        <span className="font-medium">
-                          RTSP 프로토콜이 안 보입니다.
-                        </span>
-                        <span className="transition group-open:rotate-180">
-                          <i className="fas fa-chevron-down"></i>
-                        </span>
-                      </summary>
-                      <p className="mt-4 text-gray-600">
-                        웹 브라우저는 RTSP를 직접 재생하지 못하는 경우가 많아,
-                        중간에 WebRTC/HLS 변환이 필요할 수 있습니다.
-                      </p>
-                    </details>
-                    <details className="p-6 group">
-                      <summary className="flex justify-between items-center cursor-pointer">
-                        <span className="font-medium">
-                          QR 코드 스캔이 실패합니다.
-                        </span>
-                        <span className="transition group-open:rotate-180">
-                          <i className="fas fa-chevron-down"></i>
-                        </span>
-                      </summary>
-                      <p className="mt-4 text-gray-600">
-                        모바일 앱 권한(카메라) 또는 인터넷 연결 상태를
-                        확인해주세요.
-                      </p>
-                    </details>
-                    <details className="p-6 group">
-                      <summary className="flex justify-between items-center cursor-pointer">
-                        <span className="font-medium">개인정보 유의</span>
-                        <span className="transition group-open:rotate-180">
-                          <i className="fas fa-chevron-down"></i>
-                        </span>
-                      </summary>
-                      <p className="mt-4 text-gray-600">
-                        CCTV·블랙박스 영상을 녹화·분석 시 개인정보 보호법 등 관련
-                        법령을 준수해야 합니다.
-                      </p>
-                    </details>
-=======
                 7. FAQ & 주의사항
               </h2>
               <div className="bg-white dark:bg-gray-800 dark:text-gray-200 rounded-lg shadow border border-gray-200 dark:border-gray-700">
@@ -714,7 +500,6 @@ function Guide() {
                           A: 브라우저 캐시를 삭제하고 다시 시도해보세요.</li>
                     </ul>
                   </div>
->>>>>>> hotfix
                 </div>
               </div>
             </section>
@@ -722,32 +507,19 @@ function Guide() {
             {/* 부가 안내 섹션 수정 */}
             <section id="extra" className="mb-16">
               <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">
-<<<<<<< HEAD
-                6. 부가 안내
-              </h2>
-              <div className="bg-white dark:bg-gray-800 dark:text-gray-200 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
-                <div className="grid grid-cols-2 gap-6">
-=======
                 8. 부가 안내
               </h2>
               <div className="bg-white dark:bg-gray-800 dark:text-gray-200 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
                 <div className="grid grid-cols-2 gap-6 mb-8">
                     {/* 기존 설정/알림 카드 유지 */}
->>>>>>> hotfix
                     <div className="flex items-start space-x-4">
                       <div className="bg-gray-100 p-3 rounded-full">
                         <i className="fas fa-cog text-black text-xl"></i>
                       </div>
                       <div>
                         <h3 className="font-bold mb-2">설정</h3>
-<<<<<<< HEAD
-                        <p className="text-gray-600">
-                          사용자 프로필·비밀번호 변경, 알림 설정 등을 관리할 수
-                          있습니다.
-=======
                         <p className="text-gray-600 dark:text-gray-400">
                           사용자 프로필·비밀번호 변경, 알림 설정 등을 관리할 수 있습니다.
->>>>>>> hotfix
                         </p>
                       </div>
                     </div>
@@ -757,15 +529,6 @@ function Guide() {
                       </div>
                       <div>
                         <h3 className="font-bold mb-2">알림</h3>
-<<<<<<< HEAD
-                        <p className="text-gray-600">
-                          카메라 오프라인, 특정 이벤트 감지 시 알림을 받을 수
-                          있습니다.
-                        </p>
-                      </div>
-                    </div>
-                </div>
-=======
                         <p className="text-gray-600 dark:text-gray-400">
                           카메라 오프라인, 특정 이벤트 감지 시 알림을 받을 수 있습니다.
                         </p>
@@ -813,7 +576,6 @@ function Guide() {
                 </div>
 
                 {/* 회원 탈퇴 버튼 */}
->>>>>>> hotfix
                 <div className="mt-8 text-center">
                   <button
                     className="rounded-button bg-red-50 text-red-600 px-6 py-3 hover:bg-red-100 dark:bg-red-900 dark:hover:bg-red-800 dark:text-red-200 transition-colors"

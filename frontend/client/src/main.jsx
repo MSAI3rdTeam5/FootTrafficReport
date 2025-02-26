@@ -4,10 +4,6 @@ import { BrowserRouter } from "react-router-dom";
 import App from "./App";
 import "./index.css"; // Tailwind
 import { GoogleOAuthProvider } from '@react-oauth/google';
-<<<<<<< HEAD
-
-=======
->>>>>>> hotfix
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>

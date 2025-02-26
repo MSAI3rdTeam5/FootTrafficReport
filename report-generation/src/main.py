@@ -7,17 +7,11 @@ import pdfkit
 import re
 from IPython.display import HTML
 import requests
-<<<<<<< HEAD
-from .gpt_response import gpt_response
-
-
-=======
 from .gpt_response import gpt_response, gpt_response_key, gpt_response_v2
 import json
 
 
 
->>>>>>> hotfix
 class ReportRequest(BaseModel):
     pdf_file: str
     member_id: int  
@@ -29,20 +23,6 @@ class ReportRequest(BaseModel):
  
 app = FastAPI()
 
-<<<<<<< HEAD
-# origins = [
-#     "http://localhost:5173",  # 프론트엔드 앱 URL
-# ]
-# from fastapi.middleware.cors import CORSMiddleware
-# app.add_middleware(
-#     CORSMiddleware,
-#     allow_origins=origins,  # 허용할 출처
-#     allow_credentials=True,
-#     allow_methods=["*"],  # 허용할 HTTP 메소드
-#     allow_headers=["*"],  # 허용할 헤더
-# )
-=======
->>>>>>> hotfix
  
 # 데이터 경로 호출(당장은 실행되나 데이터 경로는 합치는 과정에서 수정과정 필요)
 # data_file = "./FootTrafficReport/report-generation/yearly_data/decrease_trend_year_data.csv"
@@ -110,11 +90,7 @@ def convert_html_to_pdf(pdf_file, member_id, cctv_id, report_title,persona, star
        
         result = report_generation(cctv_id)
         data = pd.DataFrame(result)
-<<<<<<< HEAD
-        data = data.fillna(0)
-=======
         print(data)
->>>>>>> hotfix
         data['timestamp'] = pd.to_datetime(data['timestamp'], format='ISO8601', errors='coerce')
  
  
@@ -135,10 +111,6 @@ def convert_html_to_pdf(pdf_file, member_id, cctv_id, report_title,persona, star
         # 컬럼 순서 변경
         data = data[['date', 'time', 'day_of_week', 'male_young_adult', 'female_young_adult', 'male_middle_aged', 'female_middle_aged', 'male_minor', 'female_minor']]
        
-<<<<<<< HEAD
-        response = gpt_response(persona, f"{start_date}~{end_date}간의 데이터를 기반으로 보고서 작성해주세요", data, start_date = start_date, end_date = end_date)
-       
-=======
         if persona == "예비창업자":
             print("예비창업자보고서가 생성됩니다.")
             response = gpt_response_v2(persona, f"{start_date}~{end_date}간의 데이터를 기반으로 보고서 작성해주세요", data, start_date = start_date, end_date = end_date)
@@ -148,7 +120,6 @@ def convert_html_to_pdf(pdf_file, member_id, cctv_id, report_title,persona, star
 
         response_key = gpt_response_key(response)
         response_key_anw = json.dumps(response_key)
->>>>>>> hotfix
         save_html(response, 'response.html')
         config = pdfkit.configuration(wkhtmltopdf='/usr/bin/wkhtmltopdf')
  
@@ -172,18 +143,6 @@ def convert_html_to_pdf(pdf_file, member_id, cctv_id, report_title,persona, star
             data = {
                 "member_id": member_id,
                 "cctv_id": cctv_id,
-<<<<<<< HEAD
-                "report_title": report_title
-            }
- 
-            url = "https://msteam5iseeu.ddns.net/api/report"
-            response = requests.post(url, data=data, files=files, timeout=30)
-            result = response.raise_for_status()
-            print(f"응답 상태 코드: {response.status_code}")
-            print(f"응답 본문: {response.text}")
-            # print(result)
-            return {"status": "success", "message": "Report successfully generated and uploaded.", "data": response.text}
-=======
                 "report_title": report_title,
                 "summary_str":response_key_anw
             }
@@ -196,7 +155,6 @@ def convert_html_to_pdf(pdf_file, member_id, cctv_id, report_title,persona, star
             print(response_key_anw)
 
             return {"status": "success", "data": response_pdf.text}
->>>>>>> hotfix
  
     except Exception as e:
         print(f"오류 발생: {e}")
@@ -222,11 +180,7 @@ async def generate_report(request: ReportRequest):
     if result["status"] == "error":
         raise HTTPException(status_code=500, detail=result["message"])
     print(result)
-<<<<<<< HEAD
-    return result
-=======
     return result['data']
->>>>>>> hotfix
    
 if __name__ == "__main__":
     import uvicorn

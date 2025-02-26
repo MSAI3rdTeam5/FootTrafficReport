@@ -1,9 +1,4 @@
 import React, { useState, useEffect } from "react";
-<<<<<<< HEAD
-import { callReportGeneration } from "../utils/api";
-import { callReportDownload } from "../utils/api";
-import { callRerportSummary } from "../utils/api";
-=======
 import { Link } from "react-router-dom";
 import { callReportGeneration } from "../utils/api";
 import { callReportDownload } from "../utils/api";
@@ -16,18 +11,10 @@ dayjs.extend(timezone);
 
 import PrivacyOverlay from "./PrivacyOverlay";
 import ResponsiveNav from "../components/ResponsiveNav";
->>>>>>> hotfix
 
-import PrivacyOverlay from "./PrivacyOverlay";
-import ResponsiveNav from "../components/ResponsiveNav";
- 
 function AiInsight() {
-<<<<<<< HEAD
-
-=======
   // 프로필 상태 추가
   const [profile, setProfile] = useState(null);
->>>>>>> hotfix
   const [privacyOpen, setPrivacyOpen] = useState(false);
   // (2) Nav에서 이 함수를 호출 -> 오버레이 열림
   const handleOpenPrivacy = () => setPrivacyOpen(true);
@@ -40,21 +27,6 @@ function AiInsight() {
   const [businessType, setBusinessType] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
-<<<<<<< HEAD
-  const [storeInfo, setStoreInfo] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [summaries, setSummaries] = useState([]);
-  const [reportId, setReportId] = useState(null);
-  // 예시 CCTV 목록 (monitor.jsx 등에서 실제 등록 정보를 가져올 수도 있음)
-  const cctvOptions = [
-    { id: 1, name: "정문 CCTV" },
-    { id: 2, name: "로비 CCTV" },
-    { id: 3, name: "주차장 CCTV" },
-  ];
-
-  
- 
-=======
   const [reportTitle, setReportTitle] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [summaries, setSummaries] = useState([]);
@@ -67,16 +39,11 @@ function AiInsight() {
   const formatKST = (utcTime) => {
     return dayjs.utc(utcTime).tz("Asia/Seoul").format("YYYY-MM-DD HH:mm:ss");
   };
->>>>>>> hotfix
   // 창업 여부 선택 시 처리
   const handleIsNewBusinessChange = (e) => {
     const value = e.target.value;
     setIsNewBusiness(value);
-<<<<<<< HEAD
- 
-=======
 
->>>>>>> hotfix
     if (value === "아니오") {
       setBusinessType("예비창업자");
     } else {
@@ -84,26 +51,6 @@ function AiInsight() {
       setBusinessType("");
     }
   };
-<<<<<<< HEAD
- 
-  // // 보고서 가져오기
-  const handleReport = async () => {
-    // const reportId = result.id;  
- 
-    try {
-      const result_report = await callRerportSummary(1);
-      console.log("파일 가져오기:",result_report);
-      const extractedSummaries = result_report.map(report => ({
-        id: report.id,
-        keywords: report.summary?.keywords || [], // keywords가 없을 경우 빈 리스트 반환
-        textSummary: report.summary?.summary || "" // summary가 없을 경우 빈 문자열 반환
-    }));
- 
-    console.log("추출된 Summary 데이터:", extractedSummaries);
- 
-    // 필요하면 상태로 저장
-    setSummaries(extractedSummaries);
-=======
 
   // 프로필과 보고서 정보 가져오기
   useEffect(() => {
@@ -221,15 +168,11 @@ function AiInsight() {
 
       // 필요하면 상태로 저장
       setSummaries(extractedSummaries);
->>>>>>> hotfix
     } catch (error) {
       console.error("Error", error);
     }
   };
-<<<<<<< HEAD
-=======
 
->>>>>>> hotfix
   const isValidDateRange = () => {
     if (!startDate || !endDate) return false;
     const start = new Date(startDate);
@@ -237,75 +180,6 @@ function AiInsight() {
     const diffDays = (end - start) / (1000 * 60 * 60 * 24); // 일(day) 단위 차이 계산
     return diffDays >= 6;
   };
-<<<<<<< HEAD
- 
-  // AI 보고서 생성 버튼
-  const handleGenerateReport = async() => {
-   
-    const requestData = {
-      pdf_file : "aaa.pdf",
-      member_id: 1,            // memberid => member_id로 변경
-      cctv_id: parseInt(selectedCCTV),
-      report_title: "aaa",
-      persona: isNewBusiness === "네" ? businessType : "예비창업자",
-      start_date: startDate,
-      end_date: endDate,
-    };
-    // ,member_id=2,cctv_id=1,report_title="generated_report",businessType, startDate, endDate
-    console.log("Request Data:", requestData);
-    if (!isValidDateRange()) {
-      alert("⚠️ 데이터의 기간이 최소 일주일 이상이어야 합니다.");
-      return;
-    }
-    setIsLoading(true);
-    try {
-      const result = await callReportGeneration(requestData);
-      await handleReport();
-      const parsedResult = typeof result === "string" ? JSON.parse(result) : result; // 문자열이면 JSON으로 변환
-      console.log("Parsed result:", parsedResult);
- 
-      const id = parsedResult.id;
-      setReportId(id);
-     
-      alert("AI 보고서가 생성되었습니다");  // result.id == report.id
-    } catch (error) {
-      console.error("Error generating report:", error);
-      alert("보고서 생성 중 오류가 발생했습니다. 데이터의 기간이 올바른지 확인해주세요.");
-    } finally {
-      setIsLoading(false); // 로딩 해제
-    }
-  };
- 
- 
-  // 보고서 다운로드 api
-  const handleDownload = async (id) => {
-    // const reportId = result.id;  // ⚡ 여기에 실제 report ID 넣기
- 
-    try {
-      await callReportDownload(id);
-      console.log(`파일 다운로드 완료: ${id}`);
-    } catch (error) {
-      console.error("파일 다운로드 실패:", error);
-    }
-  };
- 
- 
- 
-  useEffect(() => {
-    handleReport();
-  }, []);
- 
-  return (
-    <div className="bg-gray-50 dark:bg-gray-900 font-sans min-h-screen flex flex-col">
-      {/* 상단 네비 바 */}
-      <ResponsiveNav onOpenPrivacy={handleOpenPrivacy} />
-
-      {/* 메인 컨텐츠 래퍼 */}
-      <div className="flex-1 pt-20 px-4 sm:px-6 lg:px-8 pb-16 max-w-7xl mx-auto">
-        {/* 상단 타이틀 */}
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">전략/인사이트</h1>
-=======
 
   // AI 보고서 생성 버튼 - profile.id 사용
   const handleGenerateReport = async () => {
@@ -381,7 +255,6 @@ function AiInsight() {
           <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
             전략/인사이트
           </h1>
->>>>>>> hotfix
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
             아래 정보를 입력하여 AI 기반 보고서를 생성해 보세요.
           </p>
@@ -389,22 +262,10 @@ function AiInsight() {
 
         {/* 입력 섹션 */}
         <div className="bg-white dark:bg-gray-800 dark:text-gray-200 shadow rounded-lg p-6 border border-gray-200 dark:border-gray-700">
-<<<<<<< HEAD
-          {/* 1행: 매장 기본 정보 / 분석할 CCTV */}
-=======
           {/* (1행) 보고서 제목 / 분석할 CCTV */}
->>>>>>> hotfix
           <div className="flex flex-col md:flex-row gap-4 mb-4">
             <div className="flex-1">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-<<<<<<< HEAD
-                매장 기본 정보
-              </label>
-              <input
-                type="text"
-                placeholder="예) 매장명"
-                className="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 focus:border-black focus:ring-black"
-=======
                 보고서 제목
               </label>
               <input
@@ -413,7 +274,6 @@ function AiInsight() {
                 className="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 focus:border-custom focus:ring-custom"
                 value={reportTitle}
                 onChange={(e) => setReportTitle(e.target.value)}
->>>>>>> hotfix
               />
             </div>
             <div className="flex-1">
@@ -421,24 +281,14 @@ function AiInsight() {
                 분석할 CCTV
               </label>
               <select
-<<<<<<< HEAD
-                className="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 focus:border-black focus:ring-black"
-=======
                 className="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 focus:border-custom focus:ring-custom"
->>>>>>> hotfix
                 value={selectedCCTV}
                 onChange={(e) => setSelectedCCTV(e.target.value)}
               >
                 <option value="">CCTV를 선택하세요</option>
-<<<<<<< HEAD
-                {cctvOptions.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-=======
                 {cctvList.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.cctv_name}
->>>>>>> hotfix
                   </option>
                 ))}
               </select>
@@ -452,11 +302,7 @@ function AiInsight() {
                 창업 여부
               </label>
               <select
-<<<<<<< HEAD
-                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 focus:border-black focus:ring-black"
-=======
                 className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 focus:border-custom focus:ring-custom"
->>>>>>> hotfix
                 value={isNewBusiness}
                 onChange={handleIsNewBusinessChange}
               >
@@ -465,11 +311,6 @@ function AiInsight() {
                 <option value="아니오">아니오</option>
               </select>
             </div>
-<<<<<<< HEAD
-
-            {/* 업종 입력 (창업 여부 "네"일 때만 활성) */}
-=======
->>>>>>> hotfix
             <div className="flex-1">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 업종 입력
@@ -477,11 +318,7 @@ function AiInsight() {
               <input
                 type="text"
                 placeholder="예) 카페, 레스토랑 등"
-<<<<<<< HEAD
-                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 focus:border-black focus:ring-black"
-=======
                 className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 focus:border-custom focus:ring-custom"
->>>>>>> hotfix
                 value={businessType}
                 onChange={(e) => setBusinessType(e.target.value)}
                 disabled={isNewBusiness !== "네"}
@@ -497,11 +334,7 @@ function AiInsight() {
               </label>
               <input
                 type="date"
-<<<<<<< HEAD
-                className="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 focus:border-black focus:ring-black"
-=======
                 className="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 focus:border-custom focus:ring-custom"
->>>>>>> hotfix
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
               />
@@ -512,85 +345,13 @@ function AiInsight() {
               </label>
               <input
                 type="date"
-<<<<<<< HEAD
-                className="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 focus:border-black focus:ring-black"
-=======
                 className="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 focus:border-custom focus:ring-custom"
->>>>>>> hotfix
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
               />
             </div>
           </div>
 
-<<<<<<< HEAD
-          {/* AI 보고서 생성하기 버튼 */}
-          <button
-            type="button"
-            onClick={handleGenerateReport}
-            className={`w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white
-              ${isLoading ? "bg-gray-400 cursor-not-allowed" : "bg-black hover:bg-black/90"}
-            `}
-            disabled={isLoading}
-          >
-            {isLoading
-              ? "보고서를 생성합니다. 잠시만 기다려주세요..."
-              : "AI 보고서 생성하기"}
-          </button>
-        </div>
-
-        {/* 보고서 목록 섹션 */}
-        <div className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-6">
-          {summaries.length > 0 ? (
-            summaries.map((summaryData) => (
-              <div
-                key={summaryData.id}
-                className="bg-white dark:bg-gray-800 dark:text-gray-200 shadow-lg rounded-xl p-6 border border-gray-200 dark:border-gray-700 transition-transform transform hover:scale-105 duration-300"
-              >
-                {/* 보고서 ID */}
-                <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">
-                  📑 보고서 ID: {summaryData.id}
-                </h3>
-
-                {/* 주요 키워드 */}
-                <div className="mb-4">
-                  <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">🔍 주요 키워드:</p>
-                  <div className="flex flex-wrap gap-2">
-                    {summaryData.keywords.map((keyword, index) => (
-                      <span
-                        key={index}
-                        className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-100 text-xs font-medium px-3 py-1 rounded-full"
-                      >
-                        #{keyword}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                {/* 간단 요약 */}
-                <div className="mb-4">
-                  <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">📝 간단 요약:</p>
-                  <blockquote className="border-l-4 border-blue-500 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 italic p-3 rounded-md">
-                    {summaryData.textSummary}
-                  </blockquote>
-                </div>
-
-                {/* 다운로드 버튼 */}
-                <div className="mt-4 flex justify-end">
-                  <button
-                    type="button"
-                    className="px-5 py-2 rounded-lg bg-black text-white hover:bg-gray-900 transition-colors"
-                    onClick={() => handleDownload(summaryData.id)}
-                  >
-                    📥 상세 내용 다운로드
-                  </button>
-                </div>
-              </div>
-            ))
-          ) : (
-            <p className="text-center text-gray-600 dark:text-gray-400">
-              📭 보고서 정보가 없습니다.
-=======
           {/* 보고서 생성하기 버튼 + 로딩 모달 */}
           <div className="relative">
             {isLoading && (
@@ -680,20 +441,15 @@ function AiInsight() {
           ) : (
             <p className="text-center text-gray-500 dark:text-gray-400">
               📌 보고서 정보가 없습니다.
->>>>>>> hotfix
             </p>
           )}
         </div>
       </div>
 
       {/* 개인정보법 안내 오버레이 */}
-<<<<<<< HEAD
-      {privacyOpen && <PrivacyOverlay open={privacyOpen} onClose={handleClosePrivacy} />}
-=======
       {privacyOpen && (
         <PrivacyOverlay open={privacyOpen} onClose={handleClosePrivacy} />
       )}
->>>>>>> hotfix
     </div>
   );
 }

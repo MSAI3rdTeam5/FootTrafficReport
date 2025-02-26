@@ -102,8 +102,4 @@ const GuidePage = () => {
   );
 };
 
-<<<<<<< HEAD
 export default GuidePage;
-=======
-export default GuidePage;
->>>>>>> hotfix

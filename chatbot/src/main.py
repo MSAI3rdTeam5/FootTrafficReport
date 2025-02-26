@@ -9,22 +9,6 @@ from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 
-# # CORS 설정
-# origins = [
-#     "http://localhost:5173",  # 개발 중인 Vite/React 등 프론트엔드 주소
-#     "https://msteam5iseeu.ddns.net",
-#     # 필요한 다른 출처(도메인+포트)를 추가
-# ]
-
-# # CORS 추가
-# app.add_middleware(
-#     CORSMiddleware,
-#     allow_origins=origins,       # 운영에선 구체적으로 지정!
-#     allow_credentials=True,
-#     allow_methods=["*"],
-#     allow_headers=["*"],
-# )
-
 # .env 파일 로드
 load_dotenv()
 

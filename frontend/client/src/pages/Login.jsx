@@ -15,11 +15,7 @@ function Login() {
       await loginUser(email, password);
       navigate("/monitor");
     } catch (error) {
-<<<<<<< HEAD
-      alert("Login failed.");
-=======
       alert("로그인에 실패했습니다. 아이디/비밀번호를 다시 확인해주세요.");
->>>>>>> hotfix
     }
   };
 
@@ -152,11 +148,7 @@ function Login() {
 
       {/* 푸터 영역 */}
       <footer className="py-4 text-center text-gray-500 dark:text-gray-400 text-sm">
-<<<<<<< HEAD
-        <p>&copy; 2024 I See U. All rights reserved.</p>
-=======
         <p>&copy; 2025 I See U. All rights reserved.</p>
->>>>>>> hotfix
         <p className="mt-1">Version 1.0.0</p>
       </footer>
     </div>

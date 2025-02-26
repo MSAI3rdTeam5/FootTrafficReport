@@ -11,10 +11,7 @@ RUN npm install
 
 # 서버 소스 복사
 COPY src ./src
-<<<<<<< HEAD
-=======
 
->>>>>>> hotfix
 
 EXPOSE 4000
 

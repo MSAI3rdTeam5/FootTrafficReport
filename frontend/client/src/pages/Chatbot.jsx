@@ -3,18 +3,9 @@ import { useLocation } from "react-router-dom";
 import { getChatbotResponse } from "../utils/api";
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
-<<<<<<< HEAD
-<<<<<<< HEAD
 
 import PrivacyOverlay from "./PrivacyOverlay";
 import ResponsiveNav from "../components/ResponsiveNav";
-=======
->>>>>>> hotfix/urgent-bug
-=======
-
-import PrivacyOverlay from "./PrivacyOverlay";
-import ResponsiveNav from "../components/ResponsiveNav";
->>>>>>> hotfix
 
 function ChatbotPage() {
   const [privacyOpen, setPrivacyOpen] = useState(false);
@@ -55,44 +46,6 @@ function ChatbotPage() {
     ],
   };
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-  //초기 대화
-  const daysOfWeek = ["일", "월", "화", "수", "목", "금", "토"];
-  const now = new Date();
-  const month = now.getMonth() + 1;
-  const date = now.getDate();
-  const dayOfWeek = daysOfWeek[now.getDay()];
-
-  const initialConversationId = Date.now();
-  const initialConversation = {
-    id: initialConversationId,
-    title: `대화 1 - ${month}월 ${date}일(${dayOfWeek})`,
-    date: now.toLocaleString("ko-KR", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-    }),
-    messages: [
-      {
-        id: initialConversationId + 1,
-        sender: "bot",
-        text: "안녕하세요 ! 저는 AI 정책 추천 챗봇 입니다. ",
-      },
-      {
-        id: initialConversationId + 2,
-        sender: "bot",
-        text: "정확한 추천을 위해, 거주 지역(시/도, 시/군/구)·신분(예비창업자, 소상공인 등)·관심 업종 등을 구체적으로 포함해 질문해 주세요.",
-      },
-    ],
-  };
-
->>>>>>> hotfix/urgent-bug
-=======
->>>>>>> hotfix
   const [conversations, setConversations] = useState([initialConversation]);
   const [activeConversationId, setActiveConversationId] = useState(
     initialConversationId
@@ -421,32 +374,10 @@ function ChatbotPage() {
 
                           {/* 점 세 개 눌렀을 때 나오는 드롭다운 메뉴 */}
                           {activeMenuId === conv.id && (
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> hotfix
                             <div className="absolute top-8 right-2 w-32 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded shadow-md z-10">
                               {/* 이름 바꾸기 버튼 등 필요시 추가 */}
                               <button
                                 className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-600 text-red-500"
-<<<<<<< HEAD
-=======
-                            <div className="absolute top-8 right-2 w-32 bg-white border border-gray-200 rounded shadow-md z-10">
-                              {/* <button
-                                className="w-full text-left px-4 py-2 text-sm text-black hover:bg-gray-100"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleRenameConversation(conv.id);
-                                  toggleMenu(conv.id);
-                                }}
-                              >
-                                이름 바꾸기
-                              </button> */}
-                              <button
-                                className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 text-red-500"
->>>>>>> hotfix/urgent-bug
-=======
->>>>>>> hotfix
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   handleDeleteConversation(conv.id);
@@ -491,15 +422,7 @@ function ChatbotPage() {
                   {/* 다운로드 버튼 + 툴팁 */}
                   <div className="relative group">
                     <button
-<<<<<<< HEAD
-<<<<<<< HEAD
                       className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-gray-100 rounded"
-=======
-                      className="p-2 text-gray-500 hover:text-gray-700 rounded"
->>>>>>> hotfix/urgent-bug
-=======
-                      className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-gray-100 rounded"
->>>>>>> hotfix
                       onClick={handleDownloadPDF}
                     >
                       <i className="fas fa-download"></i>
@@ -519,19 +442,8 @@ function ChatbotPage() {
                         group-hover:opacity-100
                         transition-opacity
                         duration-300
-<<<<<<< HEAD
-<<<<<<< HEAD
                         -top-6
                         left-1/2
-=======
-                        -top-5
-                        left-1/2
-                        transform
->>>>>>> hotfix/urgent-bug
-=======
-                        -top-6
-                        left-1/2
->>>>>>> hotfix
                         -translate-x-1/2
                       "
                     >
@@ -541,10 +453,6 @@ function ChatbotPage() {
                 </div>
               </div>
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> hotfix
               {/* 메시지 목록 */}
               <div
                 id="chatContainer"
@@ -552,15 +460,6 @@ function ChatbotPage() {
               >
                 {!activeConversation ? (
                   <div className="text-gray-500 dark:text-gray-400">
-<<<<<<< HEAD
-=======
-              {/* 메시지 목록 (스크롤) */}
-              <div id="chatContainer" className="flex-1 p-6 overflow-y-auto">
-                {!activeConversation ? (
-                  <div className="text-gray-500">
->>>>>>> hotfix/urgent-bug
-=======
->>>>>>> hotfix
                     메시지를 입력하면 대화가 시작됩니다.
                   </div>
                 ) : (
@@ -607,15 +506,7 @@ function ChatbotPage() {
                     className="flex-1 border border-gray-300 dark:border-gray-600 rounded-lg resize-none px-3 py-2 text-sm dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-custom"
                     placeholder={
                       activeConversation
-<<<<<<< HEAD
-<<<<<<< HEAD
                         ? "메시지를 입력해주세요. (Enter로 전송)"
-=======
-                        ? "메시지를 입력해주세요. "
->>>>>>> hotfix/urgent-bug
-=======
-                        ? "메시지를 입력해주세요. (Enter로 전송)"
->>>>>>> hotfix
                         : "대화를 먼저 선택해주세요."
                     }
                     rows={2}
