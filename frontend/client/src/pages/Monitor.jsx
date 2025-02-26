@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
 import PrivacyOverlay from "./PrivacyOverlay";
+import CCTVMonitoring from "./CCTVMonitoring";
 
 // Socket.io + mediasoup-client
 import { io } from "socket.io-client";
@@ -575,7 +576,7 @@ function Monitor() {
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-2xl font-bold text-gray-900">CCTV 모니터링</h1>
           <button
-            onClick={() => openDeviceModal("CCTV")} // 새 장치 연결(예시)
+            onClick={() => openDeviceModal("CCTV")}
             className="rounded-button bg-black text-white px-4 py-2 flex items-center"
           >
             <i className="fas fa-plus mr-2"></i>새 장치 연결
@@ -648,10 +649,19 @@ function Monitor() {
         <ConnectedDevices cameraList={cameraList} />
       </div>
 
+      {/* CCTVMonitoring 컴포넌트를 조건부로 렌더링 */}
+      {overlayVisible && selectedCamera && (
+        <CCTVMonitoring
+          selectedCamera={selectedCamera}
+          onClose={closeOverlay}
+          onSwitchDevice={handleSwitchDevice}
+        />
+      )}
+
       <footer className="bg-white border-t border-gray-200 mt-8">
         <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="text-center text-sm text-gray-500">
-            © 2024 I See U. All rights reserved.
+            © 2025 I See U. All rights reserved.
           </div>
         </div>
       </footer>
@@ -801,11 +811,16 @@ function ConnectedDevices({ cameraList }) {
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden mb-6">
       <div className="p-6">
-        <h2 className="text-xl font-bold text-gray-900 mb-4">연결된 장치</h2>
+        <h2 className="text-xl font-bold text-gray-900 mb-4">
+          연결된 장치{" "}
+          <span className="text-sm text-gray-500">
+            (총 {cameraList.length}대)
+          </span>
+        </h2>
         {cameraList.length === 0 ? (
           <p className="text-gray-500">아직 등록된 카메라가 없습니다.</p>
         ) : (
-          <ul className="space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
             {cameraList.map((cam) => (
               <li key={cam.cameraId} className="p-2 bg-gray-50 rounded">
                 <div className="flex justify-between items-center">
@@ -814,9 +829,33 @@ function ConnectedDevices({ cameraList }) {
                   </span>
                   <span className="text-xs text-gray-400">{cam.hlsUrl}</span>
                 </div>
+
+                {/* 정보 오버레이 */}
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <h3 className="text-white font-medium">{cam.name}</h3>
+                      <p className="text-gray-300 text-sm">상태: 정상</p>
+                    </div>
+                    <div className="flex space-x-2">
+                      {/* 확장 버튼 */}
+                      <button className="rounded-full bg-white/20 hover:bg-white/30 p-2">
+                        <i className="fas fa-expand text-white"></i>
+                      </button>
+                      {/* 설정 버튼 */}
+                      <button className="rounded-full bg-white/20 hover:bg-white/30 p-2">
+                        <i className="fas fa-cog text-white"></i>
+                      </button>
+                      {/* 녹화 버튼 */}
+                      <button className="rounded-full bg-red-500 hover:bg-red-600 p-2">
+                        <i className="fas fa-circle text-white"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </li>
             ))}
-          </ul>
+          </div>
         )}
       </div>
     </div>

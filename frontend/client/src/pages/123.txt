@@ -1,0 +1,144 @@
+import React from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faVideo, faTabletAlt, faMobileAlt, faCar, faExpand, faCog, faCircle } from '@fortawesome/free-solid-svg-icons';
+
+function App() {
+  return (
+    <div className="bg-gray-50 min-h-screen">
+      <Nav />
+      <Main />
+      <Footer />
+    </div>
+  );
+}
+
+function Nav() {
+  return (
+    <nav className="bg-white border-b">
+      {/* Navigation content */}
+    </nav>
+  );
+}
+
+function Main() {
+  return (
+    <main className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <Header />
+      <DeviceGrid />
+      <ConnectedDevices />
+    </main>
+  );
+}
+
+function Header() {
+  return (
+    <div className="mb-8">
+      <h1 className="text-2xl font-bold text-gray-900">CCTV 모니터링</h1>
+      <p className="mt-1 text-sm text-gray-500">환영합니다 관리자님!</p>
+    </div>
+  );
+}
+
+function DeviceGrid() {
+  const devices = [
+    { icon: faVideo, title: 'CCTV 연결', description: '실시간 영상 모니터링' },
+    { icon: faTabletAlt, title: '웹캠 연결', description: '웹캠 스트리밍' },
+    { icon: faMobileAlt, title: '스마트폰 연결', description: '모바일 카메라 연동' },
+    { icon: faCar, title: '블랙박스 연결', description: '차량용 카메라 연동' },
+  ];
+
+  return (
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-4 mb-8">
+      {devices.map((device, index) => (
+        <DeviceCard key={index} {...device} />
+      ))}
+    </div>
+  );
+}
+
+function DeviceCard({ icon, title, description }) {
+  return (
+    <div className="bg-white overflow-hidden shadow rounded-lg">
+      <div className="p-5">
+        <div className="flex items-center">
+          <div className="flex-shrink-0">
+            <FontAwesomeIcon icon={icon} className="text-custom text-xl" />
+          </div>
+          <div className="ml-5">
+            <h3 className="text-lg font-medium text-gray-900">{title}</h3>
+            <p className="text-sm text-gray-500">{description}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ConnectedDevices() {
+  const cameras = [
+    { name: '로비 카메라', status: '정상', image: 'url_to_lobby_image' },
+    { name: '주차장 입구', status: '정상', image: 'url_to_parking_image' },
+    { name: '창고 구역', status: '정상', image: 'url_to_warehouse_image' },
+    { name: '비상구 통로', status: '정상', image: 'url_to_emergency_exit_image' },
+  ];
+
+  return (
+    <div className="bg-white shadow rounded-lg overflow-hidden">
+      <div className="p-6">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-lg font-medium text-gray-900">
+            연결된 장치 <span className="text-sm text-gray-500">(총 {cameras.length}대)</span>
+          </h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+          {cameras.map((camera, index) => (
+            <CameraCard key={index} {...camera} />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CameraCard({ name, status, image }) {
+  return (
+    <div className="relative bg-black rounded-lg overflow-hidden">
+      <div className="aspect-w-16 aspect-h-9">
+        <img src={image} alt={name} className="object-cover" />
+      </div>
+      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4">
+        <div className="flex justify-between items-center">
+          <div>
+            <h3 className="text-white font-medium">{name}</h3>
+            <p className="text-gray-300 text-sm">상태: {status}</p>
+          </div>
+          <div className="flex space-x-2">
+            <CameraButton icon={faExpand} />
+            <CameraButton icon={faCog} />
+            <CameraButton icon={faCircle} className="bg-red-500 hover:bg-red-600" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CameraButton({ icon, className = "bg-white/20 hover:bg-white/30" }) {
+  return (
+    <button className={`!rounded-button ${className} p-2`}>
+      <FontAwesomeIcon icon={icon} className="text-white" />
+    </button>
+  );
+}
+
+function Footer() {
+  return (
+    <footer className="bg-white border-t mt-8">
+      <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <p className="text-center text-sm text-gray-500">© 2024 I See U. All rights reserved.</p>
+      </div>
+    </footer>
+  );
+}
+
+export default App;
