@@ -5,6 +5,12 @@ import * as echarts from "echarts";
 import PrivacyOverlay from "./PrivacyOverlay";
 import ResponsiveNav from "../components/ResponsiveNav";
 import { getMemberProfile } from "../utils/api";
+<<<<<<< HEAD
+
+// (1) 회원 ID를 하드코딩(또는 로그인 세션에서 가져옴)
+const MEMBER_ID = 1;
+=======
+>>>>>>> hotfix
 
 function Dashboard() {
 
@@ -13,6 +19,18 @@ function Dashboard() {
   // ------------------------------
   const [profile, setProfile] = useState(null);
 
+<<<<<<< HEAD
+  useEffect(() => {
+    getMemberProfile()
+      .then((data) => {
+        setProfile(data);
+      })
+      .catch((err) => {
+        console.error("Failed to get profile:", err);
+      });
+  }, []);
+  // {profile.id} or {profile.email} or {profile.name} or {profile.subscription_plan} => 로그인 사용자 정보 변수
+=======
   // 로그인 사용자 정보 가져오기
   useEffect(() => {
     const fetchProfile = async () => {
@@ -31,6 +49,7 @@ function Dashboard() {
     };
     fetchProfile();
   }, []);
+>>>>>>> hotfix
 
   // 개인정보 오버레이
   const [privacyOpen, setPrivacyOpen] = useState(false);
@@ -50,9 +69,15 @@ function Dashboard() {
   const [selectedPeriod, setSelectedPeriod] = useState("오늘");
 
   // -----------------------------------------------
+<<<<<<< HEAD
+  // 차트 모드 (시간대별/성별)
+  // -----------------------------------------------
+  const chartModes = ["time", "gender"];
+=======
   // 차트 모드 (시간대별/요일별/성별)
   // -----------------------------------------------
   const chartModes = ["time", "weekday", "gender"];
+>>>>>>> hotfix
   const [chartIndex, setChartIndex] = useState(0);
   const currentChart = chartModes[chartIndex];
 
@@ -72,6 +97,422 @@ function Dashboard() {
     mainAgeRange: "N/A",
     mainGender: "N/A",
   });
+<<<<<<< HEAD
+
+  // ------------------------------
+  // (A) CCTV 목록 가져오기
+  // ------------------------------
+  useEffect(() => {
+    async function fetchUserCCTVs(memberId) {
+      try {
+        const res = await fetch(`/api/cctvs/${memberId}`);
+        if (!res.ok) {
+          throw new Error(`CCTV List Fetch Error: ${res.status}`);
+        }
+        const data = await res.json();
+        return data; // [{id, member_id, cctv_name, api_url, location}, ...]
+      } catch (err) {
+        console.error(err);
+        return [];
+      }
+    }
+
+    fetchUserCCTVs(MEMBER_ID).then((data) => {
+      console.log("cctv_info 목록:", data);
+      setCctvList(data);
+      if (data.length > 0) {
+        // 첫번째 CCTV를 기본 선택
+        setSelectedCCTV(data[0].id);
+      }
+    });
+  }, []);
+
+  // ---------------------------
+  // (A) API 호출 함수 (예시)
+  // ---------------------------
+  async function fetchPersonCounts(cctvId) {
+    try {
+      // 백엔드 라우트: /person_count/{cctv_id}
+      // ex) /person_count/1
+      const response = await fetch(`api/person_count/${cctvId}`);
+  
+      // 404 처리 (no records found)
+      if (response.status === 404) {
+        console.warn(`No records found for cctv_id=${cctvId}`);
+        return []; // 빈 배열 반환 (에러 대신 빈 데이터로 처리)
+      }
+  
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+  
+      const data = await response.json();
+      console.log("PersonCount 목록:", data);
+      return data;
+    } catch (error) {
+      console.error("에러 발생:", error);
+      // null 또는 빈 배열 등, 호출부에서 구분 가능
+      return null;
+    }
+  }
+
+  // ---------------------------
+  // (B) 날짜 필터 함수들
+  // ---------------------------
+  const filterTodayData = (data) => {
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+    const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+
+    return data.filter((row) => {
+      const rowDate = new Date(row.timestamp);
+      return rowDate >= startOfToday && rowDate <= endOfToday;
+    });
+  };
+
+  const filterYesterdayData = (data) => {
+    const now = new Date();
+    const startOfYesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1, 0, 0, 0);
+    const endOfYesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1, 23, 59, 59);
+
+    return data.filter((row) => {
+      const rowDate = new Date(row.timestamp);
+      return rowDate >= startOfYesterday && rowDate <= endOfYesterday;
+    });
+  };
+
+  const filterWeekdayData = (data) => {
+    const now = new Date();
+    const startOfWeekday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7, 0, 0, 0);
+    const endOfWeekday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+
+    return data.filter((row) => {
+      const rowDate = new Date(row.timestamp);
+      return rowDate >= startOfWeekday && rowDate <= endOfWeekday;
+    });
+  };
+
+  const filterMonthData = (data) => {
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate(), 0, 0, 0);
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+
+    return data.filter((row) => {
+      const rowDate = new Date(row.timestamp);
+      return rowDate >= startOfMonth && rowDate <= endOfMonth;
+    });
+  };
+
+  // ---------------------------
+  // (C) 통계 계산
+  // ---------------------------
+  const calculateStats = (data) => {
+    let total = 0;
+    let peakCount = 0;
+    let peakHour = "";
+    let sumMale = 0;
+    let sumFemale = 0;
+    let sumYoung = 0; // 20~59
+    let sumMiddle = 0; // 60 이상
+    let sumMinor = 0; // 0~19
+
+    data.forEach((row) => {
+      const hourTotal =
+        row.male_young_adult +
+        row.female_young_adult +
+        row.male_middle_aged +
+        row.female_middle_aged +
+        row.male_minor +
+        row.female_minor;
+
+      total += hourTotal;
+
+      // 피크 시간대
+      if (hourTotal > peakCount) {
+        peakCount = hourTotal;
+        const dateObj = new Date(row.timestamp);
+        const h = dateObj.getHours();
+        const hStr = String(h).padStart(2, "0");
+        const nextHStr = String((h + 1) % 24).padStart(2, "0");
+        peakHour = `${hStr}:00 - ${nextHStr}:00`;
+      }
+
+      // 성별
+      sumMale += row.male_young_adult + row.male_middle_aged + row.male_minor;
+      sumFemale += row.female_young_adult + row.female_middle_aged + row.female_minor;
+
+      // 연령대
+      sumYoung += row.male_young_adult + row.female_young_adult;
+      sumMiddle += row.male_middle_aged + row.female_middle_aged;
+      sumMinor += row.male_minor + row.female_minor;
+    });
+
+    if (total === 0) {
+      return {
+        totalVisitors: 0,
+        peakTime: "00:00-00:00",
+        mainAgeRange: "N/A",
+        mainGender: "N/A",
+      };
+    }
+
+    const mainGender = sumMale > sumFemale ? "남성" : "여성";
+    let mainAgeRange = "N/A";
+    if (sumYoung >= sumMiddle && sumYoung >= sumMinor) {
+      mainAgeRange = "성인층 (20세~59세)";
+    } else if (sumMiddle >= sumYoung && sumMiddle >= sumMinor) {
+      mainAgeRange = "노인층 (60세 이상)";
+    } else {
+      mainAgeRange = "청소년층(19세 이하)";
+    }
+
+    return {
+      totalVisitors: total,
+      peakTime: peakHour,
+      mainAgeRange,
+      mainGender,
+    };
+  };
+
+  // -----------------------------------------------
+  // (D) Echarts 설정
+  // -----------------------------------------------
+  const chartRef = useRef(null);
+  const [chartInstance, setChartInstance] = useState(null);
+
+  // 차트 초기화
+  useEffect(() => {
+    if (chartRef.current) {
+      const instance = echarts.init(chartRef.current);
+      setChartInstance(instance);
+    }
+  }, []);
+
+
+  // -----------------------------------------------
+  // (E) 데이터 로드 + 차트 업데이트
+  // -----------------------------------------------
+  useEffect(() => {
+    if (selectedCCTV == null || !chartInstance) return; // 아직 CCTV 선택 안됨 or 차트 인스턴스 미생성
+
+    const loadData = async () => {
+      
+      // 1) person_count/{selectedCCTV} 호출
+      const data = await fetchPersonCounts(selectedCCTV);
+
+      // 2) 기간 필터
+      let filtered = data;
+      if (selectedPeriod === "오늘") {
+        filtered = filterTodayData(filtered);
+      } else if (selectedPeriod === "어제") {
+        filtered = filterYesterdayData(filtered);
+      } else if (selectedPeriod === "1주일") {
+        filtered = filterWeekdayData(filtered);
+      } else if (selectedPeriod === "1달") {
+        filtered = filterMonthData(filtered);
+      }
+
+      // 3) 통계 계산
+      const result = calculateStats(filtered);
+      setStats(result);
+
+      // 차트 업데이트
+      if (!chartInstance) return;
+
+      // 4) 차트 모드(시간대별, 성별)
+      if (currentChart === "time") {
+        updateLineChart(filtered);
+      } else {
+        updatePieChart(filtered);
+      }
+    };
+    loadData();
+    // dependencies
+  }, [selectedCCTV, selectedPeriod, currentChart, chartInstance]);
+
+  // ---------------------------------------------------
+  // (H) CCTV 버튼 렌더링
+  // ---------------------------------------------------
+  const cctvButtons = cctvList.map((c) => {
+    const isActive = selectedCCTV === c.id;
+    return (
+      <button
+        key={c.id}
+        onClick={() => setSelectedCCTV(c.id)}
+        className={`px-4 py-2 rounded-md transition-colors ${
+          isActive
+            ? "bg-black text-white"
+            : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600"
+        }`}
+      >
+        {c.cctv_name}
+      </button>
+    );
+  });
+
+  // ---------------------------------------------------
+  // (I) 기간 버튼 렌더링
+  // ---------------------------------------------------
+  const periodButtons = periodList.map((p) => {
+    const isActive = selectedPeriod === p;
+    return (
+      <button
+        key={p}
+        onClick={() => setSelectedPeriod(p)}
+        className={`px-4 py-2 rounded-md transition-colors ${
+          isActive
+            ? "bg-black text-white"
+            : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600"
+        }`}
+      >
+        {p}
+      </button>
+    );
+  });
+
+
+  // -----------------------------------------------
+  // 라인 차트(시간대별)
+  // -----------------------------------------------
+  const updateLineChart = (filteredData) => {
+    const hours = Array.from({ length: 24 }, (_, i) => i);
+    const totalArr = new Array(24).fill(0);
+    const teenArr = new Array(24).fill(0);
+    const adultArr = new Array(24).fill(0);
+    const seniorArr = new Array(24).fill(0);
+
+    filteredData.forEach((row) => {
+      const dateObj = new Date(row.timestamp);
+      const h = dateObj.getHours();
+      const minor = row.male_minor + row.female_minor;
+      const young = row.male_young_adult + row.female_young_adult;
+      const middle = row.male_middle_aged + row.female_middle_aged;
+      const sum = minor + young + middle;
+
+      if (h >= 0 && h < 24) {
+        totalArr[h] += sum;
+        teenArr[h] += minor;
+        adultArr[h] += young;
+        seniorArr[h] += middle;
+      }
+    });
+
+    const xAxisData = hours.map((h) => `${String(h).padStart(2, "0")}시`);
+    const option = {
+      tooltip: {
+        trigger: "axis",
+        formatter: (params) => {
+          let res = params[0].axisValue + "<br/>";
+          params.forEach((p) => {
+            res += `${p.seriesName}: ${p.value}명<br/>`;
+          });
+          return res;
+        },
+      },
+      legend: {
+        show: true,
+        top: 20,
+        left: "center",
+        data: ["총 방문자", "청소년층", "성인층", "노년층"],
+      },
+      xAxis: {
+        type: "category",
+        data: xAxisData,
+      },
+      yAxis: {
+        type: "value",
+      },
+      series: [
+        {
+          name: "총 방문자",
+          type: "line",
+          data: totalArr,
+          color: "#5470c6",
+          smooth: true,
+        },
+        {
+          name: "청소년층",
+          type: "line",
+          data: teenArr,
+          color: "#ee6666",
+          smooth: true,
+        },
+        {
+          name: "성인층",
+          type: "line",
+          data: adultArr,
+          color: "#73c0de",
+          smooth: true,
+        },
+        {
+          name: "노년층",
+          type: "line",
+          data: seniorArr,
+          color: "#3ba272",
+          smooth: true,
+        },
+      ],
+    };
+    chartInstance.setOption(option);
+  };
+
+  // -----------------------------------------------
+  // 파이 차트(성별 비율)
+  // -----------------------------------------------
+  const updatePieChart = (filteredData) => {
+    chartInstance.clear();
+
+    let sumMale = 0;
+    let sumFemale = 0;
+    filteredData.forEach((row) => {
+      sumMale += row.male_young_adult + row.male_middle_aged + row.male_minor;
+      sumFemale += row.female_young_adult + row.female_middle_aged + row.female_minor;
+    });
+
+    const total = sumMale + sumFemale;
+    const malePercent = total === 0 ? 0 : ((sumMale / total) * 100).toFixed(1);
+    const femalePercent = total === 0 ? 0 : ((sumFemale / total) * 100).toFixed(1);
+
+    const option = {
+      animation: false,
+      tooltip: { trigger: "item" },
+      legend: {
+        orient: "vertical",
+        top: 20,
+        left: 20,
+        data: [`남성 ${malePercent}%`, `여성 ${femalePercent}%`],
+      },
+      series: [
+        {
+          name: "성별 비율",
+          type: "pie",
+          radius: "50%",
+          data: [
+            { value: sumMale, name: `남성 ${malePercent}%` },
+            { value: sumFemale, name: `여성 ${femalePercent}%` },
+          ],
+          emphasis: {
+            itemStyle: {
+              shadowBlur: 10,
+              shadowOffsetX: 0,
+              shadowColor: "rgba(0, 0, 0, 0.5)",
+            },
+          },
+        },
+      ],
+    };
+    chartInstance.setOption(option);
+  };
+
+  return (
+    /* 메인 컨테이너: 다크 모드 배경 + 최소 높이 */
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      {/* 공통 Nav 바, onOpenPrivacy 함수 전달 */}
+      <ResponsiveNav onOpenPrivacy={handleOpenPrivacy} />
+
+      {/* 메인 레이아웃 (화면 아래쪽) */}
+      <div className="flex bg-gray-50 dark:bg-gray-900 pt-16" style={{ minHeight: "calc(100vh - 4rem)" }}>
+=======
 
   // ------------------------------
   // (A) CCTV 목록 가져오기
@@ -692,6 +1133,7 @@ function Dashboard() {
 
       {/* 메인 레이아웃 (화면 아래쪽) */}
       <div className="flex flex-col pt-16 bg-gray-50 dark:bg-gray-900" style={{ minHeight: "calc(100vh - 4rem)" }}>
+>>>>>>> hotfix
         <main className="flex-1 overflow-y-auto">
           <div className="container mx-auto px-6 py-8">
             {/* 제목 */}
@@ -699,6 +1141,13 @@ function Dashboard() {
               통계 분석
             </h1>
 
+<<<<<<< HEAD
+            {/* CCTV 선택 버튼들 */}
+            <div className="flex flex-wrap gap-4 mb-6">{cctvButtons}</div>
+
+            {/* 기간 선택 버튼들 */}
+            <div className="flex flex-wrap gap-4 mb-8">{periodButtons}</div>
+=======
             {/* 필터 섹션 - 수정된 부분 */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 gap-4">
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
@@ -718,6 +1167,7 @@ function Dashboard() {
                 </div>
               </div>
             )}
+>>>>>>> hotfix
 
             {/* 하단 2-Column: 좌(현황통계), 우(차트) */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -795,8 +1245,11 @@ function Dashboard() {
                   <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-200">
                     {currentChart === "time"
                       ? "시간대별 방문자 통계"
+<<<<<<< HEAD
+=======
                       : currentChart === "weekday"
                       ? "요일별 방문자 통계"
+>>>>>>> hotfix
                       : "성별 비율"}
                   </h2>
                   <div className="space-x-3">
@@ -818,8 +1271,13 @@ function Dashboard() {
                 {/* Echarts 컨테이너 */}
                 <div
                   ref={chartRef}
+<<<<<<< HEAD
+                  style={{ width: "100%", height: "360px" }}
+                  className="dark:bg-gray-800"
+=======
                   style={{ height: "360px" }}
                   className="w-full"
+>>>>>>> hotfix
                 />
 
                 {/* 방문자=0 → 차트 덮는 오버레이 */}
