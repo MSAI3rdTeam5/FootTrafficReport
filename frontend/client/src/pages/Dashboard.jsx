@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
 import * as echarts from "echarts"; // npm install echarts
-//import { mockPersonCountData } from "../mocks/mockPersonCountData_02_18";
 
 function Dashboard() {
   const location = useLocation();
@@ -18,9 +17,7 @@ function Dashboard() {
   const [selectedPeriod, setSelectedPeriod] = useState("오늘");
 
   // 버튼 목록
-  //cctvList는 현재 웹 캠만 구현되므로 null 값으로 함.
-  //추가로 cctv가 구현되면 cctvList에 추가할 예정.
-  const cctvList = [];
+  const [cctvList, setCctvList] = useState([]);
   const periodList = ["오늘", "어제", "1주일", "1달"];
 
   // 차트 전환(시간대별, 성별 비율, etc.)
@@ -43,16 +40,10 @@ function Dashboard() {
     mainGender: "N/A",
   });
 
+  //API 호출 함수
   const fetchPersonCounts = async () => {
     try {
-      // url : https://msteam5iseeu.ddns.net/api/person_count/cctv_id(변수)
-      // cctv_id의 경우 cctv_id=1을 가져오는 경우
-      const response = await fetch(
-        "https://msteam5iseeu.ddns.net/api/person_count/1"
-      );
-      if (!response.ok) {
-        throw new Error("Failed to fetch person count data");
-      }
+      const response = await fetch("/api/person_count/1");
       const data = await response.json();
       console.log("PersonCount 목록:", data);
       return data;
@@ -61,17 +52,6 @@ function Dashboard() {
       return null;
     }
   };
-
-  // const fetchMockData = async () => {
-  //   try {
-  //     // 실제 API 호출 대신 간단한 Mock 예시
-  //     // (selectedPeriod, currentChart 등을 고려해 데이터를 달리 할 수도 있음)
-  //     await new Promise((resolve) => setTimeout(resolve, 100));
-  //     return mockPersonCountData;
-  //   } catch (error) {
-  //     console.error("통계 데이터 불러오기 실패:", error);
-  //   }
-  // };
 
   // 오늘 날짜만 필터링하는 함수 (selectedPerid == "Today" 일때 사용)
   const filterTodayData = (data) => {
@@ -183,8 +163,8 @@ function Dashboard() {
     let peakHour = "";
     let sumMale = 0;
     let sumFemale = 0;
-    let sumYoung = 0; // 20~39
-    let sumMiddle = 0; // 40~59
+    let sumYoung = 0; // 20~59
+    let sumMiddle = 0; // 60 이상
     let sumMinor = 0; // 0~19
 
     data.forEach((row) => {
@@ -222,17 +202,27 @@ function Dashboard() {
       sumMinor += row.male_minor + row.female_minor;
     });
 
+    // 총 방문자 수가 0명이면 바로 N/A 처리
+    if (total === 0) {
+      return {
+        totalVisitors: 0,
+        peakTime: "00:00-00:00",
+        mainAgeRange: "N/A",
+        mainGender: "N/A",
+      };
+    }
+
     // 주요 성별
     const mainGender = sumMale > sumFemale ? "남성" : "여성";
 
     // 주요 연령대
     let mainAgeRange = "N/A";
     if (sumYoung >= sumMiddle && sumYoung >= sumMinor) {
-      mainAgeRange = "20~39";
+      mainAgeRange = "성인층 (20세~59세)";
     } else if (sumMiddle >= sumYoung && sumMiddle >= sumMinor) {
-      mainAgeRange = "40~59";
+      mainAgeRange = "노인층 (60세 이상)";
     } else {
-      mainAgeRange = "0~19";
+      mainAgeRange = "청소년층(19세 이하)";
     }
 
     return {
@@ -260,18 +250,24 @@ function Dashboard() {
       const data = await fetchPersonCounts();
       if (!data) return;
 
-      //const data = await fetchMockData();
+      // CCTV 목록 업데이트: 데이터에서 고유한 cctv_id 추출 후, "CCTV {id}" 형식으로 변환
+      const uniqueCctvIds = Array.from(
+        new Set(data.map((item) => item.cctv_id))
+      );
+      const formattedCctvList = uniqueCctvIds.map((id) => `CCTV ${id}`);
+      setCctvList(formattedCctvList);
 
-      let filteredData = data;
+      const cctvNumber = parseInt(selectedCCTV.replace("CCTV ", ""), 10);
+      let filteredData = data.filter((row) => row.cctv_id === cctvNumber);
 
       if (selectedPeriod === "오늘") {
-        filteredData = filterTodayData(data);
+        filteredData = filterTodayData(filteredData);
       } else if (selectedPeriod === "어제") {
-        filteredData = filterYesterdayData(data);
+        filteredData = filterYesterdayData(filteredData);
       } else if (selectedPeriod == "1주일") {
-        filteredData = filterWeekdayData(data);
+        filteredData = filterWeekdayData(filteredData);
       } else if (selectedPeriod == "1달") {
-        filteredData = filterMonthData(data);
+        filteredData = filterMonthData(filteredData);
       }
 
       const result = calculateStats(filteredData);
@@ -281,13 +277,13 @@ function Dashboard() {
       if (!chartInstance) return;
 
       if (currentChart === "time") {
-        // 시간대별 방문자 통계
         updateLineChart(filteredData);
       } else {
         updatePieChart(filteredData);
       }
     };
     loadData();
+    //여기 수정함
   }, [selectedCCTV, selectedPeriod, currentChart, chartInstance]);
 
   //시간대별 방문자 통계
@@ -296,15 +292,15 @@ function Dashboard() {
 
     const totalArr = new Array(24).fill(0);
     const teenArr = new Array(24).fill(0); // 0~19
-    const adultArr = new Array(24).fill(0); // 20~39
-    const seniorArr = new Array(24).fill(0); // 40 이상
+    const adultArr = new Array(24).fill(0); // 20~59
+    const seniorArr = new Array(24).fill(0); // 60 이상
 
     filteredData.forEach((row) => {
       const dateObj = new Date(row.timestamp);
       const h = dateObj.getHours();
       const minor = row.male_minor + row.female_minor; // 0~19
-      const young = row.male_young_adult + row.female_young_adult; // 20~39
-      const middle = row.male_middle_aged + row.female_middle_aged; // 40~59
+      const young = row.male_young_adult + row.female_young_adult; // 20~59
+      const middle = row.male_middle_aged + row.female_middle_aged; // 60 이상
 
       const sum = minor + young + middle;
 
@@ -336,7 +332,7 @@ function Dashboard() {
         orient: "horizontal",
         top: 20,
         left: "center",
-        data: ["총 방문자", "청소년층", "청년층", "어르신층"],
+        data: ["총 방문자", "청소년층", "성인층", "노년층"],
       },
       xAxis: {
         type: "category",
@@ -361,14 +357,14 @@ function Dashboard() {
           smooth: true,
         },
         {
-          name: "청년층",
+          name: "성인층",
           type: "line",
           data: adultArr,
           color: "#73c0de",
           smooth: true,
         },
         {
-          name: "어르신층",
+          name: "노년층",
           type: "line",
           data: seniorArr,
           color: "#3ba272",
@@ -630,6 +626,21 @@ function Dashboard() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* 왼쪽: 현황 통계 (표) */}
               <div className="bg-white shadow rounded-lg overflow-hidden p-6">
+                {/* 총 방문자 수가 0이면 경고 메시지 출력 */}
+                {stats.totalVisitors === 0 && (
+                  <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+                    <div className="flex items-center">
+                      <i className="fas fa-exclamation-triangle text-yellow-400 mr-3"></i>
+                      <p className="text-sm text-yellow-700">
+                        데이터를 불러올 수 없습니다. CCTV 연결 상태를 확인해
+                        주세요.
+                      </p>
+                    </div>
+                    <p className="text-xs text-yellow-600 mt-2">
+                      심야 시간대(00시~01시)는 데이터가 제한될 수 있습니다.
+                    </p>
+                  </div>
+                )}
                 <h2 className="text-lg font-semibold text-gray-900 mb-4">
                   현황 통계
                 </h2>
@@ -681,8 +692,8 @@ function Dashboard() {
                 </table>
               </div>
 
-              {/* 차트 영역 (ECharts) */}
-              <div className="bg-white shadow rounded-lg p-6">
+              {/* 오른쪽: 차트 영역 */}
+              <div className="bg-white shadow rounded-lg p-6 relative">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-lg font-semibold text-gray-900">
                     {currentChart === "time"
@@ -705,15 +716,26 @@ function Dashboard() {
                   </div>
                 </div>
 
-                {/* 실제 차트가 그려질 영역 */}
+                {/* 차트가 들어갈 실제 컨테이너 (항상 렌더링) */}
                 <div
                   ref={chartRef}
                   style={{
                     width: "100%",
                     height: "360px",
-                    border: "1px solid #e5e7eb",
+                    // 필요하다면 테두리 추가 가능: border: "1px solid #e5e7eb"
                   }}
                 />
+
+                {/* 방문자 수가 0명이면, 차트 위에 덮어씌우는 오버레이 */}
+                {stats.totalVisitors === 0 && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-white">
+                    <i className="fas fa-chart-pie text-gray-300 text-5xl mb-4"></i>
+                    <p className="text-gray-500 text-mm">데이터가 없습니다</p>
+                    <p className="text-gray-400 text-xs mt-2">
+                      심야 시간대(00시~01시)는 데이터가 제한될 수 있습니다.
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
