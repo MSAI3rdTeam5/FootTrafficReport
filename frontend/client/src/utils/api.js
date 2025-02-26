@@ -171,31 +171,3 @@ export async function getChatbotResponse(userQuestion) {
     throw error;
   }
 }
-<<<<<<< HEAD
-=======
-
-export async function getChatbotResponse(userQuestion) {
-  try {
-    const endpoint = `https://msteam5iseeu.ddns.net/chatbot/ask?question=${userQuestion}`;
-
-    const payload = { question: userQuestion };
-
-    const response = await fetch(endpoint, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Chatbot API error: ${response.statusText}`);
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error("Error calling Chatbot API:", error);
-    throw error;
-  }
-}
->>>>>>> hotfix/urgent-bug
