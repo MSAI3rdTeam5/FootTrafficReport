@@ -14,7 +14,6 @@ import Guide from "./pages/Guide";
 import AiInsight from "./pages/AiInsight";
 import LiveStreamPlayer from "./pages/LiveStreamPlayer";
 import Chatbot from "./pages/Chatbot";
-import GuidePage from "./pages/Chatbot_guide";
 
 // 새로 추가한 CCTVMonitoring
 import CCTVMonitoring from "./pages/CCTVMonitoring";
@@ -35,11 +34,16 @@ function App() {
         {/* "/monitor" - 내 모니터링 화면 */}
         <Route path="/monitor" element={<ProtectedRoute><Monitor /></ProtectedRoute>} />
 
+<<<<<<< HEAD
         {/* "/ai-insight" - AI 인사이트 화면 */}
         <Route path="/ai-insight" element={<ProtectedRoute><AiInsight /></ProtectedRoute>} />
 
         {/* "/chatbotpage" - 챗봇 가이드(메인) 페이지 */}
         <Route path="/chatbot" element={<ProtectedRoute><GuidePage /></ProtectedRoute>} />
+=======
+      {/* "/chatbot" - 챗봇 화면 */}
+      <Route path="/chatbot" element={<Chatbot />} />
+>>>>>>> parent of 80d4bb9e (Merge branch 'hotfix/urgent-bug' into HONG)
 
         {/* "/chatbot" - 챗봇 화면 */}
         <Route path="/chatbotpage" element={<ProtectedRoute><Chatbot /></ProtectedRoute>} />

@@ -164,10 +164,5 @@ export async function getChatbotResponse(userQuestion) {
     if (!response.ok) {
       throw new Error(`Chatbot API error: ${response.statusText}`);
     }
-
-    return await response.json();
-  } catch (error) {
-    console.error("Error calling Chatbot API:", error);
-    throw error;
   }
-}
+  

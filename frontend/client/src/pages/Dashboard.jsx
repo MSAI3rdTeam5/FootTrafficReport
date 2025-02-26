@@ -572,6 +572,7 @@ function Dashboard() {
                       ? "시간대별 방문자 통계"
                       : "성별 비율"}
                   </h2>
+                  {/* 화살표 아이콘 */}
                   <div className="space-x-3">
                     <button
                       className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-600"
@@ -609,6 +610,8 @@ function Dashboard() {
                 )}
               </div>
             </div>
+
+            {/* (현황 통계 및 최근 인사이트 제거) */}
           </div>
         </main>
       </div>

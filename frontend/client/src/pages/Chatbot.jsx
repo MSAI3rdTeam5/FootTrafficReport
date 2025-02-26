@@ -1,21 +1,22 @@
-import React, { useState } from "react";
-import { useLocation } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { getChatbotResponse } from "../utils/api";
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
-<<<<<<< HEAD
-
-import PrivacyOverlay from "./PrivacyOverlay";
-import ResponsiveNav from "../components/ResponsiveNav";
-=======
->>>>>>> hotfix/urgent-bug
 
 function ChatbotPage() {
-  const [privacyOpen, setPrivacyOpen] = useState(false);
-      // (2) Nav에서 이 함수를 호출 -> 오버레이 열림
-  const handleOpenPrivacy = () => setPrivacyOpen(true);
-      // (3) 오버레이 닫기
-  const handleClosePrivacy = () => setPrivacyOpen(false);
+  const location = useLocation();
+  const [isOpen, setIsOpen] = useState(false);
+
+  // 로그인 상태 (실제 프로젝트에서는 인증 Context 또는 전역 상태로 관리)
+  const [isAuthenticated, setIsAuthenticated] = useState(true);
+
+  // 상단 탭 활성 로직
+  const isMonitorActive = location.pathname === "/monitor";
+  const isDashboardActive = location.pathname === "/dashboard";
+  const isAiInsightActive = location.pathname === "/ai-insight";
+  const isChatbotActive = location.pathname === "/chatbot";
+  const isGuideActive = location.pathname === "/guide";
 
   //초기 대화
   const daysOfWeek = ["일", "월", "화", "수", "목", "금", "토"];
@@ -49,41 +50,6 @@ function ChatbotPage() {
     ],
   };
 
-<<<<<<< HEAD
-=======
-  //초기 대화
-  const daysOfWeek = ["일", "월", "화", "수", "목", "금", "토"];
-  const now = new Date();
-  const month = now.getMonth() + 1;
-  const date = now.getDate();
-  const dayOfWeek = daysOfWeek[now.getDay()];
-
-  const initialConversationId = Date.now();
-  const initialConversation = {
-    id: initialConversationId,
-    title: `대화 1 - ${month}월 ${date}일(${dayOfWeek})`,
-    date: now.toLocaleString("ko-KR", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-    }),
-    messages: [
-      {
-        id: initialConversationId + 1,
-        sender: "bot",
-        text: "안녕하세요 ! 저는 AI 정책 추천 챗봇 입니다. ",
-      },
-      {
-        id: initialConversationId + 2,
-        sender: "bot",
-        text: "정확한 추천을 위해, 거주 지역(시/도, 시/군/구)·신분(예비창업자, 소상공인 등)·관심 업종 등을 구체적으로 포함해 질문해 주세요.",
-      },
-    ],
-  };
-
->>>>>>> hotfix/urgent-bug
   const [conversations, setConversations] = useState([initialConversation]);
   const [activeConversationId, setActiveConversationId] = useState(
     initialConversationId
@@ -309,35 +275,221 @@ function ChatbotPage() {
   };
 
   return (
-    <div className="bg-gray-50 dark:bg-gray-900 min-h-screen flex flex-col">
-      {/* 공통 네비 바 */}
-      <ResponsiveNav onOpenPrivacy={handleOpenPrivacy} />
+    <div className="bg-gray-50">
+      {/* 상단 Nav */}
+      <nav className="bg-white shadow">
+        <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between h-16 items-center">
+            {/* 왼쪽: 로고 + 탭 */}
+            <div className="flex items-center space-x-8">
+              <span className="text-xl font-bold text-black">I See U</span>
+              <div className="flex space-x-3">
+                <Link
+                  to="/monitor"
+                  className={`inline-flex items-center px-1 pt-1 nav-link ${
+                    isMonitorActive
+                      ? "bg-black text-white font-medium"
+                      : "text-gray-500 hover:text-black"
+                  }`}
+                  style={{
+                    padding: "0.5rem 1rem",
+                    borderRadius: "0.375rem",
+                    transition: "all 0.3s ease",
+                    backgroundColor: isMonitorActive ? "#000000" : "#f3f4f6",
+                    color: isMonitorActive ? "#ffffff" : "#000000",
+                  }}
+                >
+                  내 모니터링
+                </Link>
+                <Link
+                  to="/dashboard"
+                  className={`inline-flex items-center px-1 pt-1 nav-link ${
+                    isDashboardActive
+                      ? "bg-black text-white font-medium"
+                      : "text-gray-500 hover:text-black"
+                  }`}
+                  style={{
+                    padding: "0.5rem 1rem",
+                    borderRadius: "0.375rem",
+                    transition: "all 0.3s ease",
+                    backgroundColor: isDashboardActive ? "#000000" : "#f3f4f6",
+                    color: isDashboardActive ? "#ffffff" : "#000000",
+                  }}
+                >
+                  통계 분석
+                </Link>
+                <Link
+                  to="/ai-insight"
+                  className={`inline-flex items-center px-1 pt-1 nav-link ${
+                    isAiInsightActive
+                      ? "bg-black text-white font-medium"
+                      : "text-gray-500 hover:text-black"
+                  }`}
+                  style={{
+                    padding: "0.5rem 1rem",
+                    borderRadius: "0.375rem",
+                    transition: "all 0.3s ease",
+                    backgroundColor: isAiInsightActive ? "#000000" : "#f3f4f6",
+                    color: isAiInsightActive ? "#ffffff" : "#000000",
+                  }}
+                >
+                  AI 인사이트
+                </Link>
+                <Link
+                  to="/chatbot"
+                  className={`inline-flex items-center px-1 pt-1 nav-link ${
+                    isChatbotActive
+                      ? "bg-black text-white font-medium"
+                      : "text-gray-500 hover:text-black"
+                  }`}
+                  style={{
+                    padding: "0.5rem 1rem",
+                    borderRadius: "0.375rem",
+                    transition: "all 0.3s ease",
+                    backgroundColor: isChatbotActive ? "#000000" : "#f3f4f6",
+                    color: isChatbotActive ? "#ffffff" : "#000000",
+                  }}
+                >
+                  챗봇
+                </Link>
+                <Link
+                  to="/guide"
+                  className={`inline-flex items-center px-1 pt-1 nav-link ${
+                    isGuideActive
+                      ? "bg-black text-white font-medium"
+                      : "text-gray-500 hover:text-black"
+                  }`}
+                  style={{
+                    padding: "0.5rem 1rem",
+                    borderRadius: "0.375rem",
+                    transition: "all 0.3s ease",
+                    backgroundColor: isGuideActive ? "#000000" : "#f3f4f6",
+                    color: isGuideActive ? "#ffffff" : "#000000",
+                  }}
+                >
+                  사용 방법
+                </Link>
+                <button
+                  type="button"
+                  className="inline-flex items-center px-1 pt-1 text-gray-500 hover:text-black nav-link"
+                  style={{
+                    padding: "0.5rem 1rem",
+                    borderRadius: "0.375rem",
+                    transition: "all 0.3s ease",
+                    backgroundColor: "#f3f4f6",
+                    color: "#000000",
+                  }}
+                >
+                  개인정보법 안내
+                </button>
+              </div>
+            </div>
+
+            {/* 오른쪽: 알림/설정/사용자 */}
+            <div className="flex items-center relative">
+              <button className="p-2 rounded-full hover:bg-gray-100 relative">
+                <i className="fas fa-bell text-gray-600"></i>
+                <span className="absolute top-1 right-1 bg-red-500 rounded-full w-2 h-2" />
+              </button>
+              <button className="ml-3 p-2 rounded-full hover:bg-gray-100">
+                <i className="fas fa-cog text-gray-600"></i>
+              </button>
+
+              {/* 프로필 & 로그아웃 드롭다운 */}
+              {!isAuthenticated ? (
+                <div className="ml-4">
+                  <Link
+                    to="/login"
+                    className="inline-flex items-center px-4 py-2 rounded bg-blue-500 text-white hover:bg-blue-600"
+                  >
+                    로그인
+                  </Link>
+                </div>
+              ) : (
+                <div className="ml-4 flex items-center relative">
+                  <button
+                    className="flex items-center p-2 rounded-full hover:bg-gray-100"
+                    onClick={() => setIsOpen(!isOpen)}
+                  >
+                    <img
+                      className="h-8 w-8 rounded-full"
+                      src="/기본프로필.png"
+                      alt="사용자 프로필"
+                    />
+                    <span className="ml-2 text-sm font-medium text-gray-700">
+                      김관리자
+                    </span>
+                  </button>
+
+                  {/* 드롭다운 메뉴 */}
+                  {isOpen && (
+                    <div
+                      className="absolute right-0 top-full mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5"
+                      role="menu"
+                    >
+                      <a
+                        href="#"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        role="menuitem"
+                      >
+                        프로필 설정
+                      </a>
+                      <a
+                        href="#"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        role="menuitem"
+                      >
+                        계정 관리
+                      </a>
+                      <a
+                        href="#"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        role="menuitem"
+                      >
+                        알림 설정
+                      </a>
+                      <div className="border-t border-gray-100 my-1"></div>
+                      <a
+                        href="#"
+                        className="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                        role="menuitem"
+                      >
+                        로그아웃
+                      </a>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </nav>
 
       {/* 메인 레이아웃 */}
-      <div className="flex-1 pt-20 flex justify-center py-8 bg-gray-50 dark:bg-gray-900">
-        {/* 고정 크기 박스 (챗봇 화면) - 반응형: 모바일에서 너무 큰 경우 대비 */}
-        <div className="bg-white dark:bg-gray-800 dark:text-gray-200 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 h-[700px] w-full max-w-[1200px]">
+      <div className="flex bg-gray-50 justify-center py-8">
+        {/* 고정 크기 박스 (챗봇 화면 고정) */}
+        <div className="bg-white rounded-lg shadow-sm h-[700px] w-[1200px]">
           <div className="flex h-full">
             {/* 왼쪽: 대화 목록 패널 (조건부 렌더링) */}
             {showList && (
-              <div className="hidden md:flex md:flex-col w-80 border-r border-gray-200 dark:border-gray-700 p-4 overflow-y-auto overflow-x-hidden">
+              <div className="w-80 border-r border-gray-200 p-4 overflow-y-auto">
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100">
+                  <h2 className="text-lg font-medium text-gray-900">
                     대화 목록
                   </h2>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center">
                     {/* 새 대화 버튼 */}
                     <button
-                      className="rounded-button bg-custom text-white px-4 py-2 text-sm font-medium"
+                      className="!rounded-button bg-custom text-white px-4 py-2 text-sm font-medium"
                       onClick={handleNewConversation}
                     >
                       새 대화
                     </button>
 
                     {/* 목록 숨기기 */}
-                    <div className="relative group">
+                    <div className="relative group ml-2">
                       <button
-                        className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-gray-200 rounded"
+                        className="p-2 text-gray-500 hover:text-gray-700 rounded"
                         onClick={toggleList}
                       >
                         <i className="fas fa-chevron-left"></i>
@@ -353,10 +505,10 @@ function ChatbotPage() {
                           px-2 py-1
                           text-xs
                           text-white
-                          bg-black
+                          bg-gray-800
                           rounded
                           opacity-0
-                          group-hover:opacity-100
+                          group-hover:opacity-80
                           pointer-events-none
                           transition-opacity
                           whitespace-nowrap
@@ -368,7 +520,7 @@ function ChatbotPage() {
                   </div>
                 </div>
                 {conversations.length === 0 ? (
-                  <div className="text-gray-500 dark:text-gray-400 text-sm">
+                  <div className="text-gray-500 text-sm">
                     아직 대화가 없습니다.
                   </div>
                 ) : (
@@ -378,22 +530,22 @@ function ChatbotPage() {
                       return (
                         <div
                           key={conv.id}
+                          className={`relative p-3 rounded-lg cursor-pointer transition-colors ${
+                            isActive
+                              ? "bg-black text-white"
+                              : "bg-gray-50 hover:bg-gray-100 text-gray-900"
+                          }`}
                           onClick={() => {
                             setActiveConversationId(conv.id);
                             setActiveMenuId(null);
                           }}
-                          className={`relative p-3 rounded-lg cursor-pointer transition-colors ${
-                            isActive
-                              ? "bg-black text-white"
-                              : "bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-900 dark:text-gray-100"
-                          }`}
                         >
                           <div className="text-sm font-medium">
                             {conv.title}
                           </div>
                           <div
                             className={`text-xs mt-1 ${
-                              isActive ? "text-gray-200" : "text-gray-500 dark:text-gray-300"
+                              isActive ? "text-gray-200" : "text-gray-500"
                             }`}
                           >
                             {conv.date}
@@ -405,19 +557,13 @@ function ChatbotPage() {
                               e.stopPropagation(); // 부모 클릭 이벤트 막기
                               toggleMenu(conv.id);
                             }}
-                            className="absolute top-2 right-2 p-1 text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-gray-100 rounded focus:outline-none"
+                            className="absolute top-2 right-2 p-1 text-gray-500 hover:text-gray-700 rounded focus:outline-none"
                           >
                             <i className="fas fa-ellipsis-v"></i>
                           </button>
 
                           {/* 점 세 개 눌렀을 때 나오는 드롭다운 메뉴 */}
                           {activeMenuId === conv.id && (
-<<<<<<< HEAD
-                            <div className="absolute top-8 right-2 w-32 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded shadow-md z-10">
-                              {/* 이름 바꾸기 버튼 등 필요시 추가 */}
-                              <button
-                                className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-600 text-red-500"
-=======
                             <div className="absolute top-8 right-2 w-32 bg-white border border-gray-200 rounded shadow-md z-10">
                               {/* <button
                                 className="w-full text-left px-4 py-2 text-sm text-black hover:bg-gray-100"
@@ -431,7 +577,6 @@ function ChatbotPage() {
                               </button> */}
                               <button
                                 className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 text-red-500"
->>>>>>> hotfix/urgent-bug
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   handleDeleteConversation(conv.id);
@@ -453,20 +598,20 @@ function ChatbotPage() {
             {/* 오른쪽: 채팅 영역 */}
             <div className="flex-1 flex flex-col">
               {/* 채팅 헤더 */}
-              <div className="border-b border-gray-200 dark:border-gray-700 p-4 flex items-center justify-between bg-white dark:bg-gray-800">
+              <div className="border-b border-gray-200 p-4 flex items-center justify-between">
                 <div className="flex items-center">
-                  {/* 목록이 숨겨진 경우 => 오픈 버튼(모바일 전용) */}
-                  {!showList && (
+                  {/* 목록이 숨겨진 경우 => 오른쪽 체브론 */}
+                  {!showList ? (
                     <button
-                      className="mr-3 p-2 text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-gray-100 rounded"
+                      className="mr-3 p-2 text-gray-500 hover:text-gray-700 rounded"
                       onClick={toggleList}
                     >
                       <i className="fas fa-chevron-right"></i>
                     </button>
-                  )}
+                  ) : null}
 
                   <div className="h-2 w-2 rounded-full bg-green-400 mr-2"></div>
-                  <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
+                  <h3 className="text-lg font-medium text-gray-900">
                     {activeConversation
                       ? activeConversation.title
                       : "AI 어시스턴트"}
@@ -476,11 +621,7 @@ function ChatbotPage() {
                   {/* 다운로드 버튼 + 툴팁 */}
                   <div className="relative group">
                     <button
-<<<<<<< HEAD
-                      className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-gray-100 rounded"
-=======
                       className="p-2 text-gray-500 hover:text-gray-700 rounded"
->>>>>>> hotfix/urgent-bug
                       onClick={handleDownloadPDF}
                     >
                       <i className="fas fa-download"></i>
@@ -500,14 +641,9 @@ function ChatbotPage() {
                         group-hover:opacity-100
                         transition-opacity
                         duration-300
-<<<<<<< HEAD
-                        -top-6
-                        left-1/2
-=======
                         -top-5
                         left-1/2
                         transform
->>>>>>> hotfix/urgent-bug
                         -translate-x-1/2
                       "
                     >
@@ -517,20 +653,10 @@ function ChatbotPage() {
                 </div>
               </div>
 
-<<<<<<< HEAD
-              {/* 메시지 목록 */}
-              <div
-                id="chatContainer"
-                className="flex-1 p-6 overflow-y-auto bg-white dark:bg-gray-800"
-              >
-                {!activeConversation ? (
-                  <div className="text-gray-500 dark:text-gray-400">
-=======
               {/* 메시지 목록 (스크롤) */}
               <div id="chatContainer" className="flex-1 p-6 overflow-y-auto">
                 {!activeConversation ? (
                   <div className="text-gray-500">
->>>>>>> hotfix/urgent-bug
                     메시지를 입력하면 대화가 시작됩니다.
                   </div>
                 ) : (
@@ -547,8 +673,8 @@ function ChatbotPage() {
                           {/* 봇 아이콘 */}
                           {!isUser && (
                             <div className="flex-shrink-0">
-                              <div className="h-8 w-8 rounded-full bg-custom flex items-center justify-center text-white">
-                                <i className="fas fa-robot"></i>
+                              <div className="h-8 w-8 rounded-full bg-custom flex items-center justify-center">
+                                <i className="fas fa-robot text-white"></i>
                               </div>
                             </div>
                           )}
@@ -556,10 +682,8 @@ function ChatbotPage() {
                             className={`${
                               isUser
                                 ? "bg-custom text-white"
-                                : "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 ml-3"
-                            } rounded-lg p-4 max-w-3xl ${
-                              isUser ? "mr-3" : ""
-                            }`}
+                                : "bg-gray-100 text-gray-900 ml-3"
+                            } rounded-lg p-4 max-w-3xl ${isUser ? "mr-3" : ""}`}
                           >
                             <p className="text-sm">{msg.text}</p>
                           </div>
@@ -571,20 +695,16 @@ function ChatbotPage() {
               </div>
 
               {/* 입력창 */}
-              <div className="border-t border-gray-200 dark:border-gray-700 p-4 bg-white dark:bg-gray-800">
+              <div className="border-t border-gray-200 p-4 bg-white">
                 <div className="flex items-center">
                   <textarea
-                    className="flex-1 border border-gray-300 dark:border-gray-600 rounded-lg resize-none px-3 py-2 text-sm dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-custom"
+                    className="flex-1 form-input border-gray-300 focus:border-custom focus:ring-custom rounded-lg resize-none"
                     placeholder={
                       activeConversation
-<<<<<<< HEAD
-                        ? "메시지를 입력해주세요. (Enter로 전송)"
-=======
                         ? "메시지를 입력해주세요. "
->>>>>>> hotfix/urgent-bug
                         : "대화를 먼저 선택해주세요."
                     }
-                    rows={2}
+                    rows={3}
                     value={inputMessage}
                     onChange={(e) => setInputMessage(e.target.value)}
                     onKeyDown={(e) => {
@@ -596,7 +716,7 @@ function ChatbotPage() {
                     disabled={!activeConversation}
                   ></textarea>
                   <button
-                    className="rounded-button ml-4 bg-custom text-white px-6 py-2 hover:bg-custom/90 transition disabled:bg-gray-400 disabled:cursor-not-allowed"
+                    className="!rounded-button ml-4 bg-custom text-white px-6 py-2 self-end"
                     onClick={handleSendMessage}
                     disabled={!activeConversation}
                   >
@@ -609,11 +729,6 @@ function ChatbotPage() {
           </div>
         </div>
       </div>
-
-      {/* 개인정보법 안내 오버레이 */}
-      {privacyOpen && (
-        <PrivacyOverlay open={privacyOpen} onClose={handleClosePrivacy} />
-      )}
     </div>
   );
 }
