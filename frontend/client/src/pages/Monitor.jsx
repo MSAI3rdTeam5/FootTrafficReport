@@ -254,7 +254,7 @@ function Monitor() {
             className="bg-white dark:bg-gray-800 dark:text-gray-200 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col items-center justify-center min-h-[160px] cursor-pointer hover:border-custom transition"
             onClick={handleOpenWebcamSelect}
           >
-            <i className="fas fa-video-plus text-4xl text-custom mb-4"></i>
+            <i className="fas fa-camera text-4xl text-custom mb-4"></i>
             <span className="text-gray-700 dark:text-gray-300">웹캠 연결</span>
           </div>
         </div>
