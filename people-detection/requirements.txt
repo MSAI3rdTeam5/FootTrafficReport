@@ -1,8 +1,0 @@
-ultralytics==8.3.68
-torch==2.4.0
-opencv-python==4.10.0.84
-opencv-contrib-python==4.11.0.86
-aiohttp==3.10.11
-uvicorn==0.32.1
-fastapi==0.95.2
-python-dotenv==1.0.1
