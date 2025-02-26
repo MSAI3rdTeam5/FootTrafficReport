@@ -1,5 +1,3 @@
-// /home/azureuser/FootTrafficReport/frontend/client/src/context/AppContext.jsx
-
 import React, { createContext, useState, useRef, useEffect } from "react";
 import { callPeopleDetection } from "../utils/api";
 
@@ -12,6 +10,11 @@ export function AppProvider({ children }) {
 
   // 2) int형 cctvId (Monitor.jsx 등에서 setCctvId(2) 가능)
   const [cctvId, setCctvId] = useState(0);
+
+  // 디버깅을 위한 로그
+  useEffect(() => {
+    console.log("AppContext cctvId changed:", cctvId);
+  }, [cctvId]);
 
   // 숨겨진 <video> / 오프스크린 <canvas>
   const hiddenVideoRef = useRef(null);

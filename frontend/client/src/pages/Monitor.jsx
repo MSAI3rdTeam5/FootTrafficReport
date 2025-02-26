@@ -247,7 +247,7 @@ function Monitor() {
               setDeviceModalOpen(true);
             }}
           >
-            <i className="fas fa-video text-4xl text-custom mb-4"></i>
+            <i className="fas fa-video-camera text-4xl text-custom mb-4"></i>
             <span className="text-gray-700 dark:text-gray-300">CCTV 연결</span>
           </div>
           <div
@@ -456,7 +456,6 @@ function ConnectedDevices({ cameraList, onDeleteClick }) {
   const handleCameraClick = async (camera) => {
     if (camera.type === "webcam") {
       try {
-        // 선택된 웹캠으로 스트림 다시 얻기
         const stream = await navigator.mediaDevices.getUserMedia({
           video: { 
             deviceId: { exact: camera.deviceId },
@@ -472,12 +471,18 @@ function ConnectedDevices({ cameraList, onDeleteClick }) {
         navigate("/cctv-monitoring");
       } catch (err) {
         console.error("카메라 연결 실패:", err);
-        alert("카메라 연결에 실패했습니다.");
+        setCctvId(camera.cameraId);  // cctv_id는 설정
+        setTimeout(() => {
+          navigate("/no-monitoring");
+        }, 0);
       }
-    } 
-    // } else if (camera.type === "cctv") {
-    //   connectIpCamera(camera);
-    // }
+    } else if (camera.type === "cctv") {
+      // CCTV 타입인 경우
+      setCctvId(camera.cameraId);  // cctv_id 설정
+      setTimeout(() => {
+        navigate("/no-monitoring");
+      }, 0);
+    }
   };
   
   const handleDeleteClick = (e, camera) => {

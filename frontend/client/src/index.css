@@ -2,4 +2,266 @@
 @tailwind components;
 @tailwind utilities;
 
-/* 필요하다면 추가 스타일을 이 아래에 작성 */
+/* -------------- (1) 파도 애니메이션 (.wave-bg) -------------- */
+.wave-bg {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(
+    -45deg,
+    rgba(74, 144, 226, 0.30),
+    rgba(100, 181, 246, 0.35),
+    rgba(74, 144, 226, 0.30),
+    rgba(100, 181, 246, 0.35)
+  );
+  background-size: 700% 700%;
+  animation: waveGradient 30s ease infinite;
+  z-index: -1;
+}
+@keyframes waveGradient {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* -------------- (2) fadeInUp (등장 아래→위) -------------- */
+@keyframes fadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.fade-in-up {
+  animation: fadeInUp 0.6s ease forwards;
+}
+
+/* -------------- (3) ripple 효과 (버튼 클릭 시) -------------- */
+.ripple {
+  position: relative;
+  overflow: hidden;
+}
+.ripple::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(circle, #fff 10%, transparent 10.01%);
+  background-repeat: no-repeat;
+  background-position: 50%;
+  transform: scale(10, 10);
+  opacity: 0;
+  transition: transform 0.5s, opacity 1s;
+}
+.ripple:active::after {
+  transform: scale(0, 0);
+  opacity: 0.3;
+  transition: 0s;
+}
+
+/* -------------- (4) link-hover (텍스트 밑줄) -------------- */
+.link-hover {
+  position: relative;
+  transition: color 0.3s;
+}
+.link-hover::after {
+  content: "";
+  position: absolute;
+  left: 0; 
+  bottom: -2px;
+  width: 100%; 
+  height: 2px;
+  background-color: #4A90E2;
+  transform-origin: bottom right;
+  transform: scaleX(0);
+  transition: transform 0.3s ease-out;
+}
+.link-hover:hover::after {
+  transform-origin: bottom left;
+  transform: scaleX(1);
+}
+
+/* -------------- (5) 로그인 성공 애니메이션 -------------- */
+@keyframes successModal {
+  0% {
+    transform: scale(1);
+    box-shadow: none;
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(76, 175, 80, 0.2);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: none;
+  }
+}
+.animate-successModal {
+  animation: successModal 0.8s ease forwards;
+}
+
+/* =============== (6) 버튼 기본 스타일 =============== */
+.btn-camera-shutter {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 100%;
+  padding: 1.25rem 1.5rem; /* 충분히 여유있는 상하/좌우 */
+
+  font-size: 0.875rem; 
+  font-weight: 500;
+  line-height: normal;
+
+  border-radius: 0.5rem;
+  background-color: #000;   /* 검정 배경 */
+  color: #fff;              /* 흰 글자 */
+  transition: background-color 0.3s, color 0.3s;
+}
+.btn-camera-shutter:hover {
+  background-color: #fff; 
+  color: #000;
+}
+
+/* (7) 문구 2개 (로그인 / I See U) */
+.button-text {
+  position: relative;
+  display: inline-block;
+}
+.login-label,
+.isee-label {
+  position: absolute;
+  top: 50%; 
+  left: 50%;
+  transform: translate(-50%, -50%);
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 1;
+  transition: opacity 0.6s ease;
+}
+/* 초기: "로그인" 보임, "I See U" 숨김 */
+.login-label { 
+  opacity: 1; 
+}
+.isee-label { 
+  opacity: 0; 
+}
+
+/* =============== (8) 사각형 라인 4개 그리기 + 완성 후 추가연출 =============== */
+
+/* 공통 라인 스타일 */
+.camera-shutter .line {
+  position: absolute;
+  background-color: black;  /* 라인색: 검정 */
+}
+
+/* top/bottom: width:0 → 100%, height:2px */
+.line-top,
+.line-bottom {
+  height: 2px;
+  width: 0%;
+  left: 0;
+}
+.line-top { top: 0; }
+.line-bottom { bottom: 0; }
+
+/* left/right: height:0 → 100%, width:2px */
+.line-left,
+.line-right {
+  width: 2px;
+  height: 0%;
+  top: 0;
+}
+.line-left { left: 0; }
+.line-right { right: 0; }
+
+/* 라인 그리기 애니메이션 */
+@keyframes drawHorizontal {
+  0% { width: 0%; }
+  100% { width: 100%; }
+}
+@keyframes drawVertical {
+  0% { height: 0%; }
+  100% { height: 100%; }
+}
+@keyframes blinkFrame {
+  0%, 100% { background-color: black; }
+  50% { background-color: #777; }
+}
+
+/* =============== (A) 호버 시 4개 라인 순서대로 그리기 =============== */
+/* top => 0s */
+.camera-shutter:hover .line-top {
+  animation:
+    drawHorizontal 0.75s forwards,
+    blinkFrame 2.5s linear infinite 0.75s; /* 라인 그려진 뒤부터 깜빡임 */
+}
+/* right => 0.75s */
+.camera-shutter:hover .line-right {
+  animation:
+    drawVertical 0.75s forwards 0.75s,
+    blinkFrame 2.5s linear infinite 1.5s;
+}
+/* bottom => 1.5s */
+.camera-shutter:hover .line-bottom {
+  animation:
+    drawHorizontal 0.75s forwards 1.5s,
+    blinkFrame 2.5s linear infinite 2.25s;
+}
+/* left => 2.25s */
+.camera-shutter:hover .line-left {
+  animation:
+    drawVertical 0.75s forwards 2.25s,
+    blinkFrame 2.5s linear infinite 3s;
+}
+
+/* (B) 테두리 완성 후(약 3s + 0.75s = 3.75s 시점)에 추가 전환: 
+   - 버튼 배경: 다시 검정
+   - 텍스트: 흰색 "I See U"
+   cf) keyframes or transition-delay trick
+*/
+@keyframes revertButton {
+  0% {
+    /* 호버 배경: 흰색, 글자: 검정 */
+    background-color: #fff;
+    color: #000;
+  }
+  100% {
+    /* 다시 검정 배경, 흰글자 */
+    background-color: #000;
+    color: #fff;
+  }
+}
+
+/* 
+   호버 중 3.75초 이후 천천히 배경/색상 전환 
+   (원하는 시간동안 0%→100%로 1초/2초 등 설정)
+*/
+.camera-shutter:hover {
+  animation: revertButton 2s ease forwards 3.75s; 
+}
+
+/* (C) 문구 교체 시점 + 추가 깜빡임 */
+/* login-label 숨김: 라인이 거의 완성된 1.2s 지점 */
+.camera-shutter:hover .login-label {
+  opacity: 0;
+  transition-delay: 1.2s;
+}
+/* I See U 표시: 라인 완성 직후(1.6s) */
+.camera-shutter:hover .isee-label {
+  opacity: 1;
+  transition-delay: 1.6s;
+}
+
+/* (D) I See U도 테두리 완성 후 깜빡이려면 */
+@keyframes blinkTextColor {
+  0%, 100% { color: #fff; }
+  50% { color: #ccc; }
+}
+
+/* 테두리가 완성되는 3s+에서 시작 */
+.camera-shutter:hover .isee-label {
+  animation: blinkTextColor 2s linear infinite 3.7s;
+}

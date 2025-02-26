@@ -1,5 +1,3 @@
-// /home/azureuser/FootTrafficReport/frontend/client/src/App.jsx
-
 import React from "react";
 import { Routes, Route } from "react-router-dom";
 import { AppProvider } from "./context/AppContext";
@@ -14,6 +12,7 @@ import LiveStreamPlayer from "./pages/LiveStreamPlayer";
 import Chatbot from "./pages/Chatbot";
 import GuidePage from "./pages/Chatbot_guide";
 import CCTVMonitoring from "./pages/CCTVMonitoring";
+import NoMonitoring from "./pages/NoMonitoring";  // NoMonitoring 추가
 import Signup from "./pages/Signup";
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -52,6 +51,16 @@ function App() {
           element={
             <ProtectedRoute>
               <CCTVMonitoring />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* NoMonitoring 추가 */}
+        <Route
+          path="/no-monitoring"
+          element={
+            <ProtectedRoute>
+              <NoMonitoring />
             </ProtectedRoute>
           }
         />

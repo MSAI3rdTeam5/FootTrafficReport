@@ -59,20 +59,16 @@ def create_visualizations(data, start_date=None, end_date=None):
     weekday_order = ["월", "화", "수", "목", "금", "토", "일"]
     data['day_of_week'] = pd.Categorical(data['day_of_week'], categories=weekday_order, ordered=True)
     plt.figure(figsize=(8, 5))
-    weekday_values = data.groupby("day_of_week")[age_columns].sum()
+    weekday_values = data.groupby("day_of_week")[age_columns].sum()   # 천 명 단위로 변환
     weekday_values_total = weekday_values.sum(axis=1)
- 
-    unit = "천 명" if weekday_values_total.max() >= 1000 else "명"
-    # 1000명 이상일 때만 천명 단위로 나누기
-    weekday_values_total = weekday_values_total.apply(lambda x: x / 1000 if x >= 1000 else x)
-   
     bars = weekday_values_total.plot(kind="bar", color="purple")
-    plt.title(f"요일별 유동인구 (합계, 단위: {unit})")
-    plt.ylabel(f"유동인구 ({unit})")
+    plt.title("요일별 유동인구 합계")
+    plt.ylabel("유동인구 합계")
     plt.xlabel("요일")
     plt.xticks(rotation=0)
     plt.tight_layout()
  
+    # 각 바에 숫자 추가
     for bar in bars.patches:
         plt.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.1, f'{bar.get_height():,.0f}',
                 ha='center', va='bottom', fontsize=10)
@@ -84,17 +80,14 @@ def create_visualizations(data, start_date=None, end_date=None):
  
     # 연령별 유동인구
     plt.figure(figsize=(8, 5))
-    age_values = data[age_columns].sum()
- 
-    unit = "천 명" if age_values.max() >= 1000 else "명"
-    # 1000명 이상일 때만 천명 단위로 나누기
-    age_values = age_values.apply(lambda x: x / 1000 if x >= 1000 else x)
-   
+    age_values = data[age_columns].sum()   # 천 명 단위로 변환
     bars = age_values.plot(kind="bar", color=["skyblue", "pink", "blue", "lightcoral", "green", "lightgreen"])
-    plt.title(f"연령별 유동인구 (합계, 단위: {unit})")
-    plt.ylabel(f"유동인구 ({unit})")
+    plt.title("연령별 유동인구 합계")
+    plt.ylabel("유동인구 합계")
     plt.xticks(rotation=0)
     plt.tight_layout()
+ 
+    # 각 바에 숫자 추가
     for bar in bars.patches:
         plt.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.1, f'{bar.get_height():,.0f}',
                 ha='center', va='bottom', fontsize=10)
@@ -104,68 +97,76 @@ def create_visualizations(data, start_date=None, end_date=None):
     plt.close()
     graph_paths.append(age_graph_path)
  
-    # 성별 유동인구 그래프
+    # 성별 유동인구 그래프 (원형 그래프)
+    # 성별 유동인구 파이 그래프
     male_columns = [col for col in data.columns if col.startswith("male")]
     female_columns = [col for col in data.columns if col.startswith("female")]
  
-    male_values = data[male_columns].sum().sum()
-    female_values = data[female_columns].sum().sum()
+    male_values = data[male_columns].sum().sum()   # 천 명 단위
+    female_values = data[female_columns].sum().sum()   # 천 명 단위
+ 
+    # 데이터 준비
     gender_values = [male_values, female_values]
     labels = ["남성", "여성"]
     colors = ["skyblue", "pink"]
  
-    unit = "천 명" if max(gender_values) >= 1000 else "명"
-    # 1000명 이상일 때만 천명 단위로 나누기
-    gender_values = [x / 1000 if x >= 1000 else x for x in gender_values]
- 
+    # 파이 그래프 그리기
     plt.figure(figsize=(6, 6))
     wedges, texts, autotexts = plt.pie(
         gender_values,
-        labels=None,  
-        autopct=lambda pct: f"{pct:.1f}%\n({(pct / 100 * sum(gender_values)):.1f}{unit})",
+        labels=None,  # 원 밖의 라벨 제거
+        autopct=lambda pct: f"{pct:.1f}%\n({(pct / 100 * sum(gender_values)):.1f}명)",
         colors=colors,
         startangle=90,
         textprops={'color': "black", 'fontsize': 12}
     )
  
+    # 원 안에 텍스트(남성, 여성) 추가
     for i, label in enumerate(labels):
-        x, y = wedges[i].center  
-        angle = (wedges[i].theta2 + wedges[i].theta1) / 2  
-        x = 0.6 * wedges[i].r * np.cos(np.radians(angle))  
-        y = 0.6 * wedges[i].r * np.sin(np.radians(angle)) + 0.15  
+        x, y = wedges[i].center  # 원의 중심 좌표
+        angle = (wedges[i].theta2 + wedges[i].theta1) / 2  # 각도 계산
+        x = 0.6 * wedges[i].r * np.cos(np.radians(angle))  # 중심에서 60% 거리의 x 좌표
+        y = 0.6 * wedges[i].r * np.sin(np.radians(angle))+0.15  # 중심에서 60% 거리의 y 좌표
         plt.text(x, y, label, ha='center', va='center', fontsize=14, color="white", weight="bold")
-   
-    plt.title(f"성별 유동인구 (단위: {unit})", fontsize=16)
+ 
+    # 그래프 제목
+    plt.title("성별 유동인구 (천 명)", fontsize=16)
+ 
+    # 그래프 저장
     gender_graph_path = save_with_unique_name(data_folder, "gender_values_pie_chart_with_labels")
     plt.savefig(gender_graph_path)
     plt.close()
     graph_paths.append(gender_graph_path)
  
-    # 시간대별 유동인구 그래프
+    # 시간대별 유동인구
+    # 시간대별 유동인구: 오전과 오후를 선 그래프로 표현
     data['시간_숫자'] = pd.to_datetime(data['time'], format='%H:%M').dt.hour
  
+    # 시간대별 유동인구: 오전과 오후를 선 그래프로 표현
     plt.figure(figsize=(8, 5))
-    morning_values = data[data['시간_숫자'] < 12].groupby('시간_숫자')[age_columns].sum().sum(axis=1)
-    afternoon_values = data[data['시간_숫자'] >= 12].groupby('시간_숫자')[age_columns].sum().sum(axis=1)
  
-    unit = "천 명" if max(morning_values.max(), afternoon_values.max()) >= 1000 else "명"
-    # 1000명 이상일 때만 천명 단위로 나누기
-    morning_values = morning_values.apply(lambda x: x / 1000 if x >= 1000 else x)
-    afternoon_values = afternoon_values.apply(lambda x: x / 1000 if x >= 1000 else x)
+    # 오전(0~11시) 데이터
+    morning_values = data[data['시간_숫자'] < 12].groupby('시간_숫자')[age_columns].sum().sum(axis=1)   # 천 명 단위
  
+    # 오후(12~23시) 데이터
+    afternoon_values = data[data['시간_숫자'] >= 12].groupby('시간_숫자')[age_columns].sum().sum(axis=1)  # 천 명 단위
+ 
+    # 선 그래프 그리기
     plt.plot(morning_values.index, morning_values.values, marker='o', label="오전 (0~11시)", color="skyblue")
     plt.plot(afternoon_values.index, afternoon_values.values, marker='o', label="오후 (12~23시)", color="orange")
  
-    plt.title(f"시간대별 유동인구 ({unit})")
-    plt.ylabel(f"유동인구 ({unit})")
+    # 그래프 제목과 축 설정
+    plt.title("시간대별 유동인구 합계")
+    plt.ylabel("유동인구 합계")
     plt.xlabel("시간")
-    plt.xticks(range(24))  
+    plt.xticks(range(24))  # 시간대를 0~23시로 표시
     plt.grid(axis="y", linestyle="--", alpha=0.7)
     plt.legend()
  
+    # 그래프 저장
     time_graph_path = save_with_unique_name(data_folder, "time_values_morning_afternoon_lines")
     plt.savefig(time_graph_path)
     plt.close()
     graph_paths.append(time_graph_path)
- 
+   
     return graph_paths
