@@ -2,7 +2,7 @@
 <html lang="ko">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
     <title>I See U - 로그인</title>
     <!-- Google Fonts -->
     <link
@@ -26,14 +26,25 @@
     <!-- (1) webrtc-adapter를 먼저 로드 -->
     <script src="/adapter/adapter.js"></script>
 
+<<<<<<< HEAD:frontend/index.html
     <!-- (2) Janus.js: 전역 스크립트로 로드 (기존 코드)
     <script src="/janus/janus.js"></script> -->
+=======
+
+    <!-- (2.5) SRS SDK: 전역 스크립트로 로드 (중요) -->
+    <!-- 
+         주의: public/srs.sdk.js가 실제 존재해야 함.
+         로드된 후, window.SrsRtcPlayerAsync / window.SrsRtcPublisherAsync 등이 사용 가능 
+    -->
+    <script src="/srs.sdk.js"></script>
+
+>>>>>>> hotfix:frontend/client/index.html
 
     <!-- (3) Vite main script (React or Vue 등에서 사용) -->
     <script type="module" src="/src/main.jsx"></script>
 
-    <!-- (4) Socket.io 클라이언트 스크립트: Node 서버가 /socket.io/socket.io.js 제공 -->
-    <script src="/socket.io/socket.io.js"></script>
+    <!-- (4) Socket.io 클라이언트 (전역) -->
+    <script src="/socket.io/socket.io.js" data-no-bundle></script>
     <script>
       // 즉시실행 함수로 감싸서 전역 스코프 오염 방지 (선택)
       (function() {

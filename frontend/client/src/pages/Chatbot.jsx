@@ -4,11 +4,17 @@ import { getChatbotResponse } from "../utils/api";
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 import PrivacyOverlay from "./PrivacyOverlay";
 import ResponsiveNav from "../components/ResponsiveNav";
 =======
 >>>>>>> hotfix/urgent-bug
+=======
+
+import PrivacyOverlay from "./PrivacyOverlay";
+import ResponsiveNav from "../components/ResponsiveNav";
+>>>>>>> hotfix
 
 function ChatbotPage() {
   const [privacyOpen, setPrivacyOpen] = useState(false);
@@ -50,6 +56,7 @@ function ChatbotPage() {
   };
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
   //초기 대화
   const daysOfWeek = ["일", "월", "화", "수", "목", "금", "토"];
@@ -84,6 +91,8 @@ function ChatbotPage() {
   };
 
 >>>>>>> hotfix/urgent-bug
+=======
+>>>>>>> hotfix
   const [conversations, setConversations] = useState([initialConversation]);
   const [activeConversationId, setActiveConversationId] = useState(
     initialConversationId
@@ -413,10 +422,14 @@ function ChatbotPage() {
                           {/* 점 세 개 눌렀을 때 나오는 드롭다운 메뉴 */}
                           {activeMenuId === conv.id && (
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> hotfix
                             <div className="absolute top-8 right-2 w-32 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded shadow-md z-10">
                               {/* 이름 바꾸기 버튼 등 필요시 추가 */}
                               <button
                                 className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-600 text-red-500"
+<<<<<<< HEAD
 =======
                             <div className="absolute top-8 right-2 w-32 bg-white border border-gray-200 rounded shadow-md z-10">
                               {/* <button
@@ -432,6 +445,8 @@ function ChatbotPage() {
                               <button
                                 className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 text-red-500"
 >>>>>>> hotfix/urgent-bug
+=======
+>>>>>>> hotfix
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   handleDeleteConversation(conv.id);
@@ -477,10 +492,14 @@ function ChatbotPage() {
                   <div className="relative group">
                     <button
 <<<<<<< HEAD
+<<<<<<< HEAD
                       className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-gray-100 rounded"
 =======
                       className="p-2 text-gray-500 hover:text-gray-700 rounded"
 >>>>>>> hotfix/urgent-bug
+=======
+                      className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-gray-100 rounded"
+>>>>>>> hotfix
                       onClick={handleDownloadPDF}
                     >
                       <i className="fas fa-download"></i>
@@ -501,6 +520,7 @@ function ChatbotPage() {
                         transition-opacity
                         duration-300
 <<<<<<< HEAD
+<<<<<<< HEAD
                         -top-6
                         left-1/2
 =======
@@ -508,6 +528,10 @@ function ChatbotPage() {
                         left-1/2
                         transform
 >>>>>>> hotfix/urgent-bug
+=======
+                        -top-6
+                        left-1/2
+>>>>>>> hotfix
                         -translate-x-1/2
                       "
                     >
@@ -518,6 +542,9 @@ function ChatbotPage() {
               </div>
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> hotfix
               {/* 메시지 목록 */}
               <div
                 id="chatContainer"
@@ -525,12 +552,15 @@ function ChatbotPage() {
               >
                 {!activeConversation ? (
                   <div className="text-gray-500 dark:text-gray-400">
+<<<<<<< HEAD
 =======
               {/* 메시지 목록 (스크롤) */}
               <div id="chatContainer" className="flex-1 p-6 overflow-y-auto">
                 {!activeConversation ? (
                   <div className="text-gray-500">
 >>>>>>> hotfix/urgent-bug
+=======
+>>>>>>> hotfix
                     메시지를 입력하면 대화가 시작됩니다.
                   </div>
                 ) : (
@@ -578,10 +608,14 @@ function ChatbotPage() {
                     placeholder={
                       activeConversation
 <<<<<<< HEAD
+<<<<<<< HEAD
                         ? "메시지를 입력해주세요. (Enter로 전송)"
 =======
                         ? "메시지를 입력해주세요. "
 >>>>>>> hotfix/urgent-bug
+=======
+                        ? "메시지를 입력해주세요. (Enter로 전송)"
+>>>>>>> hotfix
                         : "대화를 먼저 선택해주세요."
                     }
                     rows={2}

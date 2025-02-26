@@ -1,6 +1,10 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+<<<<<<< HEAD:frontend/tailwind.config.js
   darkMode: 'class',
+=======
+  darkMode: "class",
+>>>>>>> hotfix:frontend/client/tailwind.config.js
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}", // 필요하다면 js,ts,jsx,tsx 등 확장자에 맞게

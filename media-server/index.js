@@ -1,6 +1,8 @@
+// /home/azureuser/FootTrafficReport/media-server/index.js
+
 "use strict";
 
-// .env 파일의 환경변수를 로드 (파일 경로는 프로젝트 루트에 있어야 합니다)
+// .env 파일의 환경변수를 로드
 require("dotenv").config();
 
 const express = require("express");
@@ -8,19 +10,15 @@ const http = require("http");
 const socketIO = require("socket.io");
 const mediasoup = require("mediasoup");
 
-// .env 파일에 정의된 PUBLIC_IP를 사용합니다.
 const ANNOUNCED_IP = process.env.PUBLIC_IP || "YOUR.PUBLIC.IP";
-// 필요시 MEDIASOUP_MIN_PORT와 MEDIASOUP_MAX_PORT도 .env에 추가하세요.
-const MIN_PORT = process.env.MEDIASOUP_MIN_PORT || 10000;
-const MAX_PORT = process.env.MEDIASOUP_MAX_PORT || 10200;
+const MIN_PORT = parseInt(process.env.MEDIASOUP_MIN_PORT || 10000, 10);
+const MAX_PORT = parseInt(process.env.MEDIASOUP_MAX_PORT || 10200, 10);
 
 const app = express();
 const server = http.createServer(app);
-
-// Socket.IO 기본 경로: '/socket.io'
-// Nginx에서 proxy_pass "/socket.io/"로 설정되어 있음
 const io = socketIO(server);
 
+// Mediasoup Worker/Router
 let worker;
 let router;
 
@@ -28,22 +26,29 @@ let router;
  * (A) Mediasoup Worker 및 Router 초기화
  */
 async function startMediasoup() {
-  // Mediasoup Worker 생성
+  // 1) Worker 생성, UDP 포트 범위 지정
   worker = await mediasoup.createWorker({
     rtcMinPort: MIN_PORT,
     rtcMaxPort: MAX_PORT,
-    // 필요에 따라 logLevel, logTags 설정 가능
+    // (선택) verbose한 로그
+    logLevel: "debug",
+    logTags: ["transport", "rtp", "rtcp", "ice", "dtls", "rtx"],
   });
 
-  // Router 생성 - 사용할 mediaCodecs 지정
+  // 2) Router 생성 (코덱 설정)
   router = await worker.createRouter({
     mediaCodecs: [
       { kind: "audio", mimeType: "audio/opus", clockRate: 48000, channels: 2 },
       { kind: "video", mimeType: "video/VP8", clockRate: 90000 },
+      // 필요시 => { kind: "video", mimeType: "video/H264", clockRate: 90000 }
     ],
   });
 
-  console.log("Mediasoup Worker/Router created!");
+  console.log("[mediasoup] Worker/Router created =>", {
+    rtcMinPort: MIN_PORT,
+    rtcMaxPort: MAX_PORT,
+    announcedIp: ANNOUNCED_IP,
+  });
 }
 
 /**
@@ -52,7 +57,7 @@ async function startMediasoup() {
 io.on("connection", (socket) => {
   console.log("Client connected:", socket.id);
 
-  // 1) router.rtpCapabilities 요청 처리
+  // 1) router RTP Capabilities
   socket.on("getRouterRtpCapabilities", (data, callback) => {
     try {
       const rtpCapabilities = router.rtpCapabilities;
@@ -63,21 +68,20 @@ io.on("connection", (socket) => {
     }
   });
 
-  // 2) WebRtcTransport 생성 요청 처리
+  // 2) createTransport (send or recv)
   socket.on("createTransport", async ({ direction }, callback) => {
     try {
       const transport = await router.createWebRtcTransport({
-        listenIps: [
-          // 0.0.0.0로 리슨하고, 공인 IP는 환경변수로 지정합니다.
-          { ip: "0.0.0.0", announcedIp: ANNOUNCED_IP },
-        ],
+        listenIps: [{ ip: "0.0.0.0", announcedIp: ANNOUNCED_IP }],
         enableUdp: true,
         enableTcp: true,
         preferUdp: true,
         initialAvailableOutgoingBitrate: 800000,
       });
 
-      console.log(`WebRtcTransport created: ${transport.id} (dir=${direction})`);
+      console.log(
+        `[SFU] WebRtcTransport created => id=${transport.id}, direction=${direction}`
+      );
 
       const transportParams = {
         id: transport.id,
@@ -86,7 +90,6 @@ io.on("connection", (socket) => {
         dtlsParameters: transport.dtlsParameters,
       };
 
-      // 송수신 구분하여 transport 저장
       if (direction === "recv") {
         socket.data.recvTransport = transport;
       } else {
@@ -100,7 +103,7 @@ io.on("connection", (socket) => {
     }
   });
 
-  // 3) DTLS 연결 요청 처리 (connectTransport)
+  // 3) connectTransport (DTLS)
   socket.on("connectTransport", async ({ transportId, dtlsParameters }, callback) => {
     try {
       let transport;
@@ -113,7 +116,7 @@ io.on("connection", (socket) => {
       }
 
       await transport.connect({ dtlsParameters });
-      console.log("Transport connected, id=", transport.id);
+      console.log(`[SFU] Transport connected => id=${transport.id}`);
       callback({ success: true });
     } catch (err) {
       console.error("connectTransport error:", err);
@@ -121,18 +124,20 @@ io.on("connection", (socket) => {
     }
   });
 
-  // 4) Producer 생성 요청 처리 (produce)
+  // 4) Producer 생성
   socket.on("produce", async ({ transportId, kind, rtpParameters }, callback) => {
     try {
-      const transport = (socket.data.sendTransport && socket.data.sendTransport.id === transportId)
-        ? socket.data.sendTransport
-        : null;
+      const transport =
+        socket.data.sendTransport && socket.data.sendTransport.id === transportId
+          ? socket.data.sendTransport
+          : null;
+
       if (!transport) {
         throw new Error("No sendTransport for produce");
       }
 
       const producer = await transport.produce({ kind, rtpParameters });
-      console.log("Producer created:", producer.id, kind);
+      console.log(`[SFU] Producer created => id=${producer.id}, kind=${kind}`);
 
       if (!socket.data.producers) {
         socket.data.producers = [];
@@ -140,8 +145,11 @@ io.on("connection", (socket) => {
       socket.data.producers.push(producer);
 
       producer.on("transportclose", () => {
-        console.log("Producer's transport closed:", producer.id);
+        console.log(`[SFU] Producer's transport closed => ${producer.id}`);
       });
+
+      // 여기서 PlainTransport 등의 추가 로직을 제거!
+      // 즉, 모자이크 파이프라인(RTP Out) 없이 끝남.
 
       callback({ success: true, producerId: producer.id });
     } catch (err) {
@@ -150,12 +158,14 @@ io.on("connection", (socket) => {
     }
   });
 
-  // 5) Consumer 생성 요청 처리 (consume)
+  // 5) Consumer 생성 (옵션)
   socket.on("consume", async ({ producerId, transportId }, callback) => {
     try {
-      const transport = (socket.data.recvTransport && socket.data.recvTransport.id === transportId)
-        ? socket.data.recvTransport
-        : null;
+      const transport =
+        socket.data.recvTransport && socket.data.recvTransport.id === transportId
+          ? socket.data.recvTransport
+          : null;
+
       if (!transport) {
         throw new Error("No recvTransport for consume");
       }
@@ -163,15 +173,16 @@ io.on("connection", (socket) => {
       const consumer = await transport.consume({
         producerId,
         rtpCapabilities: router.rtpCapabilities,
-        paused: true, // 생성 후 일단 paused 상태
+        paused: true,
       });
-      console.log("Consumer created:", consumer.id, "producerId=", producerId);
+      console.log(`[SFU] Consumer created => id=${consumer.id}, producer=${producerId}`);
 
       if (!socket.data.consumers) {
         socket.data.consumers = [];
       }
       socket.data.consumers.push(consumer);
 
+      // consumerParams 반환
       const consumerParams = {
         producerId,
         id: consumer.id,
@@ -187,9 +198,11 @@ io.on("connection", (socket) => {
     }
   });
 
-  // 6) 클라이언트 연결 종료 시 처리
+  // 6) disconnect
   socket.on("disconnect", () => {
     console.log("Client disconnected:", socket.id);
+
+    // cleanup
     if (socket.data.sendTransport) {
       socket.data.sendTransport.close();
     }
@@ -202,6 +215,7 @@ io.on("connection", (socket) => {
     if (socket.data.consumers) {
       socket.data.consumers.forEach((c) => c.close());
     }
+    // PlainTransport-related data (removed)
   });
 });
 
@@ -213,6 +227,7 @@ startMediasoup()
     const PORT = 3000;
     server.listen(PORT, () => {
       console.log(`Mediasoup server listening on port ${PORT}`);
+      console.log("[INFO] PlainTransport for mosaic? Removed. Now only WebRTC remains!");
     });
   })
   .catch((err) => {

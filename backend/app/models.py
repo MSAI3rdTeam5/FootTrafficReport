@@ -1,5 +1,7 @@
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy import Column, Integer, String, Text, TIMESTAMP, ForeignKey, LargeBinary, func
 from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
 from sqlalchemy import LargeBinary
 from .database import Base
 
@@ -7,6 +9,7 @@ class Member(Base):
     __tablename__ = "member"
     id = Column(Integer, primary_key=True)
     email = Column(String(100), unique=True, nullable=False)
+    password = Column(String(255), nullable=True)
     name = Column(String(100), nullable=False)
     subscription_plan = Column(String(50), nullable=False, default="FREE")
     created_at = Column(TIMESTAMP, server_default=func.now())
@@ -77,9 +80,8 @@ class Report(Base):
     member_id = Column(Integer, ForeignKey("member.id", ondelete="CASCADE"), nullable=False)
     cctv_id = Column(Integer, ForeignKey("cctv_info.id"), nullable=False)
     report_title = Column(String(200), nullable=False)
-    # Postgres BYTEA -> in SQLAlchemy, you can use LargeBinary or BLOB
-    # pdf_data = Column(String)
     pdf_data = Column(LargeBinary, nullable=False)
+    summary = Column(JSONB, nullable=True)
     created_at = Column(TIMESTAMP, server_default=func.now())
 
     cctv = relationship("CctvInfo", back_populates="reports")
