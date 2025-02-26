@@ -1,0 +1,25 @@
+# fastapi==0.95.2
+# uvicorn==0.32.1
+# ipython==8.12.3
+# Markdown==3.7
+# matplotlib==3.10.0
+# numpy==2.2.2
+# openai==1.62.0
+# pandas==2.2.3
+# pdfkit==1.0.0
+# python-dotenv==1.0.1
+# requests==2.32.3
+
+
+fastapi
+uvicorn
+ipython
+markdown
+matplotlib
+numpy
+openai
+pandas
+pdfkit
+python-dotenv
+requests
+pydantic
