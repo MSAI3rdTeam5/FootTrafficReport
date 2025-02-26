@@ -5,8 +5,4 @@ opencv-contrib-python==4.11.0.86
 aiohttp==3.10.11
 uvicorn==0.32.1
 fastapi==0.95.2
-<<<<<<< HEAD
 python-dotenv==1.0.1
-=======
-python-dotenv==1.0.1
->>>>>>> hotfix/urgent-bug
