@@ -24,7 +24,7 @@
 - 내 모니터링
   ![Web Page](images/Monitering.png)
 - CCTV 확인
-  ![Web Page](images/Logpage.png)
+  ![Web Page](images/Log_page.png)
 - Dashboaed
   ![Web Page](images/Dashboard.png)
 - AI 인사이트
