@@ -1,5 +1,8 @@
 # 팀 ISEEU: MS AI SCHOOL 5기 3차 5팀 프로젝트
 
+![image](https://github.com/user-attachments/assets/3ad14ea7-cc07-434d-896e-658f5a3e7c73)
+![image](https://github.com/user-attachments/assets/51e6854a-3460-4d15-898e-7991858d1d3f)
+
 ## 프로젝트 개요
 ### 팀 정보
 - **프로젝트명:** CV 기반 유동인구 데이터베이스화 및 LLM 활용 보고서 및 대시보드 개발
