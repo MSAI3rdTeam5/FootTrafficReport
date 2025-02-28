@@ -1,6 +1,7 @@
 # 팀 ISEEU: MS AI SCHOOL 5기 3차 5팀 프로젝트
 
-![image](https://github.com/user-attachments/assets/3ad14ea7-cc07-434d-896e-658f5a3e7c73)
+<img src="images/기념사진.png">
+
 ![image](https://github.com/user-attachments/assets/51e6854a-3460-4d15-898e-7991858d1d3f)
 
 ## 프로젝트 개요
